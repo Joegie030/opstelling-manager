@@ -4,6 +4,7 @@ import { Speler, Wedstrijd, formaties } from './types';
 import TeamBeheer from './components/TeamBeheer.tsx';
 import Statistieken from './components/Statistieken.tsx';
 
+
 function App() {
   const [spelers, setSpelers] = useState<Speler[]>(() => {
     const opgeslagen = localStorage.getItem('voetbal_spelers');
