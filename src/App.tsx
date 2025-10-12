@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Trophy, Plus, Trash2, Eye } from 'lucide-react';
 import { Speler, Wedstrijd, formaties } from './types';
-import TeamBeheer from './components/TeamBeheer.tsx';
-import Statistieken from './components/Statistieken.tsx';
+import TeamBeheer from './components/teambeheer.tsx';
+import Statistieken from './components/statistieken.tsx';
 
 function App() {
   const [spelers, setSpelers] = useState<Speler[]>(() => {
