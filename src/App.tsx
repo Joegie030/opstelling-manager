@@ -3,6 +3,7 @@ import { Trophy, Plus, Trash2, Eye } from 'lucide-react';
 import { Speler, Wedstrijd, formaties } from './types';
 import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
+import Statistieken from './components/wedstrijdopstelling.tsx';
 
 
 function App() {
