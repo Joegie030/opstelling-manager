@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Clock, Plus, Trash2, X } from 'lucide-react';
 import { Speler, Wedstrijd, formaties } from '../types';
 
-
 interface Props {
   wedstrijd: Wedstrijd;
   spelers: Speler[];
@@ -40,7 +39,18 @@ export default function WedstrijdOpstelling({
     positie: string;
   }>({ open: false, kwartIndex: 0, positie: '' });
   
-  const posities = formaties[wedstrijd.formatie];
+  const posities = formaties[wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8'];
+
+  // Helper functie om formatie naam mooi weer te geven
+  const getFormatieNaam = (formatie: string): string => {
+    const namen: Record<string, string> = {
+      '6x6': '✈️ 6x6 Vliegtuig',
+      '6x6-vliegtuig': '✈️ 6x6 Vliegtuig',
+      '6x6-dobbelsteen': '🎲 6x6 Dobbelsteen',
+      '8x8': '⚽ 8x8'
+    };
+    return namen[formatie] || formatie;
+  };
 
   // Bereken statistieken voor deze wedstrijd
   const berekenWedstrijdStats = () => {
@@ -83,7 +93,10 @@ export default function WedstrijdOpstelling({
 
   // Veldindeling
   const getPositieLayout = () => {
-    if (wedstrijd.formatie === '6x6-vliegtuig') {
+    // Backward compatibility: oude '6x6' behandelen als '6x6-vliegtuig'
+    const formatie = wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie;
+    
+    if (formatie === '6x6-vliegtuig') {
       return {
         rijen: [
           [{ positie: 'Voor', col: 'col-start-2' }],
@@ -94,15 +107,15 @@ export default function WedstrijdOpstelling({
         gridCols: 'grid-cols-3'
       };
     }
-    if (wedstrijd.formatie === '6x6-dobbelsteen') {
+    if (formatie === '6x6-dobbelsteen') {
       return {
         rijen: [
-          [{ positie: 'Links voor' }, { positie: 'Rechts voor' }],
-          [{ positie: 'Midden', col: 'col-start-1 col-span-2' }],
-          [{ positie: 'Links achter' }, { positie: 'Rechts achter' }],
-          [{ positie: 'Keeper', col: 'col-start-1 col-span-2' }]
+          [{ positie: 'Links voor', col: 'col-start-1' }, { positie: 'Rechts voor', col: 'col-start-3' }],
+          [{ positie: 'Midden', col: 'col-start-2' }],
+          [{ positie: 'Links achter', col: 'col-start-1' }, { positie: 'Rechts achter', col: 'col-start-3' }],
+          [{ positie: 'Keeper', col: 'col-start-2' }]
         ],
-        gridCols: 'grid-cols-2'
+        gridCols: 'grid-cols-3'
       };
     }
     // 8x8
@@ -257,7 +270,7 @@ export default function WedstrijdOpstelling({
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-4 flex-wrap">
-            <h2 className="text-2xl font-bold">{clubNaam} {teamNaam} - {wedstrijd.formatie}</h2>
+            <h2 className="text-2xl font-bold">{clubNaam} {teamNaam} - {getFormatieNaam(wedstrijd.formatie)}</h2>
             <input 
               type="date" 
               value={wedstrijd.datum} 

@@ -27,6 +27,17 @@ function App() {
   const [huidigScherm, setHuidigScherm] = useState('wedstrijden');
   const [huidgeWedstrijd, setHuidgeWedstrijd] = useState<Wedstrijd | null>(null);
 
+  // Helper functie om formatie naam mooi weer te geven (met backward compatibility)
+  const getFormatieNaam = (formatie: string): string => {
+    const namen: Record<string, string> = {
+      '6x6': '✈️ 6x6 Vliegtuig',
+      '6x6-vliegtuig': '✈️ 6x6 Vliegtuig',
+      '6x6-dobbelsteen': '🎲 6x6 Dobbelsteen',
+      '8x8': '⚽ 8x8'
+    };
+    return namen[formatie] || formatie;
+  };
+
   useEffect(() => {
     localStorage.setItem('voetbal_spelers', JSON.stringify(spelers));
   }, [spelers]);
@@ -219,7 +230,7 @@ function App() {
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <h4 className="font-bold">
-                              {wedstrijd.formatie} - {datumFormatted}
+                              {getFormatieNaam(wedstrijd.formatie)} - {datumFormatted}
                               {wedstrijd.tegenstander && <span className="text-blue-600"> vs {wedstrijd.tegenstander}</span>}
                             </h4>
                           </div>

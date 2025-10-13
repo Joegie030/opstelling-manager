@@ -6,6 +6,16 @@ interface Props {
 }
 
 export default function Statistieken({ spelers, wedstrijden }: Props) {
+  // Helper functie voor backward compatibility met oude '6x6' formatie
+  const getFormatie = (formatieNaam: string): string[] => {
+    // @ts-ignore - Voor backward compatibility met oude data
+    if (formatieNaam === '6x6') {
+      return formaties['6x6-vliegtuig'];
+    }
+    // @ts-ignore - Type check skippen voor oude formaties
+    return formaties[formatieNaam] || [];
+  };
+
   const berekenAlgemeneStats = () => {
     interface Stats {
       [key: number]: {
@@ -51,11 +61,9 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         });
         
         spelers.forEach(s => {
-          if (stats[s.id]) {
-            const gespeeld = spelersMetMinuten[s.id.toString()] || 0;
-            const wissel = kwart.minuten - gespeeld;
-            if (wissel > 0) stats[s.id].totaalWisselMinuten += wissel;
-          }
+          const gespeeld = spelersMetMinuten[s.id.toString()] || 0;
+          const wissel = kwart.minuten - gespeeld;
+          if (wissel > 0) stats[s.id].totaalWisselMinuten += wissel;
         });
       });
     });
@@ -119,7 +127,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                     {(() => {
                       const allePosities = new Set<string>();
                       wedstrijden.forEach(w => {
-                        formaties[w.formatie].forEach(p => allePosities.add(p));
+                        getFormatie(w.formatie).forEach(p => allePosities.add(p));
                       });
                       return Array.from(allePosities).sort().map(p => (
                         <th key={p} className="text-center py-2 px-2 text-sm">{p}</th>
@@ -138,7 +146,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                     });
                     
                     wedstrijden.forEach(w => {
-                      formaties[w.formatie].forEach(p => allePosities.add(p));
+                      getFormatie(w.formatie).forEach(p => allePosities.add(p));
                     });
                     
                     wedstrijden.forEach(wed => {
