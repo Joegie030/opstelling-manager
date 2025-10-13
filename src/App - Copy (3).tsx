@@ -5,6 +5,7 @@ import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
 
+
 function App() {
   const [spelers, setSpelers] = useState<Speler[]>(() => {
     const opgeslagen = localStorage.getItem('voetbal_spelers');
@@ -43,7 +44,7 @@ function App() {
     localStorage.setItem('voetbal_teamNaam', teamNaam);
   }, [teamNaam]);
 
-  const maakWedstrijd = (formatie: '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8') => {
+  const maakWedstrijd = (formatie: '6x6' | '8x8') => {
     const nieuweWedstrijd: Wedstrijd = {
       id: Date.now(),
       datum: new Date().toISOString().split('T')[0],
@@ -176,27 +177,20 @@ function App() {
                       <p className="text-yellow-800">Je hebt minimaal 6 spelers nodig om een wedstrijd aan te maken.</p>
                     </div>
                   ) : (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       <button 
-                        onClick={() => maakWedstrijd('6x6-vliegtuig')} 
+                        onClick={() => maakWedstrijd('6x6')} 
                         className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-left"
                       >
-                        <h4 className="text-lg font-bold mb-1">✈️ 6x6 Vliegtuig</h4>
+                        <h4 className="text-lg font-bold mb-1">6 tegen 6</h4>
                         <p className="text-sm opacity-90">Keeper, Achter, Links, Midden, Rechts, Voor</p>
-                      </button>
-                      <button 
-                        onClick={() => maakWedstrijd('6x6-dobbelsteen')} 
-                        className="p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-left"
-                      >
-                        <h4 className="text-lg font-bold mb-1">🎲 6x6 Dobbelsteen</h4>
-                        <p className="text-sm opacity-90">2-1-2 opstelling met centrale middenvelder</p>
                       </button>
                       {spelers.length >= 8 && (
                         <button 
                           onClick={() => maakWedstrijd('8x8')} 
                           className="p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 text-left"
                         >
-                          <h4 className="text-lg font-bold mb-1">⚽ 8 tegen 8</h4>
+                          <h4 className="text-lg font-bold mb-1">8 tegen 8</h4>
                           <p className="text-sm opacity-90">Keeper, 2 Achter, 3 Midden, 2 Voor</p>
                         </button>
                       )}

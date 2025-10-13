@@ -20,12 +20,11 @@ export interface Wedstrijd {
   id: number;
   datum: string;
   tegenstander: string;
-  formatie: '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8';
+  formatie: '6x6' | '8x8';
   kwarten: Kwart[];
 }
 
-export const formaties: Record<'6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8', string[]> = {
-  '6x6-vliegtuig': ['Keeper', 'Achter', 'Links', 'Midden', 'Rechts', 'Voor'],
-  '6x6-dobbelsteen': ['Keeper', 'Links achter', 'Rechts achter', 'Midden', 'Links voor', 'Rechts voor'],
+export const formaties: Record<'6x6' | '8x8', string[]> = {
+  '6x6': ['Keeper', 'Achter', 'Links', 'Midden', 'Rechts', 'Voor'],
   '8x8': ['Keeper', 'Links achter', 'Rechts achter', 'Links midden', 'Midden', 'Rechts midden', 'Links voor', 'Rechts voor']
 };

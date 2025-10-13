@@ -82,7 +82,7 @@ export default function WedstrijdOpstelling({
 
   // Veldindeling
   const getPositieLayout = () => {
-    if (wedstrijd.formatie === '6x6-vliegtuig') {
+    if (wedstrijd.formatie === '6x6') {
       return {
         rijen: [
           [{ positie: 'Voor', col: 'col-start-2' }],
@@ -93,18 +93,6 @@ export default function WedstrijdOpstelling({
         gridCols: 'grid-cols-3'
       };
     }
-    if (wedstrijd.formatie === '6x6-dobbelsteen') {
-      return {
-        rijen: [
-          [{ positie: 'Links voor' }, { positie: 'Rechts voor' }],
-          [{ positie: 'Midden', col: 'col-start-1 col-span-2' }],
-          [{ positie: 'Links achter' }, { positie: 'Rechts achter' }],
-          [{ positie: 'Keeper', col: 'col-start-1 col-span-2' }]
-        ],
-        gridCols: 'grid-cols-2'
-      };
-    }
-    // 8x8
     return {
       rijen: [
         [{ positie: 'Links voor', col: 'col-start-2' }, { positie: 'Rechts voor', col: 'col-start-4' }],
