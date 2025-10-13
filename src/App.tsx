@@ -155,41 +155,45 @@ function App() {
               <div className="text-white">
                 <h1 className="text-xl font-bold leading-tight">{clubNaam}</h1>
                 <p className="text-sm opacity-90">{teamNaam}</p>
+                <p className="text-xs opacity-75">Opstelling Manager</p>
               </div>
             </div>
           </div>
           
-          {/* Navigation Tabs */}
+          {/* Navigation Tabs - Responsive */}
           <div className="flex gap-2 overflow-x-auto pb-1">
             <button 
               onClick={() => setHuidigScherm('wedstrijden')} 
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all text-sm sm:text-base ${
                 huidigScherm === 'wedstrijden' || huidigScherm === 'wedstrijd' 
                   ? 'bg-white text-blue-600 shadow-md' 
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
-              ⚽ Wedstrijden
+              <span className="hidden sm:inline">⚽ Wedstrijden</span>
+              <span className="sm:hidden">⚽</span>
             </button>
             <button 
               onClick={() => setHuidigScherm('statistieken')} 
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all text-sm sm:text-base ${
                 huidigScherm === 'statistieken' 
                   ? 'bg-white text-blue-600 shadow-md' 
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
-              📈 Statistieken
+              <span className="hidden sm:inline">📈 Statistieken</span>
+              <span className="sm:hidden">📈</span>
             </button>
             <button 
               onClick={() => setHuidigScherm('team')} 
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all text-sm sm:text-base ${
                 huidigScherm === 'team' 
                   ? 'bg-white text-blue-600 shadow-md' 
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
-              👥 Team
+              <span className="hidden sm:inline">👥 Team</span>
+              <span className="sm:hidden">👥</span>
             </button>
           </div>
         </div>
