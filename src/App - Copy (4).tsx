@@ -143,62 +143,36 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      {/* Modern Sticky Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-green-600 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-md">
-                ⚽
-              </div>
-              <div className="text-white">
-                <h1 className="text-xl font-bold leading-tight">{clubNaam}</h1>
-                <p className="text-sm opacity-90">{teamNaam}</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Navigation Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h1 className="text-3xl font-bold text-center mb-2 text-blue-600">
+            ⚽ {clubNaam} - {teamNaam}
+          </h1>
+          <p className="text-center text-gray-600 mb-6">Opstelling Manager</p>
+
+          <div className="flex gap-2 mb-6 flex-wrap justify-center">
             <button 
               onClick={() => setHuidigScherm('wedstrijden')} 
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                huidigScherm === 'wedstrijden' || huidigScherm === 'wedstrijd' 
-                  ? 'bg-white text-blue-600 shadow-md' 
-                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium ${huidigScherm === 'wedstrijden' || huidigScherm === 'wedstrijd' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
             >
               ⚽ Wedstrijden
             </button>
             <button 
               onClick={() => setHuidigScherm('statistieken')} 
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                huidigScherm === 'statistieken' 
-                  ? 'bg-white text-blue-600 shadow-md' 
-                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium ${huidigScherm === 'statistieken' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
             >
               📈 Statistieken
             </button>
             <button 
               onClick={() => setHuidigScherm('team')} 
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                huidigScherm === 'team' 
-                  ? 'bg-white text-blue-600 shadow-md' 
-                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium ${huidigScherm === 'team' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
             >
               👥 Team
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div>>
+          <div>
             {huidigScherm === 'wedstrijden' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">

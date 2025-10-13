@@ -170,7 +170,7 @@ export default function WedstrijdOpstelling({
     const wisselBeurten = getWisselBeurten();
     const stats = berekenWedstrijdStats();
     
-    const spelersMetInfo = spelers.map(s => {
+    return spelers.map(s => {
       const spelerStats = stats.find(stat => stat.naam === s.naam);
       return {
         ...s,
@@ -180,29 +180,6 @@ export default function WedstrijdOpstelling({
         minutenGespeeld: spelerStats?.minuten || 0,
         keeperBeurten: spelerStats?.keeperBeurten || 0
       };
-    });
-    
-    // Sorteren vanaf kwart 2: minst gespeeld eerst
-    if (kwartIndex > 0) {
-      return spelersMetInfo.sort((a, b) => {
-        // Beschikbare spelers altijd boven gebruikte
-        if (a.isGebruikt !== b.isGebruikt) {
-          return a.isGebruikt ? 1 : -1;
-        }
-        // Als beide beschikbaar: sorteer op minuten (minst eerst)
-        if (!a.isGebruikt && !b.isGebruikt) {
-          return a.minutenGespeeld - b.minutenGespeeld;
-        }
-        return 0;
-      });
-    }
-    
-    // Kwart 1: alfabetisch, maar beschikbare eerst
-    return spelersMetInfo.sort((a, b) => {
-      if (a.isGebruikt !== b.isGebruikt) {
-        return a.isGebruikt ? 1 : -1;
-      }
-      return a.naam.localeCompare(b.naam);
     });
   };
 
@@ -502,15 +479,6 @@ export default function WedstrijdOpstelling({
             
             <div className="overflow-y-auto p-4 flex-1">
               <div className="space-y-2">
-                {/* Info banner vanaf kwart 2 */}
-                {selectieModal.kwartIndex > 0 && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-blue-800">
-                      💡 <strong>Tip:</strong> Spelers met minste speeltijd staan bovenaan
-                    </p>
-                  </div>
-                )}
-                
                 {/* Leeg maken optie */}
                 {wedstrijd.kwarten[selectieModal.kwartIndex].opstelling[selectieModal.positie] && (
                   <button
@@ -522,63 +490,27 @@ export default function WedstrijdOpstelling({
                   </button>
                 )}
                 
-                {/* Beschikbare spelers met kleurcodering */}
-                {getBeschikbareSpelers(selectieModal.kwartIndex, selectieModal.positie).map((speler, index) => {
+                {/* Beschikbare spelers */}
+                {getBeschikbareSpelers(selectieModal.kwartIndex, selectieModal.positie).map(speler => {
                   const isBeschikbaar = !speler.isGebruikt;
-                  
-                  // Bepaal prioriteit kleur (alleen voor beschikbare spelers vanaf kwart 2)
-                  let priorityColor = 'green';
-                  let priorityLabel = '';
-                  
-                  if (isBeschikbaar && selectieModal.kwartIndex > 0) {
-                    if (speler.minutenGespeeld === 0) {
-                      priorityColor = 'red';
-                      priorityLabel = '🔴 Nog niet gespeeld!';
-                    } else if (speler.minutenGespeeld <= 6.25) {
-                      priorityColor = 'orange';
-                      priorityLabel = '🟡 Weinig gespeeld';
-                    } else {
-                      priorityColor = 'green';
-                    }
-                  }
-                  
-                  const borderColor = !isBeschikbaar ? 'border-gray-300' : 
-                                     priorityColor === 'red' ? 'border-red-400' :
-                                     priorityColor === 'orange' ? 'border-orange-400' : 'border-green-500';
-                  
-                  const bgColor = !isBeschikbaar ? 'bg-gray-100' : 
-                                 priorityColor === 'red' ? 'bg-red-50' :
-                                 priorityColor === 'orange' ? 'bg-orange-50' : 'bg-green-50';
-                  
-                  const hoverColor = !isBeschikbaar ? '' : 
-                                    priorityColor === 'red' ? 'hover:bg-red-100' :
-                                    priorityColor === 'orange' ? 'hover:bg-orange-100' : 'hover:bg-green-100';
-                  
-                  // Top 3 minst gespeelde spelers krijgen ster (vanaf kwart 2, alleen beschikbaar)
-                  const isTopPriority = isBeschikbaar && selectieModal.kwartIndex > 0 && index < 3;
                   
                   return (
                     <button
                       key={speler.id}
                       onClick={() => isBeschikbaar && selecteerSpeler(speler.id.toString())}
                       disabled={!isBeschikbaar}
-                      className={`w-full p-4 border-2 rounded-lg transition-colors text-left relative ${
-                        isBeschikbaar ? `${borderColor} ${bgColor} ${hoverColor} cursor-pointer` : 
-                        'border-gray-300 bg-gray-100 cursor-not-allowed opacity-50'
+                      className={`w-full p-4 border-2 rounded-lg transition-colors text-left ${
+                        isBeschikbaar
+                          ? 'border-green-500 bg-green-50 hover:bg-green-100 cursor-pointer'
+                          : 'border-gray-300 bg-gray-100 cursor-not-allowed opacity-50'
                       }`}
                     >
-                      {isTopPriority && (
-                        <div className="absolute top-2 right-2 text-xl">⭐</div>
-                      )}
                       <div className="flex justify-between items-start">
-                        <div className="flex-1 pr-8">
+                        <div className="flex-1">
                           <div className="font-semibold text-lg">
                             {speler.naam}
                             {speler.isKeeper && ' 🧤'}
                           </div>
-                          {priorityLabel && (
-                            <div className="text-sm font-semibold mt-1 mb-1">{priorityLabel}</div>
-                          )}
                           <div className="text-xs text-gray-600 mt-1 space-y-1">
                             {speler.minutenGespeeld > 0 && (
                               <div>⚽ {speler.minutenGespeeld} min gespeeld</div>
@@ -589,11 +521,8 @@ export default function WedstrijdOpstelling({
                             {speler.aantalWissel > 0 && (
                               <div>🪑 {speler.aantalWissel}x op de bank</div>
                             )}
-                            {speler.minutenGespeeld === 0 && selectieModal.kwartIndex > 0 && (
-                              <div className="text-red-600 font-medium">✨ Moet nog spelen!</div>
-                            )}
-                            {speler.minutenGespeeld === 0 && selectieModal.kwartIndex === 0 && (
-                              <div className="text-blue-600">✨ Start van wedstrijd</div>
+                            {speler.minutenGespeeld === 0 && speler.aantalWissel === 0 && (
+                              <div className="text-blue-600">✨ Nog niet gespeeld</div>
                             )}
                           </div>
                         </div>
