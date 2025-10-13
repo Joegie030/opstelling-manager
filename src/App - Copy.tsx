@@ -3,7 +3,7 @@ import { Trophy, Plus, Trash2, Eye } from 'lucide-react';
 import { Speler, Wedstrijd, formaties } from './types';
 import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
-import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
+import Statistieken from './components/wedstrijdopstelling.tsx';
 
 function App() {
   const [spelers, setSpelers] = useState<Speler[]>(() => {
@@ -271,20 +271,49 @@ function App() {
             )}
 
             {huidigScherm === 'wedstrijd' && huidgeWedstrijd && (
-              <WedstrijdOpstelling
-                wedstrijd={huidgeWedstrijd}
-                spelers={spelers}
-                clubNaam={clubNaam}
-                teamNaam={teamNaam}
-                onUpdateDatum={updateDatum}
-                onUpdateTegenstander={updateTegenstander}
-                onUpdateOpstelling={updateOpstelling}
-                onVoegWisselToe={voegWisselToe}
-                onUpdateWissel={updateWissel}
-                onVerwijderWissel={verwijderWissel}
-                onKopieer={() => kopieerWedstrijd(huidgeWedstrijd)}
-                onSluiten={() => { setHuidgeWedstrijd(null); setHuidigScherm('overzicht'); }}
-              />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <h2 className="text-2xl font-bold">{clubNaam} {teamNaam} - {huidgeWedstrijd.formatie}</h2>
+                      <input 
+                        type="date" 
+                        value={huidgeWedstrijd.datum} 
+                        onChange={(e) => updateDatum(e.target.value)} 
+                        className="px-3 py-2 border-2 border-blue-500 rounded-lg font-medium" 
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">Tegenstander:</label>
+                      <input 
+                        type="text" 
+                        value={huidgeWedstrijd.tegenstander || ''} 
+                        onChange={(e) => updateTegenstander(e.target.value)} 
+                        placeholder="Optioneel" 
+                        className="px-3 py-2 border rounded-lg" 
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => kopieerWedstrijd(huidgeWedstrijd)} 
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />Kopieer
+                    </button>
+                    <button 
+                      onClick={() => { setHuidgeWedstrijd(null); setHuidigScherm('overzicht'); }} 
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                    >
+                      Opslaan & Sluiten
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-center text-gray-500 py-8">
+                  Wedstrijd opstelling functionaliteit wordt nog toegevoegd...
+                </p>
+              </div>
             )}
           </div>
         </div>
