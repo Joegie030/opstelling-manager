@@ -5,7 +5,6 @@ import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
 
-
 function App() {
   const [spelers, setSpelers] = useState<Speler[]>(() => {
     const opgeslagen = localStorage.getItem('voetbal_spelers');
@@ -199,7 +198,7 @@ function App() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto p-4">
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div>>
+          <div>
             {huidigScherm === 'wedstrijden' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
