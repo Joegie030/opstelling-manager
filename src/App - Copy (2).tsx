@@ -5,6 +5,7 @@ import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
 
+
 function App() {
   const [spelers, setSpelers] = useState<Speler[]>(() => {
     const opgeslagen = localStorage.getItem('voetbal_spelers');
@@ -24,7 +25,7 @@ function App() {
     return localStorage.getItem('voetbal_teamNaam') || 'Team A';
   });
   
-  const [huidigScherm, setHuidigScherm] = useState('wedstrijden');
+  const [huidigScherm, setHuidigScherm] = useState('team');
   const [huidgeWedstrijd, setHuidgeWedstrijd] = useState<Wedstrijd | null>(null);
 
   useEffect(() => {
@@ -77,7 +78,7 @@ function App() {
     setWedstrijden(wedstrijden.filter(w => w.id !== wedstrijdId));
     if (huidgeWedstrijd?.id === wedstrijdId) {
       setHuidgeWedstrijd(null);
-      setHuidigScherm('wedstrijden');
+      setHuidigScherm('overzicht');
     }
   };
 
@@ -142,10 +143,22 @@ function App() {
 
           <div className="flex gap-2 mb-6 flex-wrap justify-center">
             <button 
-              onClick={() => setHuidigScherm('wedstrijden')} 
-              className={`px-4 py-2 rounded-lg font-medium ${huidigScherm === 'wedstrijden' || huidigScherm === 'wedstrijd' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              onClick={() => setHuidigScherm('team')} 
+              className={`px-4 py-2 rounded-lg font-medium ${huidigScherm === 'team' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
             >
-              ⚽ Wedstrijden
+              👥 Team
+            </button>
+            <button 
+              onClick={() => setHuidigScherm('nieuwe-wedstrijd')} 
+              className={`px-4 py-2 rounded-lg font-medium ${huidigScherm === 'nieuwe-wedstrijd' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            >
+              ➕ Nieuwe Wedstrijd
+            </button>
+            <button 
+              onClick={() => setHuidigScherm('overzicht')} 
+              className={`px-4 py-2 rounded-lg font-medium ${huidigScherm === 'overzicht' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            >
+              📊 Overzicht
             </button>
             <button 
               onClick={() => setHuidigScherm('statistieken')} 
@@ -153,51 +166,57 @@ function App() {
             >
               📈 Statistieken
             </button>
-            <button 
-              onClick={() => setHuidigScherm('team')} 
-              className={`px-4 py-2 rounded-lg font-medium ${huidigScherm === 'team' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            >
-              👥 Team
-            </button>
           </div>
 
           <div>
-            {huidigScherm === 'wedstrijden' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">Wedstrijden</h2>
-                </div>
+            {huidigScherm === 'team' && (
+              <TeamBeheer
+                clubNaam={clubNaam}
+                setClubNaam={setClubNaam}
+                teamNaam={teamNaam}
+                setTeamNaam={setTeamNaam}
+                spelers={spelers}
+                setSpelers={setSpelers}
+              />
+            )}
 
-                {/* Nieuwe Wedstrijd Knoppen */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-semibold mb-3 text-lg">➕ Nieuwe Wedstrijd Aanmaken</h3>
-                  {spelers.length < 6 ? (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-yellow-800">Je hebt minimaal 6 spelers nodig om een wedstrijd aan te maken.</p>
-                    </div>
-                  ) : (
-                    <div className="grid gap-3 sm:grid-cols-2">
+            {huidigScherm === 'nieuwe-wedstrijd' && (
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Trophy className="w-6 h-6" />Nieuwe Wedstrijd
+                </h2>
+                {spelers.length < 6 ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-yellow-800">Je hebt minimaal 6 spelers nodig.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    <button 
+                      onClick={() => maakWedstrijd('6x6')} 
+                      className="p-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-left"
+                    >
+                      <h3 className="text-xl font-bold mb-2">6 tegen 6</h3>
+                      <p className="text-sm opacity-90">Keeper, Achter, Links, Midden, Rechts, Voor</p>
+                      <p className="text-xs opacity-75 mt-2">💡 Je kunt wisselen na 6,25 min</p>
+                    </button>
+                    {spelers.length >= 8 && (
                       <button 
-                        onClick={() => maakWedstrijd('6x6')} 
-                        className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-left"
+                        onClick={() => maakWedstrijd('8x8')} 
+                        className="p-6 bg-green-500 text-white rounded-lg hover:bg-green-600 text-left"
                       >
-                        <h4 className="text-lg font-bold mb-1">6 tegen 6</h4>
-                        <p className="text-sm opacity-90">Keeper, Achter, Links, Midden, Rechts, Voor</p>
+                        <h3 className="text-xl font-bold mb-2">8 tegen 8</h3>
+                        <p className="text-sm opacity-90">Keeper, 2 Achter, 3 Midden, 2 Voor</p>
+                        <p className="text-xs opacity-75 mt-2">💡 Je kunt wisselen na 6,25 min</p>
                       </button>
-                      {spelers.length >= 8 && (
-                        <button 
-                          onClick={() => maakWedstrijd('8x8')} 
-                          className="p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 text-left"
-                        >
-                          <h4 className="text-lg font-bold mb-1">8 tegen 8</h4>
-                          <p className="text-sm opacity-90">Keeper, 2 Achter, 3 Midden, 2 Voor</p>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
-                {/* Overzicht Wedstrijden */}
+            {huidigScherm === 'overzicht' && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Overzicht Wedstrijden</h2>
                 <div className="space-y-3">
                   <h3 className="text-xl font-semibold">Gespeelde Wedstrijden ({wedstrijden.length})</h3>
                   {wedstrijden.sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime()).map(wedstrijd => {
@@ -241,22 +260,11 @@ function App() {
                       </div>
                     );
                   })}
-                  {wedstrijden.length === 0 && (
-                    <p className="text-gray-500 text-center py-8">Nog geen wedstrijden gespeeld. Maak hierboven je eerste wedstrijd aan!</p>
-                  )}
                 </div>
+                {wedstrijden.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">Nog geen wedstrijden gespeeld</p>
+                )}
               </div>
-            )}
-
-            {huidigScherm === 'team' && (
-              <TeamBeheer
-                clubNaam={clubNaam}
-                setClubNaam={setClubNaam}
-                teamNaam={teamNaam}
-                setTeamNaam={setTeamNaam}
-                spelers={spelers}
-                setSpelers={setSpelers}
-              />
             )}
 
             {huidigScherm === 'statistieken' && (
@@ -276,7 +284,7 @@ function App() {
                 onUpdateWissel={updateWissel}
                 onVerwijderWissel={verwijderWissel}
                 onKopieer={() => kopieerWedstrijd(huidgeWedstrijd)}
-                onSluiten={() => { setHuidgeWedstrijd(null); setHuidigScherm('wedstrijden'); }}
+                onSluiten={() => { setHuidgeWedstrijd(null); setHuidigScherm('overzicht'); }}
               />
             )}
           </div>
