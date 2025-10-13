@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Clock, Plus, Trash2, X } from 'lucide-react';
 import { Speler, Wedstrijd, formaties } from '../types';
 
-
 interface Props {
   wedstrijd: Wedstrijd;
   spelers: Speler[];
