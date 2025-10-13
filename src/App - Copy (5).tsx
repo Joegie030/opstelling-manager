@@ -5,6 +5,7 @@ import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
 
+
 function App() {
   const [spelers, setSpelers] = useState<Speler[]>(() => {
     const opgeslagen = localStorage.getItem('voetbal_spelers');
@@ -251,82 +252,40 @@ function App() {
                   {wedstrijden.sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime()).map(wedstrijd => {
                     const datumFormatted = new Date(wedstrijd.datum).toLocaleDateString('nl-NL', {
                       weekday: 'short',
-                      day: 'numeric',
+                      year: 'numeric',
                       month: 'short',
-                      year: 'numeric'
+                      day: 'numeric'
                     });
-                    
-                    // Bepaal formatie kleur
-                    const formatieKleur = wedstrijd.formatie.includes('vliegtuig') ? 'bg-blue-100 text-blue-700' :
-                                         wedstrijd.formatie.includes('dobbelsteen') ? 'bg-purple-100 text-purple-700' :
-                                         'bg-green-100 text-green-700';
-                    
                     return (
-                      <div key={wedstrijd.id} className="border-2 rounded-xl p-4 bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-shadow">
-                        {/* Header: Formatie badge + Datum */}
-                        <div className="flex flex-wrap items-center gap-2 mb-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${formatieKleur}`}>
-                            {getFormatieNaam(wedstrijd.formatie)}
-                          </span>
-                          <span className="text-sm text-gray-600 font-medium">{datumFormatted}</span>
-                        </div>
-                        
-                        {/* Tegenstander */}
-                        {wedstrijd.tegenstander && (
-                          <div className="mb-3">
-                            <span className="text-gray-500 text-sm">vs </span>
-                            <span className="font-semibold text-blue-600">{wedstrijd.tegenstander}</span>
+                      <div key={wedstrijd.id} className="border rounded-lg p-4 bg-white">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="font-bold">
+                              {getFormatieNaam(wedstrijd.formatie)} - {datumFormatted}
+                              {wedstrijd.tegenstander && <span className="text-blue-600"> vs {wedstrijd.tegenstander}</span>}
+                            </h4>
                           </div>
-                        )}
-                        
-                        {/* Action Buttons - Responsive */}
-                        <div className="flex flex-wrap gap-2">
-                          {/* Desktop: full buttons */}
-                          <button 
-                            onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
-                            className="hidden sm:flex flex-1 items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
-                          >
-                            <Eye className="w-4 h-4" />
-                            Bekijk
-                          </button>
-                          <button 
-                            onClick={() => kopieerWedstrijd(wedstrijd)} 
-                            className="hidden sm:flex flex-1 items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors"
-                            title="Kopieer deze wedstrijd"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Kopieer
-                          </button>
-                          <button 
-                            onClick={() => verwijderWedstrijd(wedstrijd.id)} 
-                            className="hidden sm:flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Verwijder
-                          </button>
-                          
-                          {/* Mobile: icon-only buttons, full width */}
-                          <button 
-                            onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
-                            className="sm:hidden flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
-                          >
-                            <Eye className="w-5 h-5" />
-                            <span>Bekijk</span>
-                          </button>
-                          <button 
-                            onClick={() => kopieerWedstrijd(wedstrijd)} 
-                            className="sm:hidden flex items-center justify-center px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                            title="Kopieer"
-                          >
-                            <Plus className="w-5 h-5" />
-                          </button>
-                          <button 
-                            onClick={() => verwijderWedstrijd(wedstrijd.id)} 
-                            className="sm:hidden flex items-center justify-center px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                            title="Verwijder"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
+                              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-1"
+                            >
+                              <Eye className="w-4 h-4" />Bekijk
+                            </button>
+                            <button 
+                              onClick={() => kopieerWedstrijd(wedstrijd)} 
+                              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 flex items-center gap-1" 
+                              title="Kopieer deze wedstrijd"
+                            >
+                              <Plus className="w-4 h-4" />Kopieer
+                            </button>
+                            <button 
+                              onClick={() => verwijderWedstrijd(wedstrijd.id)} 
+                              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
