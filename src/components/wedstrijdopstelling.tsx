@@ -9,6 +9,7 @@ interface Props {
   teamNaam: string;
   onUpdateDatum: (datum: string) => void;
   onUpdateTegenstander: (tegenstander: string) => void;
+  onUpdateThuisUit: (thuisUit: 'thuis' | 'uit') => void;
   onUpdateOpstelling: (kwartIndex: number, positie: string, spelerId: string) => void;
   onVoegWisselToe: (kwartIndex: number) => void;
   onUpdateWissel: (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => void;
@@ -24,6 +25,7 @@ export default function WedstrijdOpstelling({
   teamNaam,
   onUpdateDatum,
   onUpdateTegenstander,
+  onUpdateThuisUit,
   onUpdateOpstelling,
   onVoegWisselToe,
   onUpdateWissel,
@@ -354,6 +356,31 @@ export default function WedstrijdOpstelling({
               placeholder="Optioneel" 
               className="px-3 py-2 border rounded-lg" 
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Locatie:</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onUpdateThuisUit('thuis')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  (wedstrijd.thuisUit || 'thuis') === 'thuis'
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                🏠 Thuis
+              </button>
+              <button
+                onClick={() => onUpdateThuisUit('uit')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  (wedstrijd.thuisUit || 'thuis') === 'uit'
+                    ? 'bg-orange-500 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                ✈️ Uit
+              </button>
+            </div>
           </div>
         </div>
         <div className="flex gap-2">

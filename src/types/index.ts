@@ -20,6 +20,7 @@ export interface Wedstrijd {
   id: number;
   datum: string;
   tegenstander: string;
+  thuisUit: 'thuis' | 'uit';
   formatie: '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8';
   kwarten: Kwart[];
 }

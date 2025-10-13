@@ -59,6 +59,7 @@ function App() {
       id: Date.now(),
       datum: new Date().toISOString().split('T')[0],
       tegenstander: '',
+      thuisUit: 'thuis',
       formatie,
       kwarten: [
         { nummer: 1, opstelling: {}, wissels: [], minuten: 12.5 },
@@ -77,7 +78,8 @@ function App() {
       ...wedstrijd,
       id: Date.now(),
       datum: new Date().toISOString().split('T')[0],
-      tegenstander: wedstrijd.tegenstander ? `${wedstrijd.tegenstander} (kopie)` : ''
+      tegenstander: wedstrijd.tegenstander ? `${wedstrijd.tegenstander} (kopie)` : '',
+      thuisUit: wedstrijd.thuisUit || 'thuis'
     };
     setWedstrijden([...wedstrijden, gekopieerd]);
     setHuidgeWedstrijd(gekopieerd);
@@ -102,6 +104,13 @@ function App() {
   const updateTegenstander = (nieuweTegenstander: string) => {
     if (!huidgeWedstrijd) return;
     const updated = { ...huidgeWedstrijd, tegenstander: nieuweTegenstander };
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  const updateThuisUit = (nieuweThuisUit: 'thuis' | 'uit') => {
+    if (!huidgeWedstrijd) return;
+    const updated = { ...huidgeWedstrijd, thuisUit: nieuweThuisUit };
     setHuidgeWedstrijd(updated);
     setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
   };
@@ -261,23 +270,45 @@ function App() {
                                          wedstrijd.formatie.includes('dobbelsteen') ? 'bg-purple-100 text-purple-700' :
                                          'bg-green-100 text-green-700';
                     
+                    // Thuis/Uit indicator
+                    const thuisUit = wedstrijd.thuisUit || 'thuis'; // Backward compatibility
+                    const isThuis = thuisUit === 'thuis';
+                    
                     return (
                       <div key={wedstrijd.id} className="border-2 rounded-xl p-4 bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-shadow">
-                        {/* Header: Formatie badge + Datum */}
+                        {/* Header: Formatie badge + Datum + Thuis/Uit */}
                         <div className="flex flex-wrap items-center gap-2 mb-3">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold ${formatieKleur}`}>
                             {getFormatieNaam(wedstrijd.formatie)}
                           </span>
                           <span className="text-sm text-gray-600 font-medium">{datumFormatted}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                            isThuis ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                          }`}>
+                            {isThuis ? '🏠 Thuis' : '✈️ Uit'}
+                          </span>
                         </div>
                         
-                        {/* Tegenstander */}
-                        {wedstrijd.tegenstander && (
-                          <div className="mb-3">
-                            <span className="text-gray-500 text-sm">vs </span>
-                            <span className="font-semibold text-blue-600">{wedstrijd.tegenstander}</span>
-                          </div>
-                        )}
+                        {/* Match-up display - thuis vs uit logica */}
+                        <div className="mb-3 flex items-center gap-2 flex-wrap">
+                          {isThuis ? (
+                            <>
+                              <span className="font-bold text-blue-600">{teamNaam}</span>
+                              <span className="text-gray-400 font-medium">vs</span>
+                              <span className="font-bold text-gray-700">
+                                {wedstrijd.tegenstander || '(Tegenstander niet ingevuld)'}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-bold text-gray-700">
+                                {wedstrijd.tegenstander || '(Tegenstander niet ingevuld)'}
+                              </span>
+                              <span className="text-gray-400 font-medium">vs</span>
+                              <span className="font-bold text-blue-600">{teamNaam}</span>
+                            </>
+                          )}
+                        </div>
                         
                         {/* Action Buttons - Responsive with proper sizing */}
                         <div className="flex flex-wrap gap-2">
@@ -361,6 +392,7 @@ function App() {
                 teamNaam={teamNaam}
                 onUpdateDatum={updateDatum}
                 onUpdateTegenstander={updateTegenstander}
+                onUpdateThuisUit={updateThuisUit}
                 onUpdateOpstelling={updateOpstelling}
                 onVoegWisselToe={voegWisselToe}
                 onUpdateWissel={updateWissel}
