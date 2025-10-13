@@ -150,27 +150,6 @@ export default function WedstrijdOpstelling({
     return keepers;
   };
 
-  // Tel keeper beurten in deze wedstrijd (niet totaal)
-  const getKeeperBeurtenInWedstrijd = () => {
-    const keeperTeller: Record<number, number> = {};
-    spelers.forEach(s => { keeperTeller[s.id] = 0; });
-    
-    wedstrijd.kwarten.forEach(kwart => {
-      const keeperId = kwart.opstelling['Keeper'];
-      if (keeperId) {
-        keeperTeller[Number(keeperId)] += 1;
-      }
-      // Tel ook wissels die keeper worden
-      kwart.wissels?.forEach(w => {
-        if (w.positie === 'Keeper' && w.wisselSpelerId) {
-          keeperTeller[Number(w.wisselSpelerId)] += 1;
-        }
-      });
-    });
-    
-    return keeperTeller;
-  };
-
   const getWisselBeurten = () => {
     const teller: Record<number, number> = {};
     spelers.forEach(s => { teller[s.id] = 0; });
@@ -189,9 +168,7 @@ export default function WedstrijdOpstelling({
     const huidigeSid = wedstrijd.kwarten[kwartIndex].opstelling[huidigePositie];
     const keepers = getKeeperSpelers();
     const wisselBeurten = getWisselBeurten();
-    const keeperBeurten = getKeeperBeurtenInWedstrijd();
     const stats = berekenWedstrijdStats();
-    const isKeeperPositie = huidigePositie === 'Keeper';
     
     const spelersMetInfo = spelers.map(s => {
       const spelerStats = stats.find(stat => stat.naam === s.naam);
@@ -201,32 +178,11 @@ export default function WedstrijdOpstelling({
         isKeeper: keepers.has(s.id.toString()),
         aantalWissel: wisselBeurten[s.id] || 0,
         minutenGespeeld: spelerStats?.minuten || 0,
-        keeperBeurten: spelerStats?.keeperBeurten || 0, // TOTAAL over alle wedstrijden!
-        keeperBeurtenDezeWedstrijd: keeperBeurten[s.id] || 0
+        keeperBeurten: spelerStats?.keeperBeurten || 0
       };
     });
     
-    // Speciale sortering voor Keeper positie - gebruik TOTAAL keeper beurten
-    if (isKeeperPositie) {
-      return spelersMetInfo.sort((a, b) => {
-        // Beschikbare spelers altijd boven gebruikte
-        if (a.isGebruikt !== b.isGebruikt) {
-          return a.isGebruikt ? 1 : -1;
-        }
-        // Als beide beschikbaar: sorteer op TOTAAL keeper beurten (over alle wedstrijden)
-        if (!a.isGebruikt && !b.isGebruikt) {
-          // Eerst op totale keeper beurten (minst eerst = eerlijkste verdeling!)
-          if (a.keeperBeurten !== b.keeperBeurten) {
-            return a.keeperBeurten - b.keeperBeurten;
-          }
-          // Dan alfabetisch
-          return a.naam.localeCompare(b.naam);
-        }
-        return 0;
-      });
-    }
-    
-    // Normale sortering vanaf kwart 2: minst gespeeld eerst
+    // Sorteren vanaf kwart 2: minst gespeeld eerst
     if (kwartIndex > 0) {
       return spelersMetInfo.sort((a, b) => {
         // Beschikbare spelers altijd boven gebruikte
@@ -546,14 +502,8 @@ export default function WedstrijdOpstelling({
             
             <div className="overflow-y-auto p-4 flex-1">
               <div className="space-y-2">
-                {/* Info banner - aangepast per positie type */}
-                {selectieModal.positie === 'Keeper' ? (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-yellow-800">
-                      🧤 <strong>Keeper selectie:</strong> Spelers die het minst keeper zijn geweest (totaal) staan bovenaan
-                    </p>
-                  </div>
-                ) : selectieModal.kwartIndex > 0 && (
+                {/* Info banner vanaf kwart 2 */}
+                {selectieModal.kwartIndex > 0 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <p className="text-sm text-blue-800">
                       💡 <strong>Tip:</strong> Spelers met minste speeltijd staan bovenaan
@@ -575,60 +525,37 @@ export default function WedstrijdOpstelling({
                 {/* Beschikbare spelers met kleurcodering */}
                 {getBeschikbareSpelers(selectieModal.kwartIndex, selectieModal.positie).map((speler, index) => {
                   const isBeschikbaar = !speler.isGebruikt;
-                  const isKeeperPositie = selectieModal.positie === 'Keeper';
                   
-                  // Bepaal prioriteit kleur
+                  // Bepaal prioriteit kleur (alleen voor beschikbare spelers vanaf kwart 2)
                   let priorityColor = 'green';
                   let priorityLabel = '';
                   
-                  if (isBeschikbaar) {
-                    // Keeper positie: prioriteit op basis van TOTAAL keeper beurten
-                    if (isKeeperPositie) {
-                      if (speler.keeperBeurten === 0) {
-                        priorityColor = 'yellow';
-                        priorityLabel = '🧤 Nog nooit keeper geweest!';
-                      } else if (speler.keeperBeurten <= 2) {
-                        priorityColor = 'orange';
-                        priorityLabel = `🟡 ${speler.keeperBeurten}x keeper geweest`;
-                      } else {
-                        priorityColor = 'green';
-                        priorityLabel = `🟢 Al ${speler.keeperBeurten}x keeper geweest`;
-                      }
-                    }
-                    // Normale positie vanaf kwart 2: prioriteit op basis van speeltijd
-                    else if (selectieModal.kwartIndex > 0) {
-                      if (speler.minutenGespeeld === 0) {
-                        priorityColor = 'red';
-                        priorityLabel = '🔴 Nog niet gespeeld!';
-                      } else if (speler.minutenGespeeld <= 6.25) {
-                        priorityColor = 'orange';
-                        priorityLabel = '🟡 Weinig gespeeld';
-                      } else {
-                        priorityColor = 'green';
-                      }
+                  if (isBeschikbaar && selectieModal.kwartIndex > 0) {
+                    if (speler.minutenGespeeld === 0) {
+                      priorityColor = 'red';
+                      priorityLabel = '🔴 Nog niet gespeeld!';
+                    } else if (speler.minutenGespeeld <= 6.25) {
+                      priorityColor = 'orange';
+                      priorityLabel = '🟡 Weinig gespeeld';
+                    } else {
+                      priorityColor = 'green';
                     }
                   }
                   
                   const borderColor = !isBeschikbaar ? 'border-gray-300' : 
                                      priorityColor === 'red' ? 'border-red-400' :
-                                     priorityColor === 'yellow' ? 'border-yellow-400' :
                                      priorityColor === 'orange' ? 'border-orange-400' : 'border-green-500';
                   
                   const bgColor = !isBeschikbaar ? 'bg-gray-100' : 
                                  priorityColor === 'red' ? 'bg-red-50' :
-                                 priorityColor === 'yellow' ? 'bg-yellow-50' :
                                  priorityColor === 'orange' ? 'bg-orange-50' : 'bg-green-50';
                   
                   const hoverColor = !isBeschikbaar ? '' : 
                                     priorityColor === 'red' ? 'hover:bg-red-100' :
-                                    priorityColor === 'yellow' ? 'hover:bg-yellow-100' :
                                     priorityColor === 'orange' ? 'hover:bg-orange-100' : 'hover:bg-green-100';
                   
-                  // Ster voor spelers met hoogste prioriteit
-                  const isTopPriority = isBeschikbaar && (
-                    (isKeeperPositie && speler.keeperBeurten === 0) || // Nog nooit keeper = top prioriteit!
-                    (!isKeeperPositie && selectieModal.kwartIndex > 0 && index < 3)
-                  );
+                  // Top 3 minst gespeelde spelers krijgen ster (vanaf kwart 2, alleen beschikbaar)
+                  const isTopPriority = isBeschikbaar && selectieModal.kwartIndex > 0 && index < 3;
                   
                   return (
                     <button
@@ -647,44 +574,26 @@ export default function WedstrijdOpstelling({
                         <div className="flex-1 pr-8">
                           <div className="font-semibold text-lg">
                             {speler.naam}
-                            {speler.keeperBeurten > 0 && ' 🧤'}
+                            {speler.isKeeper && ' 🧤'}
                           </div>
                           {priorityLabel && (
                             <div className="text-sm font-semibold mt-1 mb-1">{priorityLabel}</div>
                           )}
                           <div className="text-xs text-gray-600 mt-1 space-y-1">
-                            {/* Toon keeper info voor keeper positie */}
-                            {isKeeperPositie && (
-                              <>
-                                <div className="font-medium text-base">
-                                  📊 Totaal: {speler.keeperBeurten}x keeper geweest
-                                </div>
-                                {speler.keeperBeurtenDezeWedstrijd > 0 && (
-                                  <div className="text-blue-600">
-                                    (🧤 Deze wedstrijd: {speler.keeperBeurtenDezeWedstrijd}x)
-                                  </div>
-                                )}
-                              </>
+                            {speler.minutenGespeeld > 0 && (
+                              <div>⚽ {speler.minutenGespeeld} min gespeeld</div>
                             )}
-                            {/* Normale info voor andere posities */}
-                            {!isKeeperPositie && (
-                              <>
-                                {speler.minutenGespeeld > 0 && (
-                                  <div>⚽ {speler.minutenGespeeld} min gespeeld</div>
-                                )}
-                                {speler.keeperBeurten > 0 && (
-                                  <div>🧤 {speler.keeperBeurten}x keeper geweest</div>
-                                )}
-                                {speler.aantalWissel > 0 && (
-                                  <div>🪑 {speler.aantalWissel}x op de bank</div>
-                                )}
-                                {speler.minutenGespeeld === 0 && selectieModal.kwartIndex > 0 && (
-                                  <div className="text-red-600 font-medium">✨ Moet nog spelen!</div>
-                                )}
-                                {speler.minutenGespeeld === 0 && selectieModal.kwartIndex === 0 && (
-                                  <div className="text-blue-600">✨ Start van wedstrijd</div>
-                                )}
-                              </>
+                            {speler.keeperBeurten > 0 && (
+                              <div>🧤 {speler.keeperBeurten}x keeper geweest</div>
+                            )}
+                            {speler.aantalWissel > 0 && (
+                              <div>🪑 {speler.aantalWissel}x op de bank</div>
+                            )}
+                            {speler.minutenGespeeld === 0 && selectieModal.kwartIndex > 0 && (
+                              <div className="text-red-600 font-medium">✨ Moet nog spelen!</div>
+                            )}
+                            {speler.minutenGespeeld === 0 && selectieModal.kwartIndex === 0 && (
+                              <div className="text-blue-600">✨ Start van wedstrijd</div>
                             )}
                           </div>
                         </div>

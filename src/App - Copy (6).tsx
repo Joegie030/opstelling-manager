@@ -279,19 +279,19 @@ function App() {
                           </div>
                         )}
                         
-                        {/* Action Buttons - Responsive with proper sizing */}
+                        {/* Action Buttons - Responsive */}
                         <div className="flex flex-wrap gap-2">
-                          {/* Desktop: fixed width buttons */}
+                          {/* Desktop: full buttons */}
                           <button 
                             onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
-                            className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
+                            className="hidden sm:flex flex-1 items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
                           >
                             <Eye className="w-4 h-4" />
                             Bekijk
                           </button>
                           <button 
                             onClick={() => kopieerWedstrijd(wedstrijd)} 
-                            className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors"
+                            className="hidden sm:flex flex-1 items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors"
                             title="Kopieer deze wedstrijd"
                           >
                             <Plus className="w-4 h-4" />
@@ -299,13 +299,13 @@ function App() {
                           </button>
                           <button 
                             onClick={() => verwijderWedstrijd(wedstrijd.id)} 
-                            className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium transition-colors"
+                            className="hidden sm:flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                             Verwijder
                           </button>
                           
-                          {/* Mobile: full width buttons */}
+                          {/* Mobile: icon-only buttons, full width */}
                           <button 
                             onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
                             className="sm:hidden flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
