@@ -405,73 +405,6 @@ export default function WedstrijdOpstelling({
 
   const stats = berekenWedstrijdStats();
 
-  // Helper: Vind afwezige spelers die toch in de opstelling staan
-  const getAfwezigeSpelersInOpstelling = () => {
-    const afwezigeIds = wedstrijd.afwezigeSpelers || [];
-    if (afwezigeIds.length === 0) return [];
-    
-    const afwezigeInOpstelling: { speler: Speler; kwarten: { kwart: number; posities: string[] }[] }[] = [];
-    
-    afwezigeIds.forEach(afwezigId => {
-      const speler = spelers.find(s => s.id === afwezigId);
-      if (!speler) return;
-      
-      const kwarten: { kwart: number; posities: string[] }[] = [];
-      
-      wedstrijd.kwarten.forEach((kwart, kwartIndex) => {
-        const posities: string[] = [];
-        
-        // Check basis opstelling
-        Object.entries(kwart.opstelling).forEach(([positie, spelerId]) => {
-          if (spelerId === afwezigId.toString()) {
-            posities.push(positie);
-          }
-        });
-        
-        // Check wissels
-        kwart.wissels?.forEach(wissel => {
-          if (wissel.wisselSpelerId === afwezigId.toString()) {
-            posities.push(`Wissel naar ${wissel.positie}`);
-          }
-        });
-        
-        if (posities.length > 0) {
-          kwarten.push({ kwart: kwartIndex + 1, posities });
-        }
-      });
-      
-      if (kwarten.length > 0) {
-        afwezigeInOpstelling.push({ speler, kwarten });
-      }
-    });
-    
-    return afwezigeInOpstelling;
-  };
-
-  // Verwijder afwezige spelers uit opstelling
-  const verwijderAfwezigeUitOpstelling = () => {
-    const afwezigeIds = wedstrijd.afwezigeSpelers || [];
-    if (afwezigeIds.length === 0) return;
-    
-    wedstrijd.kwarten.forEach((kwart, kwartIndex) => {
-      // Verwijder uit basis opstelling
-      Object.entries(kwart.opstelling).forEach(([positie, spelerId]) => {
-        if (afwezigeIds.includes(Number(spelerId))) {
-          onUpdateOpstelling(kwartIndex, positie, '');
-        }
-      });
-      
-      // Verwijder uit wissels
-      kwart.wissels?.forEach((wissel, wisselIndex) => {
-        if (afwezigeIds.includes(Number(wissel.wisselSpelerId))) {
-          onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', '');
-        }
-      });
-    });
-  };
-
-  const afwezigeInOpstelling = getAfwezigeSpelersInOpstelling();
-
   // Open modal voor speler selectie
   const openSelectieModal = (kwartIndex: number, positie: string) => {
     setSelectieModal({ open: true, kwartIndex, positie });
@@ -612,56 +545,6 @@ export default function WedstrijdOpstelling({
             )}
           </div>
         </div>
-
-        {/* WAARSCHUWING: Afwezige spelers in opstelling */}
-        {afwezigeInOpstelling.length > 0 && (
-          <div className="bg-red-50 border-2 border-red-400 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">⚠️</span>
-              <div className="flex-1">
-                <h3 className="font-bold text-red-800 text-base mb-2">
-                  Let op! Je hebt {afwezigeInOpstelling.length} afwezige {afwezigeInOpstelling.length === 1 ? 'speler' : 'spelers'} in de opstelling
-                </h3>
-                <div className="space-y-2 mb-3">
-                  {afwezigeInOpstelling.map(({ speler, kwarten }) => (
-                    <div key={speler.id} className="bg-white rounded p-2 border border-red-200">
-                      <div className="font-semibold text-red-700">{speler.naam}</div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        {kwarten.map(({ kwart, posities }) => (
-                          <div key={kwart}>
-                            Kwart {kwart}: {posities.join(', ')}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={verwijderAfwezigeUitOpstelling}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors text-sm"
-                  >
-                    🗑️ Verwijder automatisch
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Haal alle afwezige spelers weg uit afwezigheid lijst
-                      afwezigeInOpstelling.forEach(({ speler }) => {
-                        onToggleAfwezig(speler.id);
-                      });
-                    }}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium transition-colors text-sm"
-                  >
-                    ✅ Markeer als aanwezig
-                  </button>
-                </div>
-                <p className="text-xs text-red-700 mt-3">
-                  💡 <strong>Tip:</strong> Je kunt ze automatisch verwijderen of alsnog aanwezig markeren als ze toch kunnen spelen.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Action buttons */}
         <div className="flex gap-2 w-full sm:w-auto">
@@ -1112,6 +995,7 @@ export default function WedstrijdOpstelling({
                         <div className="flex-1 pr-8">
                           <div className="font-semibold text-lg">
                             {speler.naam}
+                            {speler.keeperBeurten > 0 && ' 🧤'}
                           </div>
                           {priorityLabel && (
                             <div className="text-sm font-semibold mt-1 mb-1">{priorityLabel}</div>
@@ -1138,6 +1022,9 @@ export default function WedstrijdOpstelling({
                               <>
                                 {speler.minutenGespeeld > 0 && (
                                   <div>⚽ {speler.minutenGespeeld} min gespeeld</div>
+                                )}
+                                {speler.keeperBeurten > 0 && (
+                                  <div>🧤 {speler.keeperBeurten}x keeper geweest</div>
                                 )}
                                 {speler.aantalWissel > 0 && (
                                   <div>🪑 {speler.aantalWissel}x op de bank</div>
