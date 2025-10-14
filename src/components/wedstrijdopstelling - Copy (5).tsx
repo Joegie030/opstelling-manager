@@ -4,7 +4,6 @@ import { Speler, Wedstrijd, formaties } from '../types';
 
 interface Props {
   wedstrijd: Wedstrijd;
-  wedstrijden: Wedstrijd[];
   spelers: Speler[];
   clubNaam: string;
   teamNaam: string;
@@ -21,7 +20,6 @@ interface Props {
 
 export default function WedstrijdOpstelling({
   wedstrijd,
-  wedstrijden,
   spelers,
   clubNaam,
   teamNaam,
@@ -93,30 +91,6 @@ export default function WedstrijdOpstelling({
     });
 
     return Object.values(stats);
-  };
-
-  // Bereken TOTAAL keeper beurten over ALLE wedstrijden
-  const berekenTotaalKeeperBeurten = () => {
-    const totaalKeeperTelling: Record<number, number> = {};
-    spelers.forEach(s => { totaalKeeperTelling[s.id] = 0; });
-    
-    // Itereer door ALLE wedstrijden
-    wedstrijden.forEach(w => {
-      w.kwarten.forEach(kwart => {
-        const keeperId = kwart.opstelling['Keeper'];
-        if (keeperId) {
-          totaalKeeperTelling[Number(keeperId)] = (totaalKeeperTelling[Number(keeperId)] || 0) + 1;
-        }
-        // Tel ook wissels die keeper worden
-        kwart.wissels?.forEach(wissel => {
-          if (wissel.positie === 'Keeper' && wissel.wisselSpelerId) {
-            totaalKeeperTelling[Number(wissel.wisselSpelerId)] = (totaalKeeperTelling[Number(wissel.wisselSpelerId)] || 0) + 1;
-          }
-        });
-      });
-    });
-    
-    return totaalKeeperTelling;
   };
 
   // Veldindeling
@@ -218,7 +192,6 @@ export default function WedstrijdOpstelling({
     const keepers = getKeeperSpelers();
     const wisselBeurten = getWisselBeurten();
     const keeperBeurten = getKeeperBeurtenInWedstrijd();
-    const totaalKeeperBeurten = berekenTotaalKeeperBeurten(); // NIEUWE: Totaal over alle wedstrijden!
     const stats = berekenWedstrijdStats();
     const isKeeperPositie = huidigePositie === 'Keeper';
     
@@ -230,7 +203,7 @@ export default function WedstrijdOpstelling({
         isKeeper: keepers.has(s.id.toString()),
         aantalWissel: wisselBeurten[s.id] || 0,
         minutenGespeeld: spelerStats?.minuten || 0,
-        keeperBeurten: totaalKeeperBeurten[s.id] || 0, // TOTAAL over ALLE wedstrijden!
+        keeperBeurten: spelerStats?.keeperBeurten || 0, // TOTAAL over alle wedstrijden!
         keeperBeurtenDezeWedstrijd: keeperBeurten[s.id] || 0
       };
     });

@@ -387,7 +387,6 @@ function App() {
             {huidigScherm === 'wedstrijd' && huidgeWedstrijd && (
               <WedstrijdOpstelling
                 wedstrijd={huidgeWedstrijd}
-                wedstrijden={wedstrijden}
                 spelers={spelers}
                 clubNaam={clubNaam}
                 teamNaam={teamNaam}
