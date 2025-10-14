@@ -283,71 +283,69 @@ export default function WedstrijdOpstelling({
     });
   };
 
-  // Regelchecks PER KWART - NIEUWE AANPAK!
-  const checkKwartRegels = (kwartIndex: number) => {
+  // Regelchecks
+  const checkKeeperWisselRegel = () => {
     const waarschuwingen: string[] = [];
-    const kwart = wedstrijd.kwarten[kwartIndex];
-    
-    // 1. KEEPER REGEL: Keeper moet juist WEL spelen voor of na keeper beurt
-    const keeperId = kwart.opstelling['Keeper'];
-    if (keeperId) {
+    wedstrijd.kwarten.forEach((kwart, ki) => {
+      const keeperId = kwart.opstelling['Keeper'];
+      if (!keeperId) return;
       const keeperNaam = spelers.find(s => s.id.toString() === keeperId)?.naam;
-      if (keeperNaam) {
-        const vorigKwart = kwartIndex > 0 ? wedstrijd.kwarten[kwartIndex - 1] : null;
-        const volgendKwart = kwartIndex < 3 ? wedstrijd.kwarten[kwartIndex + 1] : null;
-        const speeltInVorig = vorigKwart && Object.values(vorigKwart.opstelling).includes(keeperId);
-        const speeltInVolgend = volgendKwart && Object.values(volgendKwart.opstelling).includes(keeperId);
-        
-        // Als keeper NIET speelt voor EN NIET speelt na = te weinig veldspeler ervaring!
-        if (!speeltInVorig && !speeltInVolgend) {
-          const kwartNamen = [];
-          if (vorigKwart) kwartNamen.push(`kwart ${kwartIndex}`);
-          if (volgendKwart) kwartNamen.push(`kwart ${kwartIndex + 2}`);
-          waarschuwingen.push(
-            `🧤 ${keeperNaam} speelt niet als veldspeler ${kwartNamen.length === 2 ? 'in ' + kwartNamen.join(' en ') : kwartNamen.length === 1 ? 'in ' + kwartNamen[0] : ''} (te weinig veldervaring!)`
-          );
-        }
+      if (!keeperNaam) return;
+      const vorigKwart = ki > 0 ? wedstrijd.kwarten[ki - 1] : null;
+      const volgendKwart = ki < 3 ? wedstrijd.kwarten[ki + 1] : null;
+      const speeltInVorig = vorigKwart && Object.values(vorigKwart.opstelling).includes(keeperId);
+      const speeltInVolgend = volgendKwart && Object.values(volgendKwart.opstelling).includes(keeperId);
+      if (!speeltInVorig && !speeltInVolgend) {
+        waarschuwingen.push(`${keeperNaam} is keeper in kwart ${ki + 1} maar staat op de bank in ${vorigKwart ? 'kwart ' + ki : ''} ${!speeltInVorig && !speeltInVolgend && vorigKwart && volgendKwart ? 'én' : ''} ${volgendKwart ? 'kwart ' + (ki + 2) : ''}`);
       }
-    }
-    
-    // 2. DUBBELE BANK: Check of speler 2 kwarten op rij op bank zit (vanaf dit kwart)
-    if (kwartIndex < wedstrijd.kwarten.length - 1) {
-      const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
-      spelers.forEach(speler => {
-        const speeltDitKwart = Object.values(kwart.opstelling).includes(speler.id.toString()) || 
-                               kwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
-        const speeltVolgendKwart = Object.values(volgendKwart.opstelling).includes(speler.id.toString()) || 
-                                   volgendKwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
-        
-        if (!speeltDitKwart && !speeltVolgendKwart) {
-          waarschuwingen.push(
-            `⏸️ ${speler.naam} zit 2 kwarten op de bank (dit kwart + kwart ${kwartIndex + 2})`
-          );
-        }
-      });
-    }
-    
-    // 3. INVALLER-BANK: Check of invaller daarna weer op bank zit
+    });
+    return waarschuwingen;
+  };
+
+  const checkDubbelWisselRegel = () => {
+    const waarschuwingen: string[] = [];
     spelers.forEach(speler => {
-      const basisDitKwart = Object.values(kwart.opstelling).includes(speler.id.toString());
-      const valtInDitKwart = kwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
-      
-      // Check: valt in dit kwart, maar speelt niet in volgend kwart
-      if (valtInDitKwart && !basisDitKwart && kwartIndex < wedstrijd.kwarten.length - 1) {
-        const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
-        const speeltVolgendKwart = Object.values(volgendKwart.opstelling).includes(speler.id.toString()) || 
-                                   volgendKwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
-        
-        if (!speeltVolgendKwart) {
-          waarschuwingen.push(
-            `🔄 ${speler.naam} valt in maar zit daarna weer op de bank (kwart ${kwartIndex + 2})`
-          );
+      for (let ki = 0; ki < wedstrijd.kwarten.length - 1; ki++) {
+        const k1 = wedstrijd.kwarten[ki];
+        const k2 = wedstrijd.kwarten[ki + 1];
+        const speelt1 = Object.values(k1.opstelling).includes(speler.id.toString()) || k1.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+        const speelt2 = Object.values(k2.opstelling).includes(speler.id.toString()) || k2.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+        if (!speelt1 && !speelt2) {
+          waarschuwingen.push(`${speler.naam} staat 2 kwarten achter elkaar op de bank (kwart ${ki + 1} en ${ki + 2})`);
         }
       }
     });
-    
     return waarschuwingen;
   };
+
+  const checkInvallerBankRegel = () => {
+    const waarschuwingen: string[] = [];
+    spelers.forEach(speler => {
+      for (let ki = 0; ki < wedstrijd.kwarten.length - 1; ki++) {
+        const k1 = wedstrijd.kwarten[ki];
+        const k2 = wedstrijd.kwarten[ki + 1];
+        const basisK1 = Object.values(k1.opstelling).includes(speler.id.toString());
+        const valtInK1 = k1.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+        const speeltK2 = Object.values(k2.opstelling).includes(speler.id.toString()) || k2.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+        if (valtInK1 && !basisK1 && !speeltK2) {
+          waarschuwingen.push(`${speler.naam} valt in tijdens kwart ${ki + 1} maar zit op de bank in kwart ${ki + 2}`);
+        }
+        const speeltK1 = Object.values(k1.opstelling).includes(speler.id.toString()) || k1.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+        const basisK2 = Object.values(k2.opstelling).includes(speler.id.toString());
+        const valtInK2 = k2.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+        if (!speeltK1 && valtInK2 && !basisK2) {
+          waarschuwingen.push(`${speler.naam} zit op de bank in kwart ${ki + 1} en valt pas in tijdens kwart ${ki + 2}`);
+        }
+      }
+    });
+    return waarschuwingen;
+  };
+
+  const alleWaarschuwingen = [
+    ...checkKeeperWisselRegel(),
+    ...checkDubbelWisselRegel(),
+    ...checkInvallerBankRegel()
+  ];
 
   const stats = berekenWedstrijdStats();
 
@@ -632,29 +630,6 @@ export default function WedstrijdOpstelling({
               <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
             )}
           </div>
-          
-          {/* NIEUW: Regelchecks per kwart */}
-          {(() => {
-            const kwartWaarschuwingen = checkKwartRegels(kwartIndex);
-            if (kwartWaarschuwingen.length === 0) return null;
-            
-            return (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
-                <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                  <span>⚠️</span>
-                  <span>Let op in dit kwart:</span>
-                </h4>
-                <div className="space-y-2">
-                  {kwartWaarschuwingen.map((waarschuwing, index) => (
-                    <div key={index} className="flex items-start gap-2 text-sm text-orange-700">
-                      <span className="text-base shrink-0">•</span>
-                      <span>{waarschuwing}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
         </div>
       ))}
 
@@ -684,33 +659,23 @@ export default function WedstrijdOpstelling({
         </div>
       </div>
 
-      <div className="border rounded-lg p-4 bg-green-50">
-        <h3 className="font-bold mb-3 flex items-center gap-2">📋 Regelcheck Samenvatting</h3>
-        {(() => {
-          const alleKwartChecks = wedstrijd.kwarten.map((_, index) => checkKwartRegels(index)).flat();
-          const totaalWaarschuwingen = alleKwartChecks.length;
-          
-          if (totaalWaarschuwingen === 0) {
-            return (
-              <div className="flex items-center gap-2 text-green-700">
-                <span className="text-xl">✅</span>
-                <span className="font-medium">Perfect! Alle regels zijn in orde!</span>
-              </div>
-            );
-          }
-          
-          return (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-orange-700">
+      <div className="border rounded-lg p-4 bg-yellow-50">
+        <h3 className="font-bold mb-3 flex items-center gap-2">📋 Regelcheck</h3>
+        {alleWaarschuwingen.length === 0 ? (
+          <div className="flex items-center gap-2 text-green-700">
+            <span className="text-xl">✅</span>
+            <span>Alle regels zijn in orde!</span>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {alleWaarschuwingen.map((waarschuwing, index) => (
+              <div key={index} className="flex items-start gap-2 text-orange-700 bg-orange-100 p-3 rounded">
                 <span className="text-lg">⚠️</span>
-                <span className="font-medium">{totaalWaarschuwingen} waarschuwing{totaalWaarschuwingen !== 1 ? 'en' : ''} gevonden</span>
+                <span className="text-sm">{waarschuwing}</span>
               </div>
-              <p className="text-sm text-gray-600">
-                Bekijk elk kwart hierboven voor details. De checks verschijnen direct onder elk kwart waar iets niet klopt.
-              </p>
-            </div>
-          );
-        })()}
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Speler Selectie Modal */}
