@@ -48,10 +48,10 @@ export default function WedstrijdOpstelling({
   // Helper functie om formatie naam mooi weer te geven
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
-      '6x6': 'âœˆï¸ 6x6 Vliegtuig',
-      '6x6-vliegtuig': 'âœˆï¸ 6x6 Vliegtuig',
-      '6x6-dobbelsteen': 'ðŸŽ² 6x6 Dobbelsteen',
-      '8x8': 'âš½ 8x8'
+      '6x6': '✈️ 6x6 Vliegtuig',
+      '6x6-vliegtuig': '✈️ 6x6 Vliegtuig',
+      '6x6-dobbelsteen': '🎲 6x6 Dobbelsteen',
+      '8x8': '⚽ 8x8'
     };
     return namen[formatie] || formatie;
   };
@@ -304,7 +304,7 @@ export default function WedstrijdOpstelling({
           if (vorigKwart) kwartNamen.push(`kwart ${kwartIndex}`);
           if (volgendKwart) kwartNamen.push(`kwart ${kwartIndex + 2}`);
           waarschuwingen.push(
-            `ðŸ§¤ ${keeperNaam} speelt niet als veldspeler ${kwartNamen.length === 2 ? 'in ' + kwartNamen.join(' en ') : kwartNamen.length === 1 ? 'in ' + kwartNamen[0] : ''} (te weinig veldervaring!)`
+            `🧤 ${keeperNaam} speelt niet als veldspeler ${kwartNamen.length === 2 ? 'in ' + kwartNamen.join(' en ') : kwartNamen.length === 1 ? 'in ' + kwartNamen[0] : ''} (te weinig veldervaring!)`
           );
         }
       }
@@ -321,7 +321,7 @@ export default function WedstrijdOpstelling({
         
         if (!speeltDitKwart && !speeltVolgendKwart) {
           waarschuwingen.push(
-            `â¸ï¸ ${speler.naam} zit 2 kwarten op de bank (dit kwart + kwart ${kwartIndex + 2})`
+            `⏸️ ${speler.naam} zit 2 kwarten op de bank (dit kwart + kwart ${kwartIndex + 2})`
           );
         }
       });
@@ -340,7 +340,7 @@ export default function WedstrijdOpstelling({
         
         if (!speeltVolgendKwart) {
           waarschuwingen.push(
-            `ðŸ"„ ${speler.naam} valt in maar zit daarna weer op de bank (kwart ${kwartIndex + 2})`
+            `🔄 ${speler.naam} valt in maar zit daarna weer op de bank (kwart ${kwartIndex + 2})`
           );
         }
       }
@@ -369,52 +369,17 @@ export default function WedstrijdOpstelling({
 
   return (
     <div className="space-y-6">
-      {/* AANGEPAST: Compacte mobiele header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex-1 space-y-3 min-w-0">
-          {/* Titel en formatie - compacter op mobiel */}
-          <div className="space-y-1">
-            <h2 className="text-lg sm:text-2xl font-bold truncate">
-              {clubNaam} {teamNaam}
-            </h2>
-            <p className="text-xs sm:text-sm text-blue-600 font-medium">
-              {getFormatieNaam(wedstrijd.formatie)}
-            </p>
-          </div>
-          
-          {/* Datum en locatie op eigen rij */}
-          <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-4 flex-wrap">
+            <h2 className="text-2xl font-bold">{clubNaam} {teamNaam} - {getFormatieNaam(wedstrijd.formatie)}</h2>
             <input 
               type="date" 
               value={wedstrijd.datum} 
               onChange={(e) => onUpdateDatum(e.target.value)} 
-              className="px-3 py-2 border-2 border-blue-500 rounded-lg font-medium text-sm" 
+              className="px-3 py-2 border-2 border-blue-500 rounded-lg font-medium" 
             />
-            <div className="flex gap-2">
-              <button
-                onClick={() => onUpdateThuisUit('thuis')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors text-sm ${
-                  (wedstrijd.thuisUit || 'thuis') === 'thuis'
-                    ? 'bg-green-500 text-white shadow-md'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                ðŸ  Thuis
-              </button>
-              <button
-                onClick={() => onUpdateThuisUit('uit')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors text-sm ${
-                  (wedstrijd.thuisUit || 'thuis') === 'uit'
-                    ? 'bg-orange-500 text-white shadow-md'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                âœˆï¸ Uit
-              </button>
-            </div>
           </div>
-          
-          {/* Tegenstander */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">Tegenstander:</label>
             <input 
@@ -422,59 +387,75 @@ export default function WedstrijdOpstelling({
               value={wedstrijd.tegenstander || ''} 
               onChange={(e) => onUpdateTegenstander(e.target.value)} 
               placeholder="Optioneel" 
-              className="flex-1 px-3 py-2 border rounded-lg text-sm" 
+              className="px-3 py-2 border rounded-lg" 
             />
           </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Locatie:</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onUpdateThuisUit('thuis')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  (wedstrijd.thuisUit || 'thuis') === 'thuis'
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                🏠 Thuis
+              </button>
+              <button
+                onClick={() => onUpdateThuisUit('uit')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  (wedstrijd.thuisUit || 'thuis') === 'uit'
+                    ? 'bg-orange-500 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                ✈️ Uit
+              </button>
+            </div>
+          </div>
         </div>
-        
-        {/* Action buttons */}
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2">
           <button 
             onClick={onKopieer} 
-            className="flex-1 sm:flex-none px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 text-sm"
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
           >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Kopieer</span>
+            <Plus className="w-4 h-4" />Kopieer
           </button>
           <button 
             onClick={onSluiten} 
-            className="flex-1 sm:flex-none px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
           >
-            Sluiten
+            Opslaan & Sluiten
           </button>
         </div>
       </div>
 
       {wedstrijd.kwarten.map((kwart, kwartIndex) => (
-        <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white">
-          <h3 className="font-bold mb-3 flex items-center gap-2 text-sm sm:text-base">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
+        <div key={kwartIndex} className="border rounded-lg p-4 bg-white">
+          <h3 className="font-bold mb-3 flex items-center gap-2">
+            <Clock className="w-5 h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
           </h3>
           
-          <div className="bg-green-100 rounded-lg p-4 sm:p-6 mb-4">
+          <div className="bg-green-100 rounded-lg p-6 mb-4">
             {layout.rijen.map((rij, rijIndex) => (
-              <div key={rijIndex} className={`grid ${layout.gridCols} gap-2 sm:gap-4 mb-3 sm:mb-4`}>
+              <div key={rijIndex} className={`grid ${layout.gridCols} gap-4 mb-4`}>
                 {rij.map(({ positie, col }) => {
                   const heeftWissel = kwart.wissels?.some(w => w.positie === positie);
                   const spelerId = kwart.opstelling[positie];
-                  const speler = spelerId ? spelers.find(s => s.id.toString() === spelerId) : null;
-                  const spelerNaam = speler?.naam || '';
+                  const spelerNaam = spelerId ? spelers.find(s => s.id.toString() === spelerId)?.naam : '';
                   const isKeeper = positie === 'Keeper';
-                  
-                  // AANGEPAST: Voornaam op mobiel, volledige naam op desktop
-                  const displayNaam = spelerNaam 
-                    ? spelerNaam.split(' ')[0]  // Alleen voornaam
-                    : '+';
                   
                   return (
                     <div key={positie} className={`space-y-1 ${col || ''}`}>
                       <label className="text-xs font-bold text-gray-700 block text-center">
                         {positie}
-                        {heeftWissel && <span className="text-orange-600"> ðŸ"„</span>}
+                        {heeftWissel && <span className="text-orange-600"> 🔄</span>}
                       </label>
                       <button
                         onClick={() => openSelectieModal(kwartIndex, positie)}
-                        className={`w-full px-2 sm:px-3 py-2 sm:py-3 border-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
+                        className={`w-full px-3 py-3 border-2 rounded-lg font-medium text-sm transition-all ${
                           spelerId
                             ? isKeeper 
                               ? 'bg-yellow-50 border-yellow-500 hover:bg-yellow-100 text-gray-900'
@@ -482,10 +463,7 @@ export default function WedstrijdOpstelling({
                             : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-500'
                         }`}
                       >
-                        {/* Mobiel: alleen voornaam of + */}
-                        <span className="sm:hidden truncate block">{displayNaam}</span>
-                        {/* Desktop: volledige naam of + Kies speler */}
-                        <span className="hidden sm:inline">{spelerNaam || '+ Kies speler'}</span>
+                        {spelerNaam || '+ Kies speler'}
                       </button>
                     </div>
                   );
@@ -494,16 +472,14 @@ export default function WedstrijdOpstelling({
             ))}
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 sm:p-4 mt-4">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
             <div className="flex justify-between items-center mb-3">
-              <h4 className="font-semibold text-xs sm:text-sm">Wissels na 6,25 min</h4>
+              <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
               <button 
                 onClick={() => onVoegWisselToe(kwartIndex)} 
-                className="px-2 sm:px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-xs sm:text-sm"
+                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
               >
-                <Plus className="w-3 h-3" />
-                <span className="hidden sm:inline">Wissel toevoegen</span>
-                <span className="sm:hidden">Wissel</span>
+                <Plus className="w-3 h-3" />Wissel toevoegen
               </button>
             </div>
             {kwart.wissels && kwart.wissels.length > 0 ? (
@@ -590,34 +566,34 @@ export default function WedstrijdOpstelling({
                     .sort((a, b) => a.minutenGespeeld - b.minutenGespeeld); // Minst gespeeld eerst!
                   
                   return (
-                    <div key={wissel.id} className="bg-white rounded p-2 sm:p-3 border-2 border-orange-200">
+                    <div key={wissel.id} className="bg-white rounded p-3 border-2 border-orange-200">
                       <div className="flex gap-2 items-start">
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                        <div className="flex-1 grid grid-cols-2 gap-3">
                           {/* UIT dropdown - Toon spelers in veld */}
                           <div>
                             <label className="text-xs font-bold text-gray-700 block mb-1">
-                              ðŸ"´ Speler UIT (na 6,25 min)
+                              🔴 Speler UIT (na 6,25 min)
                             </label>
                             <select 
                               value={wissel.positie} 
                               onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'positie', e.target.value)} 
-                              className="w-full px-2 py-2 border-2 border-red-300 rounded-lg text-xs sm:text-sm font-medium bg-red-50"
+                              className="w-full px-2 py-2 border-2 border-red-300 rounded-lg text-sm font-medium bg-red-50"
                             >
                               <option value="">-- Kies speler --</option>
                               {spelersInVeld.map(s => (
                                 <option key={s.spelerId} value={s.positie}>
-                                  {s.naam} ({s.minutenGespeeld} min â€¢ {s.positie}){s.isKeeperGeweest ? ' ðŸ§¤' : ''}
+                                  {s.naam} ({s.minutenGespeeld} min • {s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
                                 </option>
                               ))}
                             </select>
                             {geselecteerdeSpeler && (
                               <div className="text-xs mt-1 space-y-0.5">
                                 <p className="text-gray-600 font-medium">
-                                  â±ï¸ {geselecteerdeSpeler.minutenGespeeld} min gespeeld
+                                  ⏱️ {geselecteerdeSpeler.minutenGespeeld} min gespeeld
                                 </p>
                                 {geselecteerdeSpeler.isKeeperGeweest && (
                                   <p className="text-blue-600 font-medium">
-                                    ðŸ§¤ Was/is keeper deze wedstrijd
+                                    🧤 Was/is keeper deze wedstrijd
                                   </p>
                                 )}
                               </div>
@@ -627,12 +603,12 @@ export default function WedstrijdOpstelling({
                           {/* IN dropdown - Toon wisselspelers gesorteerd */}
                           <div>
                             <label className="text-xs font-bold text-gray-700 block mb-1">
-                              ðŸŸ¢ Speler IN (na 6,25 min)
+                              🟢 Speler IN (na 6,25 min)
                             </label>
                             <select 
                               value={wissel.wisselSpelerId} 
                               onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', e.target.value)} 
-                              className="w-full px-2 py-2 border-2 border-green-300 rounded-lg text-xs sm:text-sm font-medium bg-green-50" 
+                              className="w-full px-2 py-2 border-2 border-green-300 rounded-lg text-sm font-medium bg-green-50" 
                               disabled={!wissel.positie}
                             >
                               <option value="">-- Kies speler --</option>
@@ -644,12 +620,12 @@ export default function WedstrijdOpstelling({
                             </select>
                             {!wissel.positie && (
                               <p className="text-xs text-orange-600 mt-1">
-                                âš ï¸ Kies eerst uit-speler
+                                ⚠️ Kies eerst uit-speler
                               </p>
                             )}
                             {wissel.positie && beschikbareWisselSpelers.length === 0 && (
                               <p className="text-xs text-orange-600 mt-1">
-                                âš ï¸ Geen spelers beschikbaar
+                                ⚠️ Geen spelers beschikbaar
                               </p>
                             )}
                           </div>
@@ -660,7 +636,7 @@ export default function WedstrijdOpstelling({
                           className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded transition-colors mt-5"
                           title="Verwijder wissel"
                         >
-                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
@@ -668,7 +644,7 @@ export default function WedstrijdOpstelling({
                 })}
               </div>
             ) : (
-              <p className="text-xs sm:text-sm text-gray-500 text-center py-2">Geen wissels</p>
+              <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
             )}
           </div>
           
@@ -679,14 +655,14 @@ export default function WedstrijdOpstelling({
             
             return (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
-                <h4 className="font-semibold text-xs sm:text-sm mb-2 flex items-center gap-2">
-                  <span>âš ï¸</span>
+                <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                  <span>⚠️</span>
                   <span>Let op in dit kwart:</span>
                 </h4>
                 <div className="space-y-2">
                   {kwartWaarschuwingen.map((waarschuwing, index) => (
-                    <div key={index} className="flex items-start gap-2 text-xs sm:text-sm text-orange-700">
-                      <span className="text-base shrink-0">â€¢</span>
+                    <div key={index} className="flex items-start gap-2 text-sm text-orange-700">
+                      <span className="text-base shrink-0">•</span>
                       <span>{waarschuwing}</span>
                     </div>
                   ))}
@@ -697,44 +673,42 @@ export default function WedstrijdOpstelling({
         </div>
       ))}
 
-      <div className="border rounded-lg p-3 sm:p-4 bg-blue-50">
-        <h3 className="font-bold mb-3 text-sm sm:text-base">Wedstrijd Statistieken</h3>
-        <div className="overflow-x-auto -mx-3 sm:mx-0">
-          <div className="inline-block min-w-full px-3 sm:px-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 text-xs sm:text-sm">Speler</th>
-                  <th className="text-right py-2 text-xs sm:text-sm">Gespeeld</th>
-                  <th className="text-right py-2 text-xs sm:text-sm">Wissel</th>
-                  <th className="text-right py-2 text-xs sm:text-sm">Keeper</th>
+      <div className="border rounded-lg p-4 bg-blue-50">
+        <h3 className="font-bold mb-3">Wedstrijd Statistieken</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2">Speler</th>
+                <th className="text-right py-2">Gespeeld</th>
+                <th className="text-right py-2">Wissel</th>
+                <th className="text-right py-2">Keeper</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.map(stat => (
+                <tr key={stat.naam} className="border-b">
+                  <td className="py-2">{stat.naam}</td>
+                  <td className="text-right py-2">{stat.minuten} min</td>
+                  <td className="text-right py-2">{stat.wisselMinuten} min</td>
+                  <td className="text-right py-2">{stat.keeperBeurten}x</td>
                 </tr>
-              </thead>
-              <tbody>
-                {stats.map(stat => (
-                  <tr key={stat.naam} className="border-b">
-                    <td className="py-2 text-xs sm:text-sm">{stat.naam}</td>
-                    <td className="text-right py-2 text-xs sm:text-sm">{stat.minuten} min</td>
-                    <td className="text-right py-2 text-xs sm:text-sm">{stat.wisselMinuten} min</td>
-                    <td className="text-right py-2 text-xs sm:text-sm">{stat.keeperBeurten}x</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div className="border rounded-lg p-3 sm:p-4 bg-green-50">
-        <h3 className="font-bold mb-3 flex items-center gap-2 text-sm sm:text-base">ðŸ"‹ Regelcheck Samenvatting</h3>
+      <div className="border rounded-lg p-4 bg-green-50">
+        <h3 className="font-bold mb-3 flex items-center gap-2">📋 Regelcheck Samenvatting</h3>
         {(() => {
           const alleKwartChecks = wedstrijd.kwarten.map((_, index) => checkKwartRegels(index)).flat();
           const totaalWaarschuwingen = alleKwartChecks.length;
           
           if (totaalWaarschuwingen === 0) {
             return (
-              <div className="flex items-center gap-2 text-green-700 text-sm">
-                <span className="text-xl">âœ…</span>
+              <div className="flex items-center gap-2 text-green-700">
+                <span className="text-xl">✅</span>
                 <span className="font-medium">Perfect! Alle regels zijn in orde!</span>
               </div>
             );
@@ -742,11 +716,11 @@ export default function WedstrijdOpstelling({
           
           return (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-orange-700 text-sm">
-                <span className="text-lg">âš ï¸</span>
+              <div className="flex items-center gap-2 text-orange-700">
+                <span className="text-lg">⚠️</span>
                 <span className="font-medium">{totaalWaarschuwingen} waarschuwing{totaalWaarschuwingen !== 1 ? 'en' : ''} gevonden</span>
               </div>
-              <p className="text-xs sm:text-sm text-gray-600">
+              <p className="text-sm text-gray-600">
                 Bekijk elk kwart hierboven voor details. De checks verschijnen direct onder elk kwart waar iets niet klopt.
               </p>
             </div>
@@ -760,14 +734,14 @@ export default function WedstrijdOpstelling({
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
               <div>
-                <h3 className="text-base sm:text-lg font-bold">Kies speler voor {selectieModal.positie}</h3>
-                <p className="text-xs sm:text-sm opacity-90">Kwart {selectieModal.kwartIndex + 1}</p>
+                <h3 className="text-lg font-bold">Kies speler voor {selectieModal.positie}</h3>
+                <p className="text-sm opacity-90">Kwart {selectieModal.kwartIndex + 1}</p>
               </div>
               <button 
                 onClick={sluitSelectieModal}
                 className="p-2 hover:bg-blue-700 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                <X className="w-6 h-6" />
               </button>
             </div>
             
@@ -776,14 +750,14 @@ export default function WedstrijdOpstelling({
                 {/* Info banner - aangepast per positie type */}
                 {selectieModal.positie === 'Keeper' ? (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs sm:text-sm text-yellow-800">
-                      ðŸ§¤ <strong>Keeper selectie:</strong> Eerst gesorteerd op minst keeper deze wedstrijd, dan op totaal minst keeper geweest
+                    <p className="text-sm text-yellow-800">
+                      🧤 <strong>Keeper selectie:</strong> Eerst gesorteerd op minst keeper deze wedstrijd, dan op totaal minst keeper geweest
                     </p>
                   </div>
                 ) : selectieModal.kwartIndex > 0 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs sm:text-sm text-blue-800">
-                      ðŸ'¡ <strong>Tip:</strong> Spelers met minste speeltijd staan bovenaan
+                    <p className="text-sm text-blue-800">
+                      💡 <strong>Tip:</strong> Spelers met minste speeltijd staan bovenaan
                     </p>
                   </div>
                 )}
@@ -792,9 +766,9 @@ export default function WedstrijdOpstelling({
                 {wedstrijd.kwarten[selectieModal.kwartIndex].opstelling[selectieModal.positie] && (
                   <button
                     onClick={() => selecteerSpeler('')}
-                    className="w-full p-3 sm:p-4 border-2 border-red-300 bg-red-50 rounded-lg hover:bg-red-100 transition-colors text-left"
+                    className="w-full p-4 border-2 border-red-300 bg-red-50 rounded-lg hover:bg-red-100 transition-colors text-left"
                   >
-                    <div className="font-semibold text-red-700 text-sm sm:text-base">âŒ Verwijder speler</div>
+                    <div className="font-semibold text-red-700">❌ Verwijder speler</div>
                     <div className="text-xs text-red-600 mt-1">Positie leeg maken</div>
                   </button>
                 )}
@@ -816,28 +790,28 @@ export default function WedstrijdOpstelling({
                         // Check ook totaal
                         if (speler.keeperBeurten === 0) {
                           priorityColor = 'yellow';
-                          priorityLabel = 'ðŸŸ¡ Nog nooit keeper geweest';
+                          priorityLabel = '🟡 Nog nooit keeper geweest';
                         } else if (speler.keeperBeurten <= 2) {
                           priorityColor = 'orange';
-                          priorityLabel = 'ðŸŸ  Weinig keeper ervaring';
+                          priorityLabel = '🟠 Weinig keeper ervaring';
                         } else {
                           priorityColor = 'green';
-                          priorityLabel = 'ðŸŸ¢ Al vaker keeper geweest';
+                          priorityLabel = '🟢 Al vaker keeper geweest';
                         }
                       } else {
                         // Al keeper geweest deze wedstrijd
                         priorityColor = 'gray';
-                        priorityLabel = 'âšª Al keeper geweest deze wedstrijd';
+                        priorityLabel = '⚪ Al keeper geweest deze wedstrijd';
                       }
                     }
                     // Normale positie vanaf kwart 2: prioriteit op basis van speeltijd
                     else if (selectieModal.kwartIndex > 0) {
                       if (speler.minutenGespeeld === 0) {
                         priorityColor = 'red';
-                        priorityLabel = 'ðŸ"´ Nog niet gespeeld!';
+                        priorityLabel = '🔴 Nog niet gespeeld!';
                       } else if (speler.minutenGespeeld <= 6.25) {
                         priorityColor = 'orange';
-                        priorityLabel = 'ðŸŸ¡ Weinig gespeeld';
+                        priorityLabel = '🟡 Weinig gespeeld';
                       } else {
                         priorityColor = 'green';
                       }
@@ -867,33 +841,33 @@ export default function WedstrijdOpstelling({
                       key={speler.id}
                       onClick={() => isBeschikbaar && selecteerSpeler(speler.id.toString())}
                       disabled={!isBeschikbaar}
-                      className={`w-full p-3 sm:p-4 border-2 rounded-lg transition-colors text-left relative ${
+                      className={`w-full p-4 border-2 rounded-lg transition-colors text-left relative ${
                         isBeschikbaar ? `${borderColor} ${bgColor} ${hoverColor} cursor-pointer` : 
                         'border-gray-300 bg-gray-100 cursor-not-allowed opacity-50'
                       }`}
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1 pr-8">
-                          <div className="font-semibold text-base sm:text-lg">
+                          <div className="font-semibold text-lg">
                             {speler.naam}
-                            {speler.keeperBeurten > 0 && ' ðŸ§¤'}
+                            {speler.keeperBeurten > 0 && ' 🧤'}
                           </div>
                           {priorityLabel && (
-                            <div className="text-xs sm:text-sm font-semibold mt-1 mb-1">{priorityLabel}</div>
+                            <div className="text-sm font-semibold mt-1 mb-1">{priorityLabel}</div>
                           )}
                           <div className="text-xs text-gray-600 mt-1 space-y-1">
                             {/* Toon keeper info voor keeper positie */}
                             {isKeeperPositie && (
                               <div className="space-y-1">
-                                <div className="font-bold text-sm sm:text-base text-gray-800">
-                                  ðŸ"Š Totaal: {speler.keeperBeurten}x keeper
+                                <div className="font-bold text-base text-gray-800">
+                                  📊 Totaal: {speler.keeperBeurten}x keeper
                                 </div>
                                 <div className="text-blue-600">
-                                  ðŸ§¤ Deze wedstrijd: {speler.keeperBeurtenDezeWedstrijd}x
+                                  🧤 Deze wedstrijd: {speler.keeperBeurtenDezeWedstrijd}x
                                 </div>
                                 {speler.minutenGespeeld > 0 && (
                                   <div className="text-gray-600">
-                                    âš½ {speler.minutenGespeeld} min gespeeld deze wedstrijd
+                                    ⚽ {speler.minutenGespeeld} min gespeeld deze wedstrijd
                                   </div>
                                 )}
                               </div>
@@ -902,19 +876,19 @@ export default function WedstrijdOpstelling({
                             {!isKeeperPositie && (
                               <>
                                 {speler.minutenGespeeld > 0 && (
-                                  <div>âš½ {speler.minutenGespeeld} min gespeeld</div>
+                                  <div>⚽ {speler.minutenGespeeld} min gespeeld</div>
                                 )}
                                 {speler.keeperBeurten > 0 && (
-                                  <div>ðŸ§¤ {speler.keeperBeurten}x keeper geweest</div>
+                                  <div>🧤 {speler.keeperBeurten}x keeper geweest</div>
                                 )}
                                 {speler.aantalWissel > 0 && (
-                                  <div>ðŸª' {speler.aantalWissel}x op de bank</div>
+                                  <div>🪑 {speler.aantalWissel}x op de bank</div>
                                 )}
                                 {speler.minutenGespeeld === 0 && selectieModal.kwartIndex > 0 && (
-                                  <div className="text-red-600 font-medium">âœ¨ Moet nog spelen!</div>
+                                  <div className="text-red-600 font-medium">✨ Moet nog spelen!</div>
                                 )}
                                 {speler.minutenGespeeld === 0 && selectieModal.kwartIndex === 0 && (
-                                  <div className="text-blue-600">âœ¨ Start van wedstrijd</div>
+                                  <div className="text-blue-600">✨ Start van wedstrijd</div>
                                 )}
                               </>
                             )}
@@ -935,7 +909,7 @@ export default function WedstrijdOpstelling({
             <div className="border-t p-4 bg-gray-50">
               <button
                 onClick={sluitSelectieModal}
-                className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
+                className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
               >
                 Annuleren
               </button>
