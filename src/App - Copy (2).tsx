@@ -242,168 +242,117 @@ function App() {
                   )}
                 </div>
 
-                {/* Overzicht Wedstrijden - VERBETERD met scheiding komende/gespeelde */}
-                <div className="space-y-4">
-                  {(() => {
-                    const vandaag = new Date();
-                    vandaag.setHours(0, 0, 0, 0); // Start van vandaag
+                {/* Overzicht Wedstrijden */}
+                <div className="space-y-3">
+                  <h3 className="text-xl font-semibold">Gespeelde Wedstrijden ({wedstrijden.length})</h3>
+                  {wedstrijden.sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime()).map(wedstrijd => {
+                    const datumFormatted = new Date(wedstrijd.datum).toLocaleDateString('nl-NL', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    });
                     
-                    // Split wedstrijden in komend en gespeeld
-                    const komendeWedstrijden = wedstrijden
-                      .filter(w => new Date(w.datum) >= vandaag)
-                      .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime()); // Oudste eerst
+                    // Bepaal formatie kleur
+                    const formatieKleur = wedstrijd.formatie.includes('vliegtuig') ? 'bg-blue-100 text-blue-700' :
+                                         wedstrijd.formatie.includes('dobbelsteen') ? 'bg-purple-100 text-purple-700' :
+                                         'bg-green-100 text-green-700';
                     
-                    const gespeeldeWedstrijden = wedstrijden
-                      .filter(w => new Date(w.datum) < vandaag)
-                      .sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime()); // Nieuwste eerst
-                    
-                    const renderWedstrijd = (wedstrijd: Wedstrijd, isKomend: boolean) => {
-                      const datumFormatted = new Date(wedstrijd.datum).toLocaleDateString('nl-NL', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      });
-                      
-                      // Bepaal formatie kleur
-                      const formatieKleur = wedstrijd.formatie.includes('vliegtuig') ? 'bg-blue-100 text-blue-700' :
-                                           wedstrijd.formatie.includes('dobbelsteen') ? 'bg-purple-100 text-purple-700' :
-                                           'bg-green-100 text-green-700';
-                      
-                      // Thuis/Uit indicator
-                      const thuisUit = wedstrijd.thuisUit || 'thuis';
-                      const isThuis = thuisUit === 'thuis';
-                      
-                      // Verschillende styling voor komend vs gespeeld
-                      const cardStyle = isKomend 
-                        ? "border-2 border-blue-400 rounded-xl p-4 bg-gradient-to-br from-blue-50 to-white hover:shadow-lg transition-shadow"
-                        : "border rounded-xl p-4 bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-shadow";
-                      
-                      return (
-                        <div key={wedstrijd.id} className={cardStyle}>
-                          {/* Header: Formatie badge + Datum + Thuis/Uit */}
-                          <div className="flex flex-wrap items-center gap-2 mb-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${formatieKleur}`}>
-                              {getFormatieNaam(wedstrijd.formatie)}
-                            </span>
-                            <span className={`text-sm font-medium ${isKomend ? 'text-blue-700' : 'text-gray-600'}`}>
-                              {datumFormatted}
-                            </span>
-                            <span className={`px-2 py-1 rounded text-xs font-bold ${
-                              isThuis ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                            }`}>
-                              {isThuis ? '🏠 Thuis' : '✈️ Uit'}
-                            </span>
-                          </div>
-                          
-                          {/* Match-up display */}
-                          <div className="mb-3 flex items-center gap-2 flex-wrap">
-                            {isThuis ? (
-                              <>
-                                <span className="font-bold text-blue-600">{teamNaam}</span>
-                                <span className="text-gray-400 font-medium">vs</span>
-                                <span className="font-bold text-gray-700">
-                                  {wedstrijd.tegenstander || '(Tegenstander niet ingevuld)'}
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="font-bold text-gray-700">
-                                  {wedstrijd.tegenstander || '(Tegenstander niet ingevuld)'}
-                                </span>
-                                <span className="text-gray-400 font-medium">vs</span>
-                                <span className="font-bold text-blue-600">{teamNaam}</span>
-                              </>
-                            )}
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex flex-wrap gap-2">
-                            <button 
-                              onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
-                              className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
-                            >
-                              <Eye className="w-4 h-4" />
-                              Bekijk
-                            </button>
-                            <button 
-                              onClick={() => kopieerWedstrijd(wedstrijd)} 
-                              className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors"
-                              title="Kopieer deze wedstrijd"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Kopieer
-                            </button>
-                            <button 
-                              onClick={() => verwijderWedstrijd(wedstrijd.id)} 
-                              className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Verwijder
-                            </button>
-                            
-                            {/* Mobile: full width buttons */}
-                            <button 
-                              onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
-                              className="sm:hidden flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
-                            >
-                              <Eye className="w-5 h-5" />
-                              <span>Bekijk</span>
-                            </button>
-                            <button 
-                              onClick={() => kopieerWedstrijd(wedstrijd)} 
-                              className="sm:hidden flex items-center justify-center px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                              title="Kopieer"
-                            >
-                              <Plus className="w-5 h-5" />
-                            </button>
-                            <button 
-                              onClick={() => verwijderWedstrijd(wedstrijd.id)} 
-                              className="sm:hidden flex items-center justify-center px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                              title="Verwijder"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    };
+                    // Thuis/Uit indicator
+                    const thuisUit = wedstrijd.thuisUit || 'thuis'; // Backward compatibility
+                    const isThuis = thuisUit === 'thuis';
                     
                     return (
-                      <>
-                        {/* KOMENDE WEDSTRIJDEN SECTIE */}
-                        {komendeWedstrijden.length > 0 && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-xl font-semibold text-blue-600">📅 Komende Wedstrijden</h3>
-                              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">
-                                {komendeWedstrijden.length}
-                              </span>
-                            </div>
-                            {komendeWedstrijden.map(w => renderWedstrijd(w, true))}
-                          </div>
-                        )}
+                      <div key={wedstrijd.id} className="border-2 rounded-xl p-4 bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-shadow">
+                        {/* Header: Formatie badge + Datum + Thuis/Uit */}
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${formatieKleur}`}>
+                            {getFormatieNaam(wedstrijd.formatie)}
+                          </span>
+                          <span className="text-sm text-gray-600 font-medium">{datumFormatted}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                            isThuis ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                          }`}>
+                            {isThuis ? '🏠 Thuis' : '✈️ Uit'}
+                          </span>
+                        </div>
                         
-                        {/* GESPEELDE WEDSTRIJDEN SECTIE */}
-                        {gespeeldeWedstrijden.length > 0 && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-xl font-semibold text-gray-600">🏁 Gespeelde Wedstrijden</h3>
-                              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-bold">
-                                {gespeeldeWedstrijden.length}
+                        {/* Match-up display - thuis vs uit logica */}
+                        <div className="mb-3 flex items-center gap-2 flex-wrap">
+                          {isThuis ? (
+                            <>
+                              <span className="font-bold text-blue-600">{teamNaam}</span>
+                              <span className="text-gray-400 font-medium">vs</span>
+                              <span className="font-bold text-gray-700">
+                                {wedstrijd.tegenstander || '(Tegenstander niet ingevuld)'}
                               </span>
-                            </div>
-                            {gespeeldeWedstrijden.map(w => renderWedstrijd(w, false))}
-                          </div>
-                        )}
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-bold text-gray-700">
+                                {wedstrijd.tegenstander || '(Tegenstander niet ingevuld)'}
+                              </span>
+                              <span className="text-gray-400 font-medium">vs</span>
+                              <span className="font-bold text-blue-600">{teamNaam}</span>
+                            </>
+                          )}
+                        </div>
                         
-                        {/* Geen wedstrijden bericht */}
-                        {wedstrijden.length === 0 && (
-                          <p className="text-gray-500 text-center py-8">Nog geen wedstrijden aangemaakt. Maak hierboven je eerste wedstrijd aan!</p>
-                        )}
-                      </>
+                        {/* Action Buttons - Responsive with proper sizing */}
+                        <div className="flex flex-wrap gap-2">
+                          {/* Desktop: fixed width buttons */}
+                          <button 
+                            onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
+                            className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Bekijk
+                          </button>
+                          <button 
+                            onClick={() => kopieerWedstrijd(wedstrijd)} 
+                            className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors"
+                            title="Kopieer deze wedstrijd"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Kopieer
+                          </button>
+                          <button 
+                            onClick={() => verwijderWedstrijd(wedstrijd.id)} 
+                            className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Verwijder
+                          </button>
+                          
+                          {/* Mobile: full width buttons */}
+                          <button 
+                            onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
+                            className="sm:hidden flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
+                          >
+                            <Eye className="w-5 h-5" />
+                            <span>Bekijk</span>
+                          </button>
+                          <button 
+                            onClick={() => kopieerWedstrijd(wedstrijd)} 
+                            className="sm:hidden flex items-center justify-center px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                            title="Kopieer"
+                          >
+                            <Plus className="w-5 h-5" />
+                          </button>
+                          <button 
+                            onClick={() => verwijderWedstrijd(wedstrijd.id)} 
+                            className="sm:hidden flex items-center justify-center px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            title="Verwijder"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
                     );
-                  })()}
+                  })}
+                  {wedstrijden.length === 0 && (
+                    <p className="text-gray-500 text-center py-8">Nog geen wedstrijden gespeeld. Maak hierboven je eerste wedstrijd aan!</p>
+                  )}
                 </div>
               </div>
             )}
