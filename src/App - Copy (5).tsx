@@ -508,208 +508,120 @@ function App() {
         </div>
       </div>
 
-      {/* Formatie Selectie Modal - RESPONSIVE */}
+      {/* Formatie Selectie Modal */}
       {formatieModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header - Compact op mobiel */}
-            <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-3 sm:p-6 flex justify-between items-center">
+            <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 flex justify-between items-center">
               <div>
-                <h3 className="text-lg sm:text-2xl font-bold">Kies je formatie</h3>
-                <p className="text-xs sm:text-sm opacity-90 mt-0.5 sm:mt-1 hidden sm:block">Selecteer hoe je wilt spelen</p>
+                <h3 className="text-2xl font-bold">Kies je formatie</h3>
+                <p className="text-sm opacity-90 mt-1">Selecteer hoe je wilt spelen</p>
               </div>
               <button 
                 onClick={() => setFormatieModal(false)}
-                className="p-1.5 sm:p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                <X className="w-6 h-6" />
               </button>
             </div>
             
-            {/* Content - Responsive layout */}
-            <div className="overflow-y-auto p-3 sm:p-6 flex-1">
-              <div className="space-y-2 sm:space-y-4">
-                {/* 6x6 Vliegtuig - RESPONSIVE */}
+            <div className="overflow-y-auto p-6 flex-1">
+              <div className="space-y-4">
+                {/* 6x6 Vliegtuig */}
                 <button
                   onClick={() => maakWedstrijd('6x6-vliegtuig')}
-                  className="w-full bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-lg sm:rounded-xl hover:border-blue-500 hover:shadow-lg transition-all text-left group
-                             p-3 sm:p-6"
+                  className="w-full p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all text-left group"
                 >
-                  <div className="flex items-center sm:items-start justify-between gap-2 sm:gap-4">
-                    <div className="flex-1 min-w-0">
-                      {/* Mobiel: Compacte weergave */}
-                      <div className="sm:hidden">
-                        <h4 className="text-base font-bold text-blue-700 mb-1 flex items-center gap-2">
-                          ✈️ 6x6 Vliegtuig
-                        </h4>
-                        <p className="text-xs text-gray-600">
-                          1-1-3-1 • 6 spelers
-                        </p>
-                      </div>
-                      
-                      {/* Desktop: Uitgebreide weergave */}
-                      <div className="hidden sm:block">
-                        <h4 className="text-2xl font-bold text-blue-700 mb-2 group-hover:text-blue-800">
-                          ✈️ 6x6 Vliegtuig
-                        </h4>
-                        <p className="text-gray-700 mb-3">
-                          Klassieke 1-1-3-1 opstelling
-                        </p>
-                        <div className="flex flex-wrap gap-2 text-sm">
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Keeper</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Achter</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Links</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Midden</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Rechts</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Voor</span>
-                        </div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-2xl font-bold text-blue-700 mb-2 group-hover:text-blue-800">
+                        ✈️ 6x6 Vliegtuig
+                      </h4>
+                      <p className="text-gray-700 mb-3">
+                        Klassieke 1-1-3-1 opstelling
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Keeper</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Achter</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Links</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Midden</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Rechts</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Voor</span>
                       </div>
                     </div>
-                    
-                    {/* Icoon - Check op mobiel, Plus op desktop */}
-                    <div className="shrink-0">
-                      <div className="sm:hidden w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
-                        <Plus className="w-5 h-5" />
-                      </div>
-                      <div className="hidden sm:block text-blue-500 group-hover:scale-110 transition-transform">
-                        <Plus className="w-8 h-8" />
-                      </div>
+                    <div className="ml-4 text-blue-500 group-hover:scale-110 transition-transform">
+                      <Plus className="w-8 h-8" />
                     </div>
                   </div>
                 </button>
 
-                {/* 6x6 Dobbelsteen - RESPONSIVE */}
+                {/* 6x6 Dobbelsteen */}
                 <button
                   onClick={() => maakWedstrijd('6x6-dobbelsteen')}
-                  className="w-full bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-300 rounded-lg sm:rounded-xl hover:border-purple-500 hover:shadow-lg transition-all text-left group
-                             p-3 sm:p-6"
+                  className="w-full p-6 bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-300 rounded-xl hover:border-purple-500 hover:shadow-lg transition-all text-left group"
                 >
-                  <div className="flex items-center sm:items-start justify-between gap-2 sm:gap-4">
-                    <div className="flex-1 min-w-0">
-                      {/* Mobiel: Compacte weergave */}
-                      <div className="sm:hidden">
-                        <h4 className="text-base font-bold text-purple-700 mb-1 flex items-center gap-2">
-                          🎲 6x6 Dobbelsteen
-                        </h4>
-                        <p className="text-xs text-gray-600">
-                          2-1-2 • 6 spelers
-                        </p>
-                      </div>
-                      
-                      {/* Desktop: Uitgebreide weergave */}
-                      <div className="hidden sm:block">
-                        <h4 className="text-2xl font-bold text-purple-700 mb-2 group-hover:text-purple-800">
-                          🎲 6x6 Dobbelsteen
-                        </h4>
-                        <p className="text-gray-700 mb-3">
-                          2-1-2 opstelling met centrale middenvelder
-                        </p>
-                        <div className="flex flex-wrap gap-2 text-sm">
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Keeper</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Links achter</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Rechts achter</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Midden</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Links voor</span>
-                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Rechts voor</span>
-                        </div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-2xl font-bold text-purple-700 mb-2 group-hover:text-purple-800">
+                        🎲 6x6 Dobbelsteen
+                      </h4>
+                      <p className="text-gray-700 mb-3">
+                        2-1-2 opstelling met centrale middenvelder
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Keeper</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Links achter</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Rechts achter</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Midden</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Links voor</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Rechts voor</span>
                       </div>
                     </div>
-                    
-                    {/* Icoon - Check op mobiel, Plus op desktop */}
-                    <div className="shrink-0">
-                      <div className="sm:hidden w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white">
-                        <Plus className="w-5 h-5" />
-                      </div>
-                      <div className="hidden sm:block text-purple-500 group-hover:scale-110 transition-transform">
-                        <Plus className="w-8 h-8" />
-                      </div>
+                    <div className="ml-4 text-purple-500 group-hover:scale-110 transition-transform">
+                      <Plus className="w-8 h-8" />
                     </div>
                   </div>
                 </button>
 
-                {/* 8x8 - RESPONSIVE - Only if enough players */}
+                {/* 8x8 - Only if enough players */}
                 {spelers.length >= 8 ? (
                   <button
                     onClick={() => maakWedstrijd('8x8')}
-                    className="w-full bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-lg sm:rounded-xl hover:border-green-500 hover:shadow-lg transition-all text-left group
-                               p-3 sm:p-6"
+                    className="w-full p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl hover:border-green-500 hover:shadow-lg transition-all text-left group"
                   >
-                    <div className="flex items-center sm:items-start justify-between gap-2 sm:gap-4">
-                      <div className="flex-1 min-w-0">
-                        {/* Mobiel: Compacte weergave */}
-                        <div className="sm:hidden">
-                          <h4 className="text-base font-bold text-green-700 mb-1 flex items-center gap-2">
-                            ⚽ 8 tegen 8
-                          </h4>
-                          <p className="text-xs text-gray-600">
-                            1-2-3-2 • 8 spelers
-                          </p>
-                        </div>
-                        
-                        {/* Desktop: Uitgebreide weergave */}
-                        <div className="hidden sm:block">
-                          <h4 className="text-2xl font-bold text-green-700 mb-2 group-hover:text-green-800">
-                            ⚽ 8 tegen 8
-                          </h4>
-                          <p className="text-gray-700 mb-3">
-                            Volledige opstelling: 1-2-3-2
-                          </p>
-                          <div className="flex flex-wrap gap-2 text-sm">
-                            <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">Keeper</span>
-                            <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">2 Achter</span>
-                            <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">3 Midden</span>
-                            <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">2 Voor</span>
-                          </div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-2xl font-bold text-green-700 mb-2 group-hover:text-green-800">
+                          ⚽ 8 tegen 8
+                        </h4>
+                        <p className="text-gray-700 mb-3">
+                          Volledige opstelling: 1-2-3-2
+                        </p>
+                        <div className="flex flex-wrap gap-2 text-sm">
+                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">Keeper</span>
+                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">2 Achter</span>
+                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">3 Midden</span>
+                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">2 Voor</span>
                         </div>
                       </div>
-                      
-                      {/* Icoon - Check op mobiel, Plus op desktop */}
-                      <div className="shrink-0">
-                        <div className="sm:hidden w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">
-                          <Plus className="w-5 h-5" />
-                        </div>
-                        <div className="hidden sm:block text-green-500 group-hover:scale-110 transition-transform">
-                          <Plus className="w-8 h-8" />
-                        </div>
+                      <div className="ml-4 text-green-500 group-hover:scale-110 transition-transform">
+                        <Plus className="w-8 h-8" />
                       </div>
                     </div>
                   </button>
                 ) : (
-                  <div className="w-full bg-gray-50 border-2 border-gray-300 rounded-lg sm:rounded-xl opacity-50 p-3 sm:p-6">
-                    <div className="flex items-center sm:items-start justify-between gap-2 sm:gap-4">
-                      <div className="flex-1 min-w-0">
-                        {/* Mobiel: Compacte weergave */}
-                        <div className="sm:hidden">
-                          <h4 className="text-base font-bold text-gray-500 mb-1">
-                            ⚽ 8 tegen 8
-                          </h4>
-                          <p className="text-xs text-orange-600 font-medium">
-                            ⚠️ Min. 8 spelers ({spelers.length}/8)
-                          </p>
-                        </div>
-                        
-                        {/* Desktop: Uitgebreide weergave */}
-                        <div className="hidden sm:block">
-                          <h4 className="text-2xl font-bold text-gray-500 mb-2">
-                            ⚽ 8 tegen 8
-                          </h4>
-                          <p className="text-gray-600 mb-2">
-                            Volledige opstelling: 1-2-3-2
-                          </p>
-                          <p className="text-sm text-orange-600 font-medium">
-                            ⚠️ Je hebt minimaal 8 spelers nodig (nu: {spelers.length})
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Geblokkeerd icoon */}
-                      <div className="shrink-0 opacity-30">
-                        <div className="sm:hidden w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white">
-                          <X className="w-5 h-5" />
-                        </div>
-                        <div className="hidden sm:block text-gray-400">
-                          <X className="w-8 h-8" />
-                        </div>
+                  <div className="p-6 bg-gray-50 border-2 border-gray-300 rounded-xl opacity-50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-2xl font-bold text-gray-500 mb-2">
+                          ⚽ 8 tegen 8
+                        </h4>
+                        <p className="text-gray-600 mb-2">
+                          Volledige opstelling: 1-2-3-2
+                        </p>
+                        <p className="text-sm text-orange-600 font-medium">
+                          ⚠️ Je hebt minimaal 8 spelers nodig (nu: {spelers.length})
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -717,11 +629,10 @@ function App() {
               </div>
             </div>
             
-            {/* Footer - Compact op mobiel */}
-            <div className="border-t p-3 sm:p-4 bg-gray-50">
+            <div className="border-t p-4 bg-gray-50">
               <button
                 onClick={() => setFormatieModal(false)}
-                className="w-full px-4 py-2 sm:py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium transition-colors text-sm sm:text-base"
+                className="w-full px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium transition-colors"
               >
                 Annuleren
               </button>
