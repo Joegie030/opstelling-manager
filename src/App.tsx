@@ -5,6 +5,7 @@ import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
 
+
 function App() {
   const [spelers, setSpelers] = useState<Speler[]>(() => {
     const opgeslagen = localStorage.getItem('voetbal_spelers');
