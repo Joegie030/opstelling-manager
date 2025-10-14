@@ -483,122 +483,52 @@ export default function WedstrijdOpstelling({
             {kwart.wissels && kwart.wissels.length > 0 ? (
               <div className="space-y-3">
                 {kwart.wissels.map((wissel, wisselIndex) => {
-                  // Haal spelers op die NU in het veld staan
-                  const spelersInVeld = Object.entries(kwart.opstelling)
-                    .filter(([_, sid]) => sid) // Alleen posities met speler
-                    .map(([pos, sid]) => ({
-                      spelerId: sid,
-                      positie: pos,
-                      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend'
-                    }));
-                  
-                  // Huidige selectie
-                  const geselecteerdeSpeler = wissel.positie ? 
-                    spelersInVeld.find(s => s.positie === wissel.positie) : null;
-                  
-                  // Bereken minuten per speler tot nu toe in deze wedstrijd
-                  const berekenMinutenTotNu = () => {
-                    const minuten: Record<string, number> = {};
-                    wedstrijd.kwarten.forEach((k, ki) => {
-                      if (ki > kwartIndex) return; // Stop na huidig kwart
-                      
-                      Object.entries(k.opstelling).forEach(([pos, sid]) => {
-                        if (!sid) return;
-                        const kwartWissel = k.wissels?.find(w => w.positie === pos);
-                        const min = kwartWissel && kwartWissel.wisselSpelerId ? 6.25 : k.minuten;
-                        minuten[sid] = (minuten[sid] || 0) + min;
-                      });
-                      
-                      k.wissels?.forEach(w => {
-                        if (w.wisselSpelerId) {
-                          minuten[w.wisselSpelerId] = (minuten[w.wisselSpelerId] || 0) + 6.25;
-                        }
-                      });
-                    });
-                    return minuten;
-                  };
-                  
-                  const minutenTotNu = berekenMinutenTotNu();
-                  
-                  // Beschikbare wisselspelers (niet in veld, niet al wisselend)
-                  const beschikbareWisselSpelers = spelers
-                    .filter(s => 
-                      !Object.values(kwart.opstelling).includes(s.id.toString()) &&
-                      !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString())
-                    )
-                    .map(s => ({
-                      ...s,
-                      minutenGespeeld: minutenTotNu[s.id.toString()] || 0
-                    }))
-                    .sort((a, b) => a.minutenGespeeld - b.minutenGespeeld); // Minst gespeeld eerst!
-                  
+                  const startSpelerId = kwart.opstelling[wissel.positie];
+                  const startSpelerNaam = spelers.find(s => s.id.toString() === startSpelerId)?.naam;
+                  const beschikbareWisselSpelers = spelers.filter(s => 
+                    s.id.toString() !== startSpelerId && 
+                    !Object.values(kwart.opstelling).includes(s.id.toString()) &&
+                    !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString())
+                  );
                   return (
-                    <div key={wissel.id} className="bg-white rounded p-3 border-2 border-orange-200">
-                      <div className="flex gap-2 items-start">
-                        <div className="flex-1 grid grid-cols-2 gap-3">
-                          {/* UIT dropdown - Toon spelers in veld */}
-                          <div>
-                            <label className="text-xs font-bold text-gray-700 block mb-1">
-                              🔴 Speler UIT (na 6,25 min)
-                            </label>
-                            <select 
-                              value={wissel.positie} 
-                              onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'positie', e.target.value)} 
-                              className="w-full px-2 py-2 border-2 border-red-300 rounded-lg text-sm font-medium bg-red-50"
-                            >
-                              <option value="">-- Kies speler --</option>
-                              {spelersInVeld.map(s => (
-                                <option key={s.spelerId} value={s.positie}>
-                                  {s.naam} ({s.positie})
-                                </option>
-                              ))}
-                            </select>
-                            {geselecteerdeSpeler && (
-                              <p className="text-xs text-gray-600 mt-1 font-medium">
-                                ⚽ Positie: {geselecteerdeSpeler.positie}
-                              </p>
-                            )}
-                          </div>
-                          
-                          {/* IN dropdown - Toon wisselspelers gesorteerd */}
-                          <div>
-                            <label className="text-xs font-bold text-gray-700 block mb-1">
-                              🟢 Speler IN (na 6,25 min)
-                            </label>
-                            <select 
-                              value={wissel.wisselSpelerId} 
-                              onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', e.target.value)} 
-                              className="w-full px-2 py-2 border-2 border-green-300 rounded-lg text-sm font-medium bg-green-50" 
-                              disabled={!wissel.positie}
-                            >
-                              <option value="">-- Kies speler --</option>
-                              {beschikbareWisselSpelers.map(s => (
-                                <option key={s.id} value={s.id}>
-                                  {s.naam} ({s.minutenGespeeld} min)
-                                </option>
-                              ))}
-                            </select>
-                            {!wissel.positie && (
-                              <p className="text-xs text-orange-600 mt-1">
-                                ⚠️ Kies eerst uit-speler
-                              </p>
-                            )}
-                            {wissel.positie && beschikbareWisselSpelers.length === 0 && (
-                              <p className="text-xs text-orange-600 mt-1">
-                                ⚠️ Geen spelers beschikbaar
-                              </p>
-                            )}
-                          </div>
+                    <div key={wissel.id} className="bg-white rounded p-3 flex gap-2 items-center">
+                      <div className="flex-1 grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600 block mb-1">Positie</label>
+                          <select 
+                            value={wissel.positie} 
+                            onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'positie', e.target.value)} 
+                            className="w-full px-2 py-1 border rounded text-sm"
+                          >
+                            <option value="">Kies positie</option>
+                            {posities.map(pos => (
+                              <option key={pos} value={pos}>{pos}</option>
+                            ))}
+                          </select>
+                          {startSpelerNaam && <p className="text-xs text-gray-500 mt-1">Uit: {startSpelerNaam}</p>}
                         </div>
-                        
-                        <button 
-                          onClick={() => onVerwijderWissel(kwartIndex, wisselIndex)} 
-                          className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded transition-colors mt-5"
-                          title="Verwijder wissel"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        <div>
+                          <label className="text-xs text-gray-600 block mb-1">Wisselspeler</label>
+                          <select 
+                            value={wissel.wisselSpelerId} 
+                            onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', e.target.value)} 
+                            className="w-full px-2 py-1 border rounded text-sm" 
+                            disabled={!wissel.positie}
+                          >
+                            <option value="">Kies speler</option>
+                            {beschikbareWisselSpelers.map(s => (
+                              <option key={s.id} value={s.id}>{s.naam}</option>
+                            ))}
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1">In: na 6,25 min</p>
+                        </div>
                       </div>
+                      <button 
+                        onClick={() => onVerwijderWissel(kwartIndex, wisselIndex)} 
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   );
                 })}
