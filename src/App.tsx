@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Plus, Trash2, Eye } from 'lucide-react';
+import { Trophy, Plus, Trash2, Eye, X } from 'lucide-react';
 import { Speler, Wedstrijd, formaties } from './types';
 import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
@@ -26,6 +26,7 @@ function App() {
   
   const [huidigScherm, setHuidigScherm] = useState('wedstrijden');
   const [huidgeWedstrijd, setHuidgeWedstrijd] = useState<Wedstrijd | null>(null);
+  const [formatieModal, setFormatieModal] = useState(false);
 
   // Helper functie om formatie naam mooi weer te geven (met backward compatibility)
   const getFormatieNaam = (formatie: string): string => {
@@ -71,6 +72,7 @@ function App() {
     setWedstrijden([...wedstrijden, nieuweWedstrijd]);
     setHuidgeWedstrijd(nieuweWedstrijd);
     setHuidigScherm('wedstrijd');
+    setFormatieModal(false);
   };
 
   const kopieerWedstrijd = (wedstrijd: Wedstrijd) => {
@@ -218,39 +220,26 @@ function App() {
                   <h2 className="text-2xl font-bold">Wedstrijden</h2>
                 </div>
 
-                {/* Nieuwe Wedstrijd Knoppen */}
+                {/* Nieuwe Wedstrijd Knop */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-semibold mb-3 text-lg">➕ Nieuwe Wedstrijd Aanmaken</h3>
                   {spelers.length < 6 ? (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-yellow-800">Je hebt minimaal 6 spelers nodig om een wedstrijd aan te maken.</p>
+                    <div>
+                      <h3 className="font-semibold mb-3 text-lg">➕ Nieuwe Wedstrijd Aanmaken</h3>
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p className="text-yellow-800">Je hebt minimaal 6 spelers nodig om een wedstrijd aan te maken.</p>
+                      </div>
                     </div>
                   ) : (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      <button 
-                        onClick={() => maakWedstrijd('6x6-vliegtuig')} 
-                        className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-left"
-                      >
-                        <h4 className="text-lg font-bold mb-1">✈️ 6x6 Vliegtuig</h4>
-                        <p className="text-sm opacity-90">Keeper, Achter, Links, Midden, Rechts, Voor</p>
-                      </button>
-                      <button 
-                        onClick={() => maakWedstrijd('6x6-dobbelsteen')} 
-                        className="p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-left"
-                      >
-                        <h4 className="text-lg font-bold mb-1">🎲 6x6 Dobbelsteen</h4>
-                        <p className="text-sm opacity-90">2-1-2 opstelling met centrale middenvelder</p>
-                      </button>
-                      {spelers.length >= 8 && (
-                        <button 
-                          onClick={() => maakWedstrijd('8x8')} 
-                          className="p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 text-left"
-                        >
-                          <h4 className="text-lg font-bold mb-1">⚽ 8 tegen 8</h4>
-                          <p className="text-sm opacity-90">Keeper, 2 Achter, 3 Midden, 2 Voor</p>
-                        </button>
-                      )}
-                    </div>
+                    <button
+                      onClick={() => setFormatieModal(true)}
+                      className="w-full p-5 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg hover:from-blue-600 hover:to-green-600 transition-all shadow-md hover:shadow-lg"
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        <Plus className="w-6 h-6" />
+                        <span className="text-xl font-bold">Nieuwe Wedstrijd Aanmaken</span>
+                      </div>
+                      <p className="text-sm opacity-90 mt-1">Kies je formatie</p>
+                    </button>
                   )}
                 </div>
 
@@ -405,6 +394,139 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Formatie Selectie Modal */}
+      {formatieModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 flex justify-between items-center">
+              <div>
+                <h3 className="text-2xl font-bold">Kies je formatie</h3>
+                <p className="text-sm opacity-90 mt-1">Selecteer hoe je wilt spelen</p>
+              </div>
+              <button 
+                onClick={() => setFormatieModal(false)}
+                className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto p-6 flex-1">
+              <div className="space-y-4">
+                {/* 6x6 Vliegtuig */}
+                <button
+                  onClick={() => maakWedstrijd('6x6-vliegtuig')}
+                  className="w-full p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all text-left group"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-2xl font-bold text-blue-700 mb-2 group-hover:text-blue-800">
+                        ✈️ 6x6 Vliegtuig
+                      </h4>
+                      <p className="text-gray-700 mb-3">
+                        Klassieke 1-1-3-1 opstelling
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Keeper</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Achter</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Links</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Midden</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Rechts</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-blue-800 font-medium">Voor</span>
+                      </div>
+                    </div>
+                    <div className="ml-4 text-blue-500 group-hover:scale-110 transition-transform">
+                      <Plus className="w-8 h-8" />
+                    </div>
+                  </div>
+                </button>
+
+                {/* 6x6 Dobbelsteen */}
+                <button
+                  onClick={() => maakWedstrijd('6x6-dobbelsteen')}
+                  className="w-full p-6 bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-300 rounded-xl hover:border-purple-500 hover:shadow-lg transition-all text-left group"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-2xl font-bold text-purple-700 mb-2 group-hover:text-purple-800">
+                        🎲 6x6 Dobbelsteen
+                      </h4>
+                      <p className="text-gray-700 mb-3">
+                        2-1-2 opstelling met centrale middenvelder
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Keeper</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Links achter</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Rechts achter</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Midden</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Links voor</span>
+                        <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-purple-800 font-medium">Rechts voor</span>
+                      </div>
+                    </div>
+                    <div className="ml-4 text-purple-500 group-hover:scale-110 transition-transform">
+                      <Plus className="w-8 h-8" />
+                    </div>
+                  </div>
+                </button>
+
+                {/* 8x8 - Only if enough players */}
+                {spelers.length >= 8 ? (
+                  <button
+                    onClick={() => maakWedstrijd('8x8')}
+                    className="w-full p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl hover:border-green-500 hover:shadow-lg transition-all text-left group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-2xl font-bold text-green-700 mb-2 group-hover:text-green-800">
+                          ⚽ 8 tegen 8
+                        </h4>
+                        <p className="text-gray-700 mb-3">
+                          Volledige opstelling: 1-2-3-2
+                        </p>
+                        <div className="flex flex-wrap gap-2 text-sm">
+                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">Keeper</span>
+                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">2 Achter</span>
+                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">3 Midden</span>
+                          <span className="px-3 py-1 bg-white bg-opacity-60 rounded-full text-green-800 font-medium">2 Voor</span>
+                        </div>
+                      </div>
+                      <div className="ml-4 text-green-500 group-hover:scale-110 transition-transform">
+                        <Plus className="w-8 h-8" />
+                      </div>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="p-6 bg-gray-50 border-2 border-gray-300 rounded-xl opacity-50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-2xl font-bold text-gray-500 mb-2">
+                          ⚽ 8 tegen 8
+                        </h4>
+                        <p className="text-gray-600 mb-2">
+                          Volledige opstelling: 1-2-3-2
+                        </p>
+                        <p className="text-sm text-orange-600 font-medium">
+                          ⚠️ Je hebt minimaal 8 spelers nodig (nu: {spelers.length})
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="border-t p-4 bg-gray-50">
+              <button
+                onClick={() => setFormatieModal(false)}
+                className="w-full px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium transition-colors"
+              >
+                Annuleren
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
