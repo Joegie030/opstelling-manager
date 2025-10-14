@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Clock, Plus, Trash2, X, Copy, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, Plus, Trash2, X } from 'lucide-react';
 import { Speler, Wedstrijd, formaties } from '../types';
 
 interface Props {
@@ -11,7 +11,6 @@ interface Props {
   onUpdateDatum: (datum: string) => void;
   onUpdateTegenstander: (tegenstander: string) => void;
   onUpdateThuisUit: (thuisUit: 'thuis' | 'uit') => void;
-  onToggleAfwezig: (spelerId: number) => void;
   onUpdateOpstelling: (kwartIndex: number, positie: string, spelerId: string) => void;
   onVoegWisselToe: (kwartIndex: number) => void;
   onUpdateWissel: (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => void;
@@ -29,7 +28,6 @@ export default function WedstrijdOpstelling({
   onUpdateDatum,
   onUpdateTegenstander,
   onUpdateThuisUit,
-  onToggleAfwezig,
   onUpdateOpstelling,
   onVoegWisselToe,
   onUpdateWissel,
@@ -44,9 +42,6 @@ export default function WedstrijdOpstelling({
     kwartIndex: number;
     positie: string;
   }>({ open: false, kwartIndex: 0, positie: '' });
-  
-  // Afwezigheid sectie state
-  const [afwezigheidOpen, setAfwezigheidOpen] = useState(false);
   
   const posities = formaties[wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8'];
 
@@ -226,14 +221,8 @@ export default function WedstrijdOpstelling({
     const totaalKeeperBeurten = berekenTotaalKeeperBeurten(); // NIEUWE: Totaal over alle wedstrijden!
     const stats = berekenWedstrijdStats();
     const isKeeperPositie = huidigePositie === 'Keeper';
-    const afwezigeSpelers = wedstrijd.afwezigeSpelers || [];
     
-    // Filter afwezige spelers eruit, behalve als ze al in dit kwart spelen
-    const beschikbareSpelers = spelers.filter(s => 
-      !afwezigeSpelers.includes(s.id) || s.id.toString() === huidigeSid
-    );
-    
-    const spelersMetInfo = beschikbareSpelers.map(s => {
+    const spelersMetInfo = spelers.map(s => {
       const spelerStats = stats.find(stat => stat.naam === s.naam);
       return {
         ...s,
@@ -242,8 +231,7 @@ export default function WedstrijdOpstelling({
         aantalWissel: wisselBeurten[s.id] || 0,
         minutenGespeeld: spelerStats?.minuten || 0,
         keeperBeurten: totaalKeeperBeurten[s.id] || 0, // TOTAAL over ALLE wedstrijden!
-        keeperBeurtenDezeWedstrijd: keeperBeurten[s.id] || 0,
-        isAfwezig: afwezigeSpelers.includes(s.id)
+        keeperBeurtenDezeWedstrijd: keeperBeurten[s.id] || 0
       };
     });
     
@@ -437,71 +425,6 @@ export default function WedstrijdOpstelling({
               className="flex-1 px-3 py-2 border rounded-lg text-sm" 
             />
           </div>
-
-          {/* Afwezigheid Tracking - Uitklapbaar */}
-          <div className="border-2 border-orange-200 bg-orange-50 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setAfwezigheidOpen(!afwezigheidOpen)}
-              className="w-full px-3 py-2 flex items-center justify-between hover:bg-orange-100 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🚫</span>
-                <span className="text-sm font-semibold text-gray-700">
-                  Afwezige Spelers
-                </span>
-                {wedstrijd.afwezigeSpelers && wedstrijd.afwezigeSpelers.length > 0 && (
-                  <span className="px-2 py-0.5 bg-orange-500 text-white rounded-full text-xs font-bold">
-                    {wedstrijd.afwezigeSpelers.length}
-                  </span>
-                )}
-              </div>
-              {afwezigheidOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-            
-            {afwezigheidOpen && (
-              <div className="px-3 py-3 border-t border-orange-200 bg-white">
-                <p className="text-xs text-gray-600 mb-3">
-                  Vink aan wie er NIET is bij deze wedstrijd. Ze worden automatisch uitgefilterd bij het maken van de opstelling.
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {spelers.map(speler => {
-                    const isAfwezig = wedstrijd.afwezigeSpelers?.includes(speler.id) || false;
-                    return (
-                      <label
-                        key={speler.id}
-                        className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
-                          isAfwezig
-                            ? 'bg-red-50 border-red-300 text-red-700'
-                            : 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isAfwezig}
-                          onChange={() => onToggleAfwezig(speler.id)}
-                          className="w-4 h-4 rounded"
-                        />
-                        <span className={`text-sm font-medium ${isAfwezig ? 'line-through' : ''}`}>
-                          {speler.naam}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-                {wedstrijd.afwezigeSpelers && wedstrijd.afwezigeSpelers.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-orange-200">
-                    <p className="text-xs text-gray-600">
-                      💡 <strong>Tip:</strong> Afwezige spelers verschijnen niet in de speler selectie bij het maken van de opstelling.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
         
         {/* Action buttons */}
@@ -510,7 +433,7 @@ export default function WedstrijdOpstelling({
             onClick={onKopieer} 
             className="flex-1 sm:flex-none px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 text-sm"
           >
-            <Copy className="w-4 h-4" />
+            <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Kopieer</span>
           </button>
           <button 
@@ -652,13 +575,11 @@ export default function WedstrijdOpstelling({
                   const geselecteerdeSpeler = wissel.positie ? 
                     spelersInVeld.find(s => s.positie === wissel.positie) : null;
                   
-                  // Beschikbare wisselspelers (niet in veld, niet al wisselend, niet afwezig)
-                  const afwezigeSpelerIds = wedstrijd.afwezigeSpelers || [];
+                  // Beschikbare wisselspelers (niet in veld, niet al wisselend)
                   const beschikbareWisselSpelers = spelers
                     .filter(s => 
                       !Object.values(kwart.opstelling).includes(s.id.toString()) &&
-                      !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString()) &&
-                      !afwezigeSpelerIds.includes(s.id)
+                      !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString())
                     )
                     .map(s => ({
                       ...s,

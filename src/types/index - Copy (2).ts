@@ -23,7 +23,6 @@ export interface Wedstrijd {
   thuisUit: 'thuis' | 'uit';
   formatie: '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8';
   kwarten: Kwart[];
-  afwezigeSpelers?: number[];  // Array van speler IDs die afwezig zijn
 }
 
 export const formaties: Record<'6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8', string[]> = {

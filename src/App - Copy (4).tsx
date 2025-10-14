@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Plus, Trash2, Eye, X, Copy } from 'lucide-react';
+import { Trophy, Plus, Trash2, Eye, X } from 'lucide-react';
 import { Speler, Wedstrijd, formaties } from './types';
 import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
@@ -113,19 +113,6 @@ function App() {
   const updateThuisUit = (nieuweThuisUit: 'thuis' | 'uit') => {
     if (!huidgeWedstrijd) return;
     const updated = { ...huidgeWedstrijd, thuisUit: nieuweThuisUit };
-    setHuidgeWedstrijd(updated);
-    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-  };
-
-  const toggleAfwezig = (spelerId: number) => {
-    if (!huidgeWedstrijd) return;
-    const huidigeAfwezigen = huidgeWedstrijd.afwezigeSpelers || [];
-    const updated = { 
-      ...huidgeWedstrijd, 
-      afwezigeSpelers: huidigeAfwezigen.includes(spelerId)
-        ? huidigeAfwezigen.filter(id => id !== spelerId)
-        : [...huidigeAfwezigen, spelerId]
-    };
     setHuidgeWedstrijd(updated);
     setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
   };
@@ -390,7 +377,7 @@ function App() {
                               className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors"
                               title="Kopieer deze wedstrijd"
                             >
-                              <Copy className="w-4 h-4" />
+                              <Plus className="w-4 h-4" />
                               Kopieer
                             </button>
                             <button 
@@ -414,7 +401,7 @@ function App() {
                               className="sm:hidden flex items-center justify-center px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                               title="Kopieer"
                             >
-                              <Copy className="w-5 h-5" />
+                              <Plus className="w-5 h-5" />
                             </button>
                             <button 
                               onClick={() => verwijderWedstrijd(wedstrijd.id)} 
@@ -495,7 +482,6 @@ function App() {
                 onUpdateDatum={updateDatum}
                 onUpdateTegenstander={updateTegenstander}
                 onUpdateThuisUit={updateThuisUit}
-                onToggleAfwezig={toggleAfwezig}
                 onUpdateOpstelling={updateOpstelling}
                 onVoegWisselToe={voegWisselToe}
                 onUpdateWissel={updateWissel}
