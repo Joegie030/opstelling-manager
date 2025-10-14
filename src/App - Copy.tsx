@@ -164,8 +164,8 @@ function App() {
                 ⚽
               </div>
               <div className="text-white">
-                <h1 className="text-xl font-bold leading-tight">Opstelling Manager</h1>
-                <p className="text-sm opacity-90">{clubNaam} - {teamNaam}</p>
+                <h1 className="text-xl opacity-75">Opstelling Manager</h1>
+                <p className="text-xs font-bold leading-tight">{clubNaam} - {teamNaam}</p>
               </div>
             </div>
           </div>

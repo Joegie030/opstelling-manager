@@ -499,14 +499,9 @@ export default function WedstrijdOpstelling({
                     });
                   });
                   
-                  // Haal spelers op die NU in het veld staan EN die niet al in een andere wissel zitten
-                  const reedsGewisseldePosities = kwart.wissels
-                    .filter((w, i) => i !== wisselIndex && w.positie) // Andere wissels die al een positie hebben
-                    .map(w => w.positie);
-                  
+                  // Haal spelers op die NU in het veld staan
                   const spelersInVeld = Object.entries(kwart.opstelling)
                     .filter(([_, sid]) => sid) // Alleen posities met speler
-                    .filter(([pos, _]) => !reedsGewisseldePosities.includes(pos)) // Filter al gewisselde posities
                     .map(([pos, sid]) => ({
                       spelerId: sid,
                       positie: pos,
