@@ -483,13 +483,29 @@ export default function WedstrijdOpstelling({
             {kwart.wissels && kwart.wissels.length > 0 ? (
               <div className="space-y-3">
                 {kwart.wissels.map((wissel, wisselIndex) => {
+                  // Check welke spelers keeper zijn/waren in deze wedstrijd
+                  const keepersDezeWedstrijd = new Set<string>();
+                  wedstrijd.kwarten.forEach((k, ki) => {
+                    if (ki > kwartIndex) return; // Tot en met huidig kwart
+                    const keeperId = k.opstelling['Keeper'];
+                    if (keeperId) keepersDezeWedstrijd.add(keeperId);
+                    // Ook wissels naar keeper positie
+                    k.wissels?.forEach(w => {
+                      if (w.positie === 'Keeper' && w.wisselSpelerId) {
+                        keepersDezeWedstrijd.add(w.wisselSpelerId);
+                      }
+                    });
+                  });
+                  
                   // Haal spelers op die NU in het veld staan
                   const spelersInVeld = Object.entries(kwart.opstelling)
                     .filter(([_, sid]) => sid) // Alleen posities met speler
                     .map(([pos, sid]) => ({
                       spelerId: sid,
                       positie: pos,
-                      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend'
+                      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
+                      isKeeperGeweest: keepersDezeWedstrijd.has(sid),
+                      isNuKeeper: pos === 'Keeper'
                     }));
                   
                   // Huidige selectie
@@ -549,14 +565,21 @@ export default function WedstrijdOpstelling({
                               <option value="">-- Kies speler --</option>
                               {spelersInVeld.map(s => (
                                 <option key={s.spelerId} value={s.positie}>
-                                  {s.naam} ({s.positie})
+                                  {s.naam} ({s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
                                 </option>
                               ))}
                             </select>
                             {geselecteerdeSpeler && (
-                              <p className="text-xs text-gray-600 mt-1 font-medium">
-                                ⚽ Positie: {geselecteerdeSpeler.positie}
-                              </p>
+                              <div className="text-xs mt-1 space-y-0.5">
+                                <p className="text-gray-600 font-medium">
+                                  ⚽ Positie: {geselecteerdeSpeler.positie}
+                                </p>
+                                {geselecteerdeSpeler.isKeeperGeweest && (
+                                  <p className="text-blue-600 font-medium">
+                                    🧤 Was/is keeper deze wedstrijd
+                                  </p>
+                                )}
+                              </div>
                             )}
                           </div>
                           
