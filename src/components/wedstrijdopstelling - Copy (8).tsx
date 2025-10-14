@@ -300,70 +300,36 @@ export default function WedstrijdOpstelling({
     const waarschuwingen: string[] = [];
     const kwart = wedstrijd.kwarten[kwartIndex];
     
-    // Helper: Check of speler in een kwart speelt (basis of wissel)
-    const speeltInKwart = (spelerIdStr: string, kwartObj: typeof kwart) => {
-      // Check basis opstelling
-      const inBasis = Object.values(kwartObj.opstelling).includes(spelerIdStr);
-      // Check wissels (zowel eruit als erin)
-      const inWissel = kwartObj.wissels?.some(w => 
-        w.wisselSpelerId === spelerIdStr || 
-        (w.positie && kwartObj.opstelling[w.positie] === spelerIdStr)
-      );
-      return inBasis || inWissel;
-    };
-    
-    // Helper: Check of speler als VELDSPELER speelt (niet keeper)
-    const speeltAlsVeldspeler = (spelerIdStr: string, kwartObj: typeof kwart) => {
-      // Check of speler keeper is in basis
-      const isKeeperInBasis = kwartObj.opstelling['Keeper'] === spelerIdStr;
-      
-      // Check of speler wordt gewisseld naar keeper positie
-      const wordtKeeperViaWissel = kwartObj.wissels?.some(w => 
-        w.positie === 'Keeper' && w.wisselSpelerId === spelerIdStr
-      );
-      
-      // Check of speler op veld staat (maar niet als keeper)
-      const speelt = speeltInKwart(spelerIdStr, kwartObj);
-      const isKeeper = isKeeperInBasis || wordtKeeperViaWissel;
-      
-      return speelt && !isKeeper;
-    };
-    
-    // 1. KEEPER REGEL: Keeper moet juist WEL spelen voor of na keeper beurt ALS VELDSPELER
+    // 1. KEEPER REGEL: Keeper moet juist WEL spelen voor of na keeper beurt
     const keeperId = kwart.opstelling['Keeper'];
-    const wisselNaarKeeper = kwart.wissels?.find(w => w.positie === 'Keeper');
-    
-    // Check beide keepers (basis + wissel)
-    const keeperIds = [keeperId, wisselNaarKeeper?.wisselSpelerId].filter(Boolean);
-    
-    keeperIds.forEach(kId => {
-      if (!kId) return;
-      const keeperNaam = spelers.find(s => s.id.toString() === kId)?.naam;
-      if (!keeperNaam) return;
-      
-      const vorigKwart = kwartIndex > 0 ? wedstrijd.kwarten[kwartIndex - 1] : null;
-      const volgendKwart = kwartIndex < 3 ? wedstrijd.kwarten[kwartIndex + 1] : null;
-      
-      const speeltAlsVeldspelerInVorig = vorigKwart && speeltAlsVeldspeler(kId, vorigKwart);
-      const speeltAlsVeldspelerInVolgend = volgendKwart && speeltAlsVeldspeler(kId, volgendKwart);
-      
-      // Als keeper NIET als veldspeler speelt voor EN NIET na = te weinig veldspeler ervaring!
-      if (!speeltAlsVeldspelerInVorig && !speeltAlsVeldspelerInVolgend) {
-        const kwartNamen = [];
-        if (vorigKwart) kwartNamen.push(`kwart ${kwartIndex}`);
-        if (volgendKwart) kwartNamen.push(`kwart ${kwartIndex + 2}`);
-        waarschuwingen.push(
-          `🧤 ${keeperNaam} speelt niet als veldspeler ${kwartNamen.length === 2 ? 'in ' + kwartNamen.join(' en ') : kwartNamen.length === 1 ? 'in ' + kwartNamen[0] : ''} (te weinig veldervaring!)`
-        );
+    if (keeperId) {
+      const keeperNaam = spelers.find(s => s.id.toString() === keeperId)?.naam;
+      if (keeperNaam) {
+        const vorigKwart = kwartIndex > 0 ? wedstrijd.kwarten[kwartIndex - 1] : null;
+        const volgendKwart = kwartIndex < 3 ? wedstrijd.kwarten[kwartIndex + 1] : null;
+        const speeltInVorig = vorigKwart && Object.values(vorigKwart.opstelling).includes(keeperId);
+        const speeltInVolgend = volgendKwart && Object.values(volgendKwart.opstelling).includes(keeperId);
+        
+        // Als keeper NIET speelt voor EN NIET speelt na = te weinig veldspeler ervaring!
+        if (!speeltInVorig && !speeltInVolgend) {
+          const kwartNamen = [];
+          if (vorigKwart) kwartNamen.push(`kwart ${kwartIndex}`);
+          if (volgendKwart) kwartNamen.push(`kwart ${kwartIndex + 2}`);
+          waarschuwingen.push(
+            `🧤 ${keeperNaam} speelt niet als veldspeler ${kwartNamen.length === 2 ? 'in ' + kwartNamen.join(' en ') : kwartNamen.length === 1 ? 'in ' + kwartNamen[0] : ''} (te weinig veldervaring!)`
+          );
+        }
       }
-    });
+    }
     
     // 2. DUBBELE BANK: Check of speler 2 kwarten op rij op bank zit (vanaf dit kwart)
     if (kwartIndex < wedstrijd.kwarten.length - 1) {
       const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
       spelers.forEach(speler => {
-        const speeltDitKwart = speeltInKwart(speler.id.toString(), kwart);
-        const speeltVolgendKwart = speeltInKwart(speler.id.toString(), volgendKwart);
+        const speeltDitKwart = Object.values(kwart.opstelling).includes(speler.id.toString()) || 
+                               kwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+        const speeltVolgendKwart = Object.values(volgendKwart.opstelling).includes(speler.id.toString()) || 
+                                   volgendKwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
         
         if (!speeltDitKwart && !speeltVolgendKwart) {
           waarschuwingen.push(
@@ -381,7 +347,8 @@ export default function WedstrijdOpstelling({
       // Check: valt in dit kwart, maar speelt niet in volgend kwart
       if (valtInDitKwart && !basisDitKwart && kwartIndex < wedstrijd.kwarten.length - 1) {
         const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
-        const speeltVolgendKwart = speeltInKwart(speler.id.toString(), volgendKwart);
+        const speeltVolgendKwart = Object.values(volgendKwart.opstelling).includes(speler.id.toString()) || 
+                                   volgendKwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
         
         if (!speeltVolgendKwart) {
           waarschuwingen.push(
