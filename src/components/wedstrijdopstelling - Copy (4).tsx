@@ -504,7 +504,22 @@ export default function WedstrijdOpstelling({
                     .filter((w, i) => i !== wisselIndex && w.positie) // Andere wissels die al een positie hebben
                     .map(w => w.positie);
                   
-                  // Bereken minuten per speler tot nu toe in deze wedstrijd (VOOR spelersInVeld)
+                  const spelersInVeld = Object.entries(kwart.opstelling)
+                    .filter(([_, sid]) => sid) // Alleen posities met speler
+                    .filter(([pos, _]) => !reedsGewisseldePosities.includes(pos)) // Filter al gewisselde posities
+                    .map(([pos, sid]) => ({
+                      spelerId: sid,
+                      positie: pos,
+                      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
+                      isKeeperGeweest: keepersDezeWedstrijd.has(sid),
+                      isNuKeeper: pos === 'Keeper'
+                    }));
+                  
+                  // Huidige selectie
+                  const geselecteerdeSpeler = wissel.positie ? 
+                    spelersInVeld.find(s => s.positie === wissel.positie) : null;
+                  
+                  // Bereken minuten per speler tot nu toe in deze wedstrijd
                   const berekenMinutenTotNu = () => {
                     const minuten: Record<string, number> = {};
                     wedstrijd.kwarten.forEach((k, ki) => {
@@ -527,31 +542,6 @@ export default function WedstrijdOpstelling({
                   };
                   
                   const minutenTotNu = berekenMinutenTotNu();
-                  
-                  const spelersInVeld = Object.entries(kwart.opstelling)
-                    .filter(([_, sid]) => sid) // Alleen posities met speler
-                    .filter(([pos, _]) => !reedsGewisseldePosities.includes(pos)) // Filter al gewisselde posities
-                    .map(([pos, sid]) => ({
-                      spelerId: sid,
-                      positie: pos,
-                      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
-                      isKeeperGeweest: keepersDezeWedstrijd.has(sid),
-                      isNuKeeper: pos === 'Keeper',
-                      minutenGespeeld: minutenTotNu[sid] || 0 // NIEUW: minuten toevoegen
-                    }))
-                    .sort((a, b) => {
-                      // NIEUW: Sorteer logica
-                      // 1. Keepers altijd onderaan
-                      if (a.isKeeperGeweest !== b.isKeeperGeweest) {
-                        return a.isKeeperGeweest ? 1 : -1;
-                      }
-                      // 2. Binnen keepers/niet-keepers: minst gespeeld eerst
-                      return a.minutenGespeeld - b.minutenGespeeld;
-                    });
-                  
-                  // Huidige selectie
-                  const geselecteerdeSpeler = wissel.positie ? 
-                    spelersInVeld.find(s => s.positie === wissel.positie) : null;
                   
                   // Beschikbare wisselspelers (niet in veld, niet al wisselend)
                   const beschikbareWisselSpelers = spelers
@@ -582,14 +572,14 @@ export default function WedstrijdOpstelling({
                               <option value="">-- Kies speler --</option>
                               {spelersInVeld.map(s => (
                                 <option key={s.spelerId} value={s.positie}>
-                                  {s.naam} ({s.minutenGespeeld} min • {s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
+                                  {s.naam} ({s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
                                 </option>
                               ))}
                             </select>
                             {geselecteerdeSpeler && (
                               <div className="text-xs mt-1 space-y-0.5">
                                 <p className="text-gray-600 font-medium">
-                                  ⏱️ {geselecteerdeSpeler.minutenGespeeld} min gespeeld
+                                  ⚽ Positie: {geselecteerdeSpeler.positie}
                                 </p>
                                 {geselecteerdeSpeler.isKeeperGeweest && (
                                   <p className="text-blue-600 font-medium">
