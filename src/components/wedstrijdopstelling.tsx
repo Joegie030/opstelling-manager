@@ -299,6 +299,10 @@ export default function WedstrijdOpstelling({
   const checkKwartRegels = (kwartIndex: number) => {
     const waarschuwingen: string[] = [];
     const kwart = wedstrijd.kwarten[kwartIndex];
+    const afwezigeSpelerIds = wedstrijd.afwezigeSpelers || [];
+    
+    // Filter alleen beschikbare (niet-afwezige) spelers
+    const beschikbareSpelers = spelers.filter(s => !afwezigeSpelerIds.includes(s.id));
     
     // Helper: Check of speler in een kwart speelt (basis of wissel)
     const speeltInKwart = (spelerIdStr: string, kwartObj: typeof kwart) => {
@@ -338,6 +342,9 @@ export default function WedstrijdOpstelling({
     
     keeperIds.forEach(kId => {
       if (!kId) return;
+      // Skip afwezige spelers
+      if (afwezigeSpelerIds.includes(Number(kId))) return;
+      
       const keeperNaam = spelers.find(s => s.id.toString() === kId)?.naam;
       if (!keeperNaam) return;
       
@@ -359,9 +366,10 @@ export default function WedstrijdOpstelling({
     });
     
     // 2. DUBBELE BANK: Check of speler 2 kwarten op rij op bank zit (vanaf dit kwart)
+    // Alleen voor BESCHIKBARE spelers
     if (kwartIndex < wedstrijd.kwarten.length - 1) {
       const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
-      spelers.forEach(speler => {
+      beschikbareSpelers.forEach(speler => {
         const speeltDitKwart = speeltInKwart(speler.id.toString(), kwart);
         const speeltVolgendKwart = speeltInKwart(speler.id.toString(), volgendKwart);
         
@@ -374,7 +382,8 @@ export default function WedstrijdOpstelling({
     }
     
     // 3. INVALLER-BANK: Check of invaller daarna weer op bank zit
-    spelers.forEach(speler => {
+    // Alleen voor BESCHIKBARE spelers
+    beschikbareSpelers.forEach(speler => {
       const basisDitKwart = Object.values(kwart.opstelling).includes(speler.id.toString());
       const valtInDitKwart = kwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
       
