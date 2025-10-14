@@ -31,10 +31,10 @@ function App() {
   // Helper functie om formatie naam mooi weer te geven (met backward compatibility)
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
-      '6x6': 'âœˆï¸ 6x6 Vliegtuig',
-      '6x6-vliegtuig': 'âœˆï¸ 6x6 Vliegtuig',
-      '6x6-dobbelsteen': 'ðŸŽ² 6x6 Dobbelsteen',
-      '8x8': 'âš½ 8x8'
+      '6x6': '✈️ 6x6 Vliegtuig',
+      '6x6-vliegtuig': '✈️ 6x6 Vliegtuig',
+      '6x6-dobbelsteen': '🎲 6x6 Dobbelsteen',
+      '8x8': '⚽ 8x8'
     };
     return namen[formatie] || formatie;
   };
@@ -207,7 +207,7 @@ function App() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-md">
-                âš½
+                ⚽
               </div>
               <div className="text-white">
                 <h1 className="text-xl font-bold leading-tight">Opstelling Manager</h1>
@@ -226,8 +226,8 @@ function App() {
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
-              <span className="hidden sm:inline">âš½ Wedstrijden</span>
-              <span className="sm:hidden">âš½</span>
+              <span className="hidden sm:inline">⚽ Wedstrijden</span>
+              <span className="sm:hidden">⚽</span>
             </button>
             <button 
               onClick={() => setHuidigScherm('statistieken')} 
@@ -237,8 +237,8 @@ function App() {
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
-              <span className="hidden sm:inline">ðŸ"ˆ Statistieken</span>
-              <span className="sm:hidden">ðŸ"ˆ</span>
+              <span className="hidden sm:inline">📈 Statistieken</span>
+              <span className="sm:hidden">📈</span>
             </button>
             <button 
               onClick={() => setHuidigScherm('team')} 
@@ -248,14 +248,14 @@ function App() {
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
-              <span className="hidden sm:inline">ðŸ'¥ Team</span>
-              <span className="sm:hidden">ðŸ'¥</span>
+              <span className="hidden sm:inline">👥 Team</span>
+              <span className="sm:hidden">👥</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content - AANGEPAST: betere mobiele padding */}
+      {/* Main Content */}
       <div className="max-w-6xl mx-auto sm:p-4 p-2">
         <div className="bg-white rounded-xl shadow-lg sm:p-6 p-3">
           <div>
@@ -269,7 +269,7 @@ function App() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   {spelers.length < 6 ? (
                     <div>
-                      <h3 className="font-semibold mb-3 text-lg">âž• Nieuwe Wedstrijd Aanmaken</h3>
+                      <h3 className="font-semibold mb-3 text-lg">➕ Nieuwe Wedstrijd Aanmaken</h3>
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <p className="text-yellow-800">Je hebt minimaal 6 spelers nodig om een wedstrijd aan te maken.</p>
                       </div>
@@ -338,7 +338,7 @@ function App() {
                             <span className={`px-2 py-1 rounded text-xs font-bold ${
                               isThuis ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
                             }`}>
-                              {isThuis ? 'ðŸ  Thuis' : 'âœˆï¸ Uit'}
+                              {isThuis ? '🏠 Thuis' : '✈️ Uit'}
                             </span>
                           </div>
                           
@@ -421,7 +421,7 @@ function App() {
                         {komendeWedstrijden.length > 0 && (
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
-                              <h3 className="text-xl font-semibold text-blue-600">ðŸ"… Komende Wedstrijden</h3>
+                              <h3 className="text-xl font-semibold text-blue-600">📅 Komende Wedstrijden</h3>
                               <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">
                                 {komendeWedstrijden.length}
                               </span>
@@ -434,7 +434,7 @@ function App() {
                         {gespeeldeWedstrijden.length > 0 && (
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
-                              <h3 className="text-xl font-semibold text-gray-600">ðŸ Gespeelde Wedstrijden</h3>
+                              <h3 className="text-xl font-semibold text-gray-600">🏁 Gespeelde Wedstrijden</h3>
                               <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-bold">
                                 {gespeeldeWedstrijden.length}
                               </span>
@@ -521,7 +521,7 @@ function App() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h4 className="text-2xl font-bold text-blue-700 mb-2 group-hover:text-blue-800">
-                        âœˆï¸ 6x6 Vliegtuig
+                        ✈️ 6x6 Vliegtuig
                       </h4>
                       <p className="text-gray-700 mb-3">
                         Klassieke 1-1-3-1 opstelling
@@ -549,7 +549,7 @@ function App() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h4 className="text-2xl font-bold text-purple-700 mb-2 group-hover:text-purple-800">
-                        ðŸŽ² 6x6 Dobbelsteen
+                        🎲 6x6 Dobbelsteen
                       </h4>
                       <p className="text-gray-700 mb-3">
                         2-1-2 opstelling met centrale middenvelder
@@ -578,7 +578,7 @@ function App() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h4 className="text-2xl font-bold text-green-700 mb-2 group-hover:text-green-800">
-                          âš½ 8 tegen 8
+                          ⚽ 8 tegen 8
                         </h4>
                         <p className="text-gray-700 mb-3">
                           Volledige opstelling: 1-2-3-2
@@ -600,13 +600,13 @@ function App() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h4 className="text-2xl font-bold text-gray-500 mb-2">
-                          âš½ 8 tegen 8
+                          ⚽ 8 tegen 8
                         </h4>
                         <p className="text-gray-600 mb-2">
                           Volledige opstelling: 1-2-3-2
                         </p>
                         <p className="text-sm text-orange-600 font-medium">
-                          âš ï¸ Je hebt minimaal 8 spelers nodig (nu: {spelers.length})
+                          ⚠️ Je hebt minimaal 8 spelers nodig (nu: {spelers.length})
                         </p>
                       </div>
                     </div>
