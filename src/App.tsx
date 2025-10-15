@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Trophy, Plus, Trash2, Eye, X, Copy } from 'lucide-react';
-import { Speler, Wedstrijd, formaties } from './types';
+import { Speler, Wedstrijd, Doelpunt, formaties } from './types';
 import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
@@ -162,6 +162,56 @@ function App() {
     if (!huidgeWedstrijd) return;
     const updated = { ...huidgeWedstrijd };
     updated.kwarten[kwartIndex].wissels.splice(wisselIndex, 1);
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  // NIEUW: Doelpunten handlers
+  const voegDoelpuntToe = (kwartIndex: number, doelpunt: Omit<Doelpunt, 'id'>) => {
+    if (!huidgeWedstrijd) return;
+    const updated = { ...huidgeWedstrijd };
+    
+    // Zorg dat doelpunten array bestaat
+    if (!updated.kwarten[kwartIndex].doelpunten) {
+      updated.kwarten[kwartIndex].doelpunten = [];
+    }
+    
+    // Voeg doelpunt toe met unieke ID
+    updated.kwarten[kwartIndex].doelpunten!.push({
+      ...doelpunt,
+      id: Date.now()
+    });
+    
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  const verwijderDoelpunt = (kwartIndex: number, doelpuntId: number) => {
+    if (!huidgeWedstrijd) return;
+    const updated = { ...huidgeWedstrijd };
+    
+    if (updated.kwarten[kwartIndex].doelpunten) {
+      updated.kwarten[kwartIndex].doelpunten = updated.kwarten[kwartIndex].doelpunten!.filter(
+        d => d.id !== doelpuntId
+      );
+    }
+    
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  // NIEUW: Notities handlers
+  const updateWedstrijdNotities = (notities: string) => {
+    if (!huidgeWedstrijd) return;
+    const updated = { ...huidgeWedstrijd, notities };
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  const updateKwartAantekeningen = (kwartIndex: number, aantekeningen: string) => {
+    if (!huidgeWedstrijd) return;
+    const updated = { ...huidgeWedstrijd };
+    updated.kwarten[kwartIndex].aantekeningen = aantekeningen;
     setHuidgeWedstrijd(updated);
     setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
   };
@@ -500,6 +550,10 @@ function App() {
                 onVoegWisselToe={voegWisselToe}
                 onUpdateWissel={updateWissel}
                 onVerwijderWissel={verwijderWissel}
+                onVoegDoelpuntToe={voegDoelpuntToe}
+                onVerwijderDoelpunt={verwijderDoelpunt}
+                onUpdateWedstrijdNotities={updateWedstrijdNotities}
+                onUpdateKwartAantekeningen={updateKwartAantekeningen}
                 onKopieer={() => kopieerWedstrijd(huidgeWedstrijd)}
                 onSluiten={() => { setHuidgeWedstrijd(null); setHuidigScherm('wedstrijden'); }}
               />

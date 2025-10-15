@@ -1,4 +1,4 @@
-import { Speler, Wedstrijd, formaties } from '../types';
+import { Speler, Wedstrijd, Doelpunt, formaties } from '../types';
 
 interface Props {
   spelers: Speler[];
@@ -81,6 +81,83 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     return Object.values(stats);
   };
 
+  // NIEUW: Bereken topscorers
+  const berekenTopscorers = () => {
+    const scorers: Record<number, { naam: string; doelpunten: number }> = {};
+    
+    spelers.forEach(s => {
+      scorers[s.id] = { naam: s.naam, doelpunten: 0 };
+    });
+    
+    wedstrijden.forEach(wed => {
+      wed.kwarten.forEach(kwart => {
+        if (kwart.doelpunten) {
+          kwart.doelpunten.forEach(doelpunt => {
+            if (doelpunt.type === 'eigen' && doelpunt.spelerId && scorers[doelpunt.spelerId]) {
+              scorers[doelpunt.spelerId].doelpunten++;
+            }
+          });
+        }
+      });
+    });
+    
+    return Object.values(scorers)
+      .filter(s => s.doelpunten > 0)
+      .sort((a, b) => b.doelpunten - a.doelpunten);
+  };
+
+  // NIEUW: Bereken team prestaties
+  const berekenTeamPrestaties = () => {
+    let totaalEigenDoelpunten = 0;
+    let totaalTegenstanderDoelpunten = 0;
+    let gewonnen = 0;
+    let gelijkspel = 0;
+    let verloren = 0;
+    
+    wedstrijden.forEach(wed => {
+      let eigenDoelpunten = 0;
+      let tegenstanderDoelpunten = 0;
+      
+      wed.kwarten.forEach(kwart => {
+        if (kwart.doelpunten) {
+          kwart.doelpunten.forEach(doelpunt => {
+            if (doelpunt.type === 'eigen') {
+              eigenDoelpunten++;
+              totaalEigenDoelpunten++;
+            } else {
+              tegenstanderDoelpunten++;
+              totaalTegenstanderDoelpunten++;
+            }
+          });
+        }
+      });
+      
+      if (eigenDoelpunten > tegenstanderDoelpunten) {
+        gewonnen++;
+      } else if (eigenDoelpunten < tegenstanderDoelpunten) {
+        verloren++;
+      } else if (eigenDoelpunten > 0 || tegenstanderDoelpunten > 0) {
+        // Alleen gelijkspel tellen als er daadwerkelijk doelpunten zijn gevallen
+        gelijkspel++;
+      }
+    });
+    
+    const totaalWedstrijden = gewonnen + gelijkspel + verloren;
+    const winstPercentage = totaalWedstrijden > 0 ? Math.round((gewonnen / totaalWedstrijden) * 100) : 0;
+    const doelsaldo = totaalEigenDoelpunten - totaalTegenstanderDoelpunten;
+    
+    return {
+      totaalEigenDoelpunten,
+      totaalTegenstanderDoelpunten,
+      doelsaldo,
+      gewonnen,
+      gelijkspel,
+      verloren,
+      totaalWedstrijden,
+      winstPercentage
+    };
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Statistieken</h2>
@@ -88,6 +165,137 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         <p className="text-gray-500 text-center py-8">Nog geen wedstrijden gespeeld</p>
       ) : (
         <>
+          {/* NIEUW: Team Prestaties */}
+          {(() => {
+            const prestaties = berekenTeamPrestaties();
+            
+            // Alleen tonen als er doelpunten zijn
+            if (prestaties.totaalEigenDoelpunten === 0 && prestaties.totaalTegenstanderDoelpunten === 0) {
+              return null;
+            }
+            
+            return (
+              <div className="border-2 border-yellow-400 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-yellow-50 to-orange-50">
+                <h3 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
+                  🏆 Team Prestaties
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div className="text-3xl sm:text-4xl font-bold text-green-600">
+                      {prestaties.totaalEigenDoelpunten}
+                    </div>
+                    <div className="text-sm text-gray-600 font-medium mt-1">Voor</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div className="text-3xl sm:text-4xl font-bold text-red-600">
+                      {prestaties.totaalTegenstanderDoelpunten}
+                    </div>
+                    <div className="text-sm text-gray-600 font-medium mt-1">Tegen</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div className={`text-3xl sm:text-4xl font-bold ${
+                      prestaties.doelsaldo > 0 ? 'text-green-600' : 
+                      prestaties.doelsaldo < 0 ? 'text-red-600' : 'text-gray-600'
+                    }`}>
+                      {prestaties.doelsaldo > 0 ? '+' : ''}{prestaties.doelsaldo}
+                    </div>
+                    <div className="text-sm text-gray-600 font-medium mt-1">Doelsaldo</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div className="text-3xl sm:text-4xl font-bold text-blue-600">
+                      {prestaties.winstPercentage}%
+                    </div>
+                    <div className="text-sm text-gray-600 font-medium mt-1">Winst %</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-green-100 rounded-lg p-3 text-center border-2 border-green-300">
+                    <div className="text-2xl font-bold text-green-700">{prestaties.gewonnen}</div>
+                    <div className="text-xs text-green-700 font-medium">Gewonnen</div>
+                  </div>
+                  <div className="bg-gray-100 rounded-lg p-3 text-center border-2 border-gray-300">
+                    <div className="text-2xl font-bold text-gray-700">{prestaties.gelijkspel}</div>
+                    <div className="text-xs text-gray-700 font-medium">Gelijk</div>
+                  </div>
+                  <div className="bg-red-100 rounded-lg p-3 text-center border-2 border-red-300">
+                    <div className="text-2xl font-bold text-red-700">{prestaties.verloren}</div>
+                    <div className="text-xs text-gray-700 font-medium">Verloren</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* NIEUW: Topscorers */}
+          {(() => {
+            const topscorers = berekenTopscorers();
+            
+            if (topscorers.length === 0) {
+              return null;
+            }
+            
+            return (
+              <div className="border-2 border-green-400 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-green-50 to-blue-50">
+                <h3 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
+                  ⚽ Topscorers
+                </h3>
+                <div className="space-y-3">
+                  {topscorers.map((scorer, index) => {
+                    let medalEmoji = '';
+                    let borderColor = 'border-gray-300';
+                    let bgColor = 'bg-white';
+                    
+                    if (index === 0) {
+                      medalEmoji = '🥇';
+                      borderColor = 'border-yellow-400';
+                      bgColor = 'bg-gradient-to-r from-yellow-50 to-yellow-100';
+                    } else if (index === 1) {
+                      medalEmoji = '🥈';
+                      borderColor = 'border-gray-400';
+                      bgColor = 'bg-gradient-to-r from-gray-50 to-gray-100';
+                    } else if (index === 2) {
+                      medalEmoji = '🥉';
+                      borderColor = 'border-orange-400';
+                      bgColor = 'bg-gradient-to-r from-orange-50 to-orange-100';
+                    }
+                    
+                    return (
+                      <div 
+                        key={scorer.naam} 
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 ${borderColor} ${bgColor} shadow-sm`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {medalEmoji && <span className="text-3xl">{medalEmoji}</span>}
+                          <div>
+                            <div className="font-bold text-lg">{scorer.naam}</div>
+                            {index < 3 && (
+                              <div className="text-xs text-gray-600 font-medium">
+                                {index === 0 ? 'Topscorer!' : index === 1 ? '2e plaats' : '3e plaats'}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-3xl font-bold text-green-600">
+                            {scorer.doelpunten}
+                          </div>
+                          <div className="text-xs text-gray-600 font-medium">
+                            {scorer.doelpunten === 1 ? 'doelpunt' : 'doelpunten'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {topscorers.length === 0 && (
+                  <p className="text-center text-gray-500 py-4">
+                    Nog geen doelpunten geregistreerd
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
           <div className="border rounded-lg p-4 bg-green-50">
             <h3 className="text-xl font-semibold mb-3">Totaal Overzicht Alle Spelers</h3>
             <div className="overflow-x-auto">

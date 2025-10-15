@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Clock, Plus, Trash2, X, Copy, ChevronDown, ChevronUp } from 'lucide-react';
-import { Speler, Wedstrijd, formaties } from '../types';
+import { Clock, Plus, Trash2, X, Copy, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Speler, Wedstrijd, Doelpunt, formaties } from '../types';
+import ScoreTracking from './ScoreTracking';
 
 interface Props {
   wedstrijd: Wedstrijd;
@@ -16,6 +17,10 @@ interface Props {
   onVoegWisselToe: (kwartIndex: number) => void;
   onUpdateWissel: (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => void;
   onVerwijderWissel: (kwartIndex: number, wisselIndex: number) => void;
+  onVoegDoelpuntToe: (kwartIndex: number, doelpunt: Omit<Doelpunt, 'id'>) => void;
+  onVerwijderDoelpunt: (kwartIndex: number, doelpuntId: number) => void;
+  onUpdateWedstrijdNotities: (notities: string) => void;
+  onUpdateKwartAantekeningen: (kwartIndex: number, aantekeningen: string) => void;
   onKopieer: () => void;
   onSluiten: () => void;
 }
@@ -34,6 +39,10 @@ export default function WedstrijdOpstelling({
   onVoegWisselToe,
   onUpdateWissel,
   onVerwijderWissel,
+  onVoegDoelpuntToe,
+  onVerwijderDoelpunt,
+  onUpdateWedstrijdNotities,
+  onUpdateKwartAantekeningen,
   onKopieer,
   onSluiten
 }: Props) {
@@ -488,6 +497,45 @@ export default function WedstrijdOpstelling({
     sluitSelectieModal();
   };
 
+  // NIEUW: Bereken eindstand van de wedstrijd
+  const berekenEindstand = () => {
+    let eigenDoelpunten = 0;
+    let tegenstanderDoelpunten = 0;
+    const doelpuntenmakers: Record<number, { naam: string; goals: number }> = {};
+    
+    wedstrijd.kwarten.forEach(kwart => {
+      if (kwart.doelpunten) {
+        kwart.doelpunten.forEach(doelpunt => {
+          if (doelpunt.type === 'eigen') {
+            eigenDoelpunten++;
+            if (doelpunt.spelerId) {
+              if (!doelpuntenmakers[doelpunt.spelerId]) {
+                const speler = spelers.find(s => s.id === doelpunt.spelerId);
+                doelpuntenmakers[doelpunt.spelerId] = {
+                  naam: speler?.naam || 'Onbekend',
+                  goals: 0
+                };
+              }
+              doelpuntenmakers[doelpunt.spelerId].goals++;
+            }
+          } else {
+            tegenstanderDoelpunten++;
+          }
+        });
+      }
+    });
+    
+    const doelpuntenmakersList = Object.values(doelpuntenmakers).sort((a, b) => b.goals - a.goals);
+    
+    return {
+      eigenDoelpunten,
+      tegenstanderDoelpunten,
+      doelpuntenmakers: doelpuntenmakersList,
+      resultaat: eigenDoelpunten > tegenstanderDoelpunten ? 'gewonnen' :
+                 eigenDoelpunten < tegenstanderDoelpunten ? 'verloren' : 'gelijkspel'
+    };
+  };
+
   return (
     <div className="space-y-6">
       {/* AANGEPAST: Compacte mobiele header */}
@@ -545,6 +593,24 @@ export default function WedstrijdOpstelling({
               placeholder="Optioneel" 
               className="flex-1 px-3 py-2 border rounded-lg text-sm" 
             />
+          </div>
+
+          {/* NIEUW: Wedstrijd Notities */}
+          <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-3">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+              <FileText className="w-4 h-4" />
+              📝 Wedstrijd Notities
+            </label>
+            <textarea
+              value={wedstrijd.notities || ''}
+              onChange={(e) => onUpdateWedstrijdNotities(e.target.value)}
+              placeholder="Algemene opmerkingen over deze wedstrijd..."
+              className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows={2}
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              💡 Bijvoorbeeld: "Belangrijk om verdediging te versterken", "Veel wind verwacht"
+            </p>
           </div>
 
           {/* Afwezigheid Tracking - Uitklapbaar */}
@@ -730,6 +796,17 @@ export default function WedstrijdOpstelling({
             ))}
           </div>
 
+          {/* NIEUW: Score Tracking */}
+          <div className="mt-4">
+            <ScoreTracking
+              kwartIndex={kwartIndex}
+              doelpunten={kwart.doelpunten || []}
+              spelers={spelers}
+              onVoegDoelpuntToe={onVoegDoelpuntToe}
+              onVerwijderDoelpunt={onVerwijderDoelpunt}
+            />
+          </div>
+
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
             <div className="flex justify-between items-center mb-3">
               <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
@@ -908,6 +985,24 @@ export default function WedstrijdOpstelling({
             )}
           </div>
           
+          {/* NIEUW: Kwart Aantekeningen */}
+          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 mt-4">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+              <FileText className="w-4 h-4" />
+              📋 Aantekeningen dit kwart
+            </label>
+            <textarea
+              value={kwart.aantekeningen || ''}
+              onChange={(e) => onUpdateKwartAantekeningen(kwartIndex, e.target.value)}
+              placeholder="Notities voor dit specifieke kwart..."
+              className="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              rows={2}
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              💡 Bijvoorbeeld: "Veel druk van tegenstander", "Goed verdedigd"
+            </p>
+          </div>
+          
           {/* NIEUW: Regelchecks per kwart */}
           {(() => {
             const kwartWaarschuwingen = checkKwartRegels(kwartIndex);
@@ -932,6 +1027,78 @@ export default function WedstrijdOpstelling({
           })()}
         </div>
       ))}
+
+      {/* NIEUW: Eindstand */}
+      {(() => {
+        const eindstand = berekenEindstand();
+        
+        // Alleen tonen als er doelpunten zijn gescoord
+        if (eindstand.eigenDoelpunten === 0 && eindstand.tegenstanderDoelpunten === 0) {
+          return null;
+        }
+        
+        const resultaatKleur = 
+          eindstand.resultaat === 'gewonnen' ? 'bg-green-100 border-green-400 text-green-800' :
+          eindstand.resultaat === 'verloren' ? 'bg-red-100 border-red-400 text-red-800' :
+          'bg-gray-100 border-gray-400 text-gray-800';
+        
+        const resultaatEmoji = 
+          eindstand.resultaat === 'gewonnen' ? '🏆' :
+          eindstand.resultaat === 'verloren' ? '😔' : '🤝';
+        
+        const resultaatTekst = 
+          eindstand.resultaat === 'gewonnen' ? 'Gewonnen!' :
+          eindstand.resultaat === 'verloren' ? 'Verloren' : 'Gelijkspel';
+        
+        return (
+          <div className={`border-2 rounded-lg p-4 sm:p-6 ${resultaatKleur}`}>
+            <div className="text-center mb-4">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <span className="text-4xl">{resultaatEmoji}</span>
+                <h3 className="text-2xl sm:text-3xl font-bold">Eindstand</h3>
+                <span className="text-4xl">{resultaatEmoji}</span>
+              </div>
+              <div className="flex items-center justify-center gap-4 sm:gap-6 mt-4">
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold">{eindstand.eigenDoelpunten}</div>
+                  <div className="text-sm font-medium mt-1">{teamNaam}</div>
+                </div>
+                <div className="text-3xl font-bold text-gray-600">-</div>
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold">{eindstand.tegenstanderDoelpunten}</div>
+                  <div className="text-sm font-medium mt-1">{wedstrijd.tegenstander || 'Tegenstander'}</div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <span className="inline-block px-6 py-2 bg-white bg-opacity-50 rounded-full text-xl font-bold">
+                  {resultaatTekst}
+                </span>
+              </div>
+            </div>
+            
+            {eindstand.doelpuntenmakers.length > 0 && (
+              <div className="bg-white bg-opacity-60 rounded-lg p-4 mt-4">
+                <h4 className="font-semibold text-lg mb-3 text-center">⚽ Doelpuntenmakers</h4>
+                <div className="space-y-2">
+                  {eindstand.doelpuntenmakers.map((maker, index) => (
+                    <div key={index} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⚽'}
+                        </span>
+                        <span className="font-semibold text-lg">{maker.naam}</span>
+                      </div>
+                      <span className="text-2xl font-bold text-green-600">
+                        {maker.goals} {maker.goals === 1 ? 'goal' : 'goals'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="border rounded-lg p-3 sm:p-4 bg-blue-50">
         <h3 className="font-bold mb-3 text-sm sm:text-base">Wedstrijd Statistieken</h3>
