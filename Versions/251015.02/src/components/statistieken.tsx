@@ -175,50 +175,50 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
             }
             
             return (
-              <div className="border-2 border-yellow-400 rounded-lg p-3 sm:p-6 bg-gradient-to-br from-yellow-50 to-orange-50">
-                <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
+              <div className="border-2 border-yellow-400 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-yellow-50 to-orange-50">
+                <h3 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
                   🏆 Team Prestaties
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-3 sm:mb-4">
-                  <div className="bg-white rounded-lg p-2 sm:p-4 text-center shadow-sm">
-                    <div className="text-2xl sm:text-4xl font-bold text-green-600">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div className="text-3xl sm:text-4xl font-bold text-green-600">
                       {prestaties.totaalEigenDoelpunten}
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Voor</div>
+                    <div className="text-sm text-gray-600 font-medium mt-1">Voor</div>
                   </div>
-                  <div className="bg-white rounded-lg p-2 sm:p-4 text-center shadow-sm">
-                    <div className="text-2xl sm:text-4xl font-bold text-red-600">
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div className="text-3xl sm:text-4xl font-bold text-red-600">
                       {prestaties.totaalTegenstanderDoelpunten}
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Tegen</div>
+                    <div className="text-sm text-gray-600 font-medium mt-1">Tegen</div>
                   </div>
-                  <div className="bg-white rounded-lg p-2 sm:p-4 text-center shadow-sm">
-                    <div className={`text-2xl sm:text-4xl font-bold ${
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div className={`text-3xl sm:text-4xl font-bold ${
                       prestaties.doelsaldo > 0 ? 'text-green-600' : 
                       prestaties.doelsaldo < 0 ? 'text-red-600' : 'text-gray-600'
                     }`}>
                       {prestaties.doelsaldo > 0 ? '+' : ''}{prestaties.doelsaldo}
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Doelsaldo</div>
+                    <div className="text-sm text-gray-600 font-medium mt-1">Doelsaldo</div>
                   </div>
-                  <div className="bg-white rounded-lg p-2 sm:p-4 text-center shadow-sm">
-                    <div className="text-2xl sm:text-4xl font-bold text-blue-600">
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div className="text-3xl sm:text-4xl font-bold text-blue-600">
                       {prestaties.winstPercentage}%
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Winst %</div>
+                    <div className="text-sm text-gray-600 font-medium mt-1">Winst %</div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  <div className="bg-green-100 rounded-lg p-2 sm:p-3 text-center border-2 border-green-300">
-                    <div className="text-xl sm:text-2xl font-bold text-green-700">{prestaties.gewonnen}</div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-green-100 rounded-lg p-3 text-center border-2 border-green-300">
+                    <div className="text-2xl font-bold text-green-700">{prestaties.gewonnen}</div>
                     <div className="text-xs text-green-700 font-medium">Gewonnen</div>
                   </div>
-                  <div className="bg-gray-100 rounded-lg p-2 sm:p-3 text-center border-2 border-gray-300">
-                    <div className="text-xl sm:text-2xl font-bold text-gray-700">{prestaties.gelijkspel}</div>
+                  <div className="bg-gray-100 rounded-lg p-3 text-center border-2 border-gray-300">
+                    <div className="text-2xl font-bold text-gray-700">{prestaties.gelijkspel}</div>
                     <div className="text-xs text-gray-700 font-medium">Gelijk</div>
                   </div>
-                  <div className="bg-red-100 rounded-lg p-2 sm:p-3 text-center border-2 border-red-300">
-                    <div className="text-xl sm:text-2xl font-bold text-red-700">{prestaties.verloren}</div>
+                  <div className="bg-red-100 rounded-lg p-3 text-center border-2 border-red-300">
+                    <div className="text-2xl font-bold text-red-700">{prestaties.verloren}</div>
                     <div className="text-xs text-gray-700 font-medium">Verloren</div>
                   </div>
                 </div>
@@ -235,11 +235,11 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
             }
             
             return (
-              <div className="border-2 border-green-400 rounded-lg p-3 sm:p-6 bg-gradient-to-br from-green-50 to-blue-50">
-                <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
+              <div className="border-2 border-green-400 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-green-50 to-blue-50">
+                <h3 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
                   ⚽ Topscorers
                 </h3>
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-3">
                   {topscorers.map((scorer, index) => {
                     let medalEmoji = '';
                     let borderColor = 'border-gray-300';
@@ -262,12 +262,12 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                     return (
                       <div 
                         key={scorer.naam} 
-                        className={`flex items-center justify-between p-3 sm:p-4 rounded-lg border-2 ${borderColor} ${bgColor} shadow-sm`}
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 ${borderColor} ${bgColor} shadow-sm`}
                       >
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          {medalEmoji && <span className="text-2xl sm:text-3xl">{medalEmoji}</span>}
+                        <div className="flex items-center gap-3">
+                          {medalEmoji && <span className="text-3xl">{medalEmoji}</span>}
                           <div>
-                            <div className="font-bold text-base sm:text-lg">{scorer.naam}</div>
+                            <div className="font-bold text-lg">{scorer.naam}</div>
                             {index < 3 && (
                               <div className="text-xs text-gray-600 font-medium">
                                 {index === 0 ? 'Topscorer!' : index === 1 ? '2e plaats' : '3e plaats'}
@@ -276,7 +276,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl sm:text-3xl font-bold text-green-600">
+                          <div className="text-3xl font-bold text-green-600">
                             {scorer.doelpunten}
                           </div>
                           <div className="text-xs text-gray-600 font-medium">

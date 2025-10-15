@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Clock, Plus, Trash2, X } from 'lucide-react';
-import { Speler, Wedstrijd, formaties } from '../types';
+import { Clock, Plus, Trash2, X, Copy, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Speler, Wedstrijd, Doelpunt, formaties } from '../types';
+import ScoreTracking from './ScoreTracking';
 
 interface Props {
   wedstrijd: Wedstrijd;
@@ -11,10 +12,15 @@ interface Props {
   onUpdateDatum: (datum: string) => void;
   onUpdateTegenstander: (tegenstander: string) => void;
   onUpdateThuisUit: (thuisUit: 'thuis' | 'uit') => void;
+  onToggleAfwezig: (spelerId: number) => void;
   onUpdateOpstelling: (kwartIndex: number, positie: string, spelerId: string) => void;
   onVoegWisselToe: (kwartIndex: number) => void;
   onUpdateWissel: (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => void;
   onVerwijderWissel: (kwartIndex: number, wisselIndex: number) => void;
+  onVoegDoelpuntToe: (kwartIndex: number, doelpunt: Omit<Doelpunt, 'id'>) => void;
+  onVerwijderDoelpunt: (kwartIndex: number, doelpuntId: number) => void;
+  onUpdateWedstrijdNotities: (notities: string) => void;
+  onUpdateKwartAantekeningen: (kwartIndex: number, aantekeningen: string) => void;
   onKopieer: () => void;
   onSluiten: () => void;
 }
@@ -28,10 +34,15 @@ export default function WedstrijdOpstelling({
   onUpdateDatum,
   onUpdateTegenstander,
   onUpdateThuisUit,
+  onToggleAfwezig,
   onUpdateOpstelling,
   onVoegWisselToe,
   onUpdateWissel,
   onVerwijderWissel,
+  onVoegDoelpuntToe,
+  onVerwijderDoelpunt,
+  onUpdateWedstrijdNotities,
+  onUpdateKwartAantekeningen,
   onKopieer,
   onSluiten
 }: Props) {
@@ -42,6 +53,9 @@ export default function WedstrijdOpstelling({
     kwartIndex: number;
     positie: string;
   }>({ open: false, kwartIndex: 0, positie: '' });
+  
+  // Afwezigheid sectie state
+  const [afwezigheidOpen, setAfwezigheidOpen] = useState(false);
   
   const posities = formaties[wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8'];
 
@@ -221,8 +235,14 @@ export default function WedstrijdOpstelling({
     const totaalKeeperBeurten = berekenTotaalKeeperBeurten(); // NIEUWE: Totaal over alle wedstrijden!
     const stats = berekenWedstrijdStats();
     const isKeeperPositie = huidigePositie === 'Keeper';
+    const afwezigeSpelers = wedstrijd.afwezigeSpelers || [];
     
-    const spelersMetInfo = spelers.map(s => {
+    // Filter afwezige spelers eruit, behalve als ze al in dit kwart spelen
+    const beschikbareSpelers = spelers.filter(s => 
+      !afwezigeSpelers.includes(s.id) || s.id.toString() === huidigeSid
+    );
+    
+    const spelersMetInfo = beschikbareSpelers.map(s => {
       const spelerStats = stats.find(stat => stat.naam === s.naam);
       return {
         ...s,
@@ -231,7 +251,8 @@ export default function WedstrijdOpstelling({
         aantalWissel: wisselBeurten[s.id] || 0,
         minutenGespeeld: spelerStats?.minuten || 0,
         keeperBeurten: totaalKeeperBeurten[s.id] || 0, // TOTAAL over ALLE wedstrijden!
-        keeperBeurtenDezeWedstrijd: keeperBeurten[s.id] || 0
+        keeperBeurtenDezeWedstrijd: keeperBeurten[s.id] || 0,
+        isAfwezig: afwezigeSpelers.includes(s.id)
       };
     });
     
@@ -287,37 +308,79 @@ export default function WedstrijdOpstelling({
   const checkKwartRegels = (kwartIndex: number) => {
     const waarschuwingen: string[] = [];
     const kwart = wedstrijd.kwarten[kwartIndex];
+    const afwezigeSpelerIds = wedstrijd.afwezigeSpelers || [];
     
-    // 1. KEEPER REGEL: Keeper moet juist WEL spelen voor of na keeper beurt
+    // Filter alleen beschikbare (niet-afwezige) spelers
+    const beschikbareSpelers = spelers.filter(s => !afwezigeSpelerIds.includes(s.id));
+    
+    // Helper: Check of speler in een kwart speelt (basis of wissel)
+    const speeltInKwart = (spelerIdStr: string, kwartObj: typeof kwart) => {
+      // Check basis opstelling
+      const inBasis = Object.values(kwartObj.opstelling).includes(spelerIdStr);
+      // Check wissels (zowel eruit als erin)
+      const inWissel = kwartObj.wissels?.some(w => 
+        w.wisselSpelerId === spelerIdStr || 
+        (w.positie && kwartObj.opstelling[w.positie] === spelerIdStr)
+      );
+      return inBasis || inWissel;
+    };
+    
+    // Helper: Check of speler als VELDSPELER speelt (niet keeper)
+    const speeltAlsVeldspeler = (spelerIdStr: string, kwartObj: typeof kwart) => {
+      // Check of speler keeper is in basis
+      const isKeeperInBasis = kwartObj.opstelling['Keeper'] === spelerIdStr;
+      
+      // Check of speler wordt gewisseld naar keeper positie
+      const wordtKeeperViaWissel = kwartObj.wissels?.some(w => 
+        w.positie === 'Keeper' && w.wisselSpelerId === spelerIdStr
+      );
+      
+      // Check of speler op veld staat (maar niet als keeper)
+      const speelt = speeltInKwart(spelerIdStr, kwartObj);
+      const isKeeper = isKeeperInBasis || wordtKeeperViaWissel;
+      
+      return speelt && !isKeeper;
+    };
+    
+    // 1. KEEPER REGEL: Keeper moet juist WEL spelen voor of na keeper beurt ALS VELDSPELER
     const keeperId = kwart.opstelling['Keeper'];
-    if (keeperId) {
-      const keeperNaam = spelers.find(s => s.id.toString() === keeperId)?.naam;
-      if (keeperNaam) {
-        const vorigKwart = kwartIndex > 0 ? wedstrijd.kwarten[kwartIndex - 1] : null;
-        const volgendKwart = kwartIndex < 3 ? wedstrijd.kwarten[kwartIndex + 1] : null;
-        const speeltInVorig = vorigKwart && Object.values(vorigKwart.opstelling).includes(keeperId);
-        const speeltInVolgend = volgendKwart && Object.values(volgendKwart.opstelling).includes(keeperId);
-        
-        // Als keeper NIET speelt voor EN NIET speelt na = te weinig veldspeler ervaring!
-        if (!speeltInVorig && !speeltInVolgend) {
-          const kwartNamen = [];
-          if (vorigKwart) kwartNamen.push(`kwart ${kwartIndex}`);
-          if (volgendKwart) kwartNamen.push(`kwart ${kwartIndex + 2}`);
-          waarschuwingen.push(
-            `🧤 ${keeperNaam} speelt niet als veldspeler ${kwartNamen.length === 2 ? 'in ' + kwartNamen.join(' en ') : kwartNamen.length === 1 ? 'in ' + kwartNamen[0] : ''} (te weinig veldervaring!)`
-          );
-        }
+    const wisselNaarKeeper = kwart.wissels?.find(w => w.positie === 'Keeper');
+    
+    // Check beide keepers (basis + wissel)
+    const keeperIds = [keeperId, wisselNaarKeeper?.wisselSpelerId].filter(Boolean);
+    
+    keeperIds.forEach(kId => {
+      if (!kId) return;
+      // Skip afwezige spelers
+      if (afwezigeSpelerIds.includes(Number(kId))) return;
+      
+      const keeperNaam = spelers.find(s => s.id.toString() === kId)?.naam;
+      if (!keeperNaam) return;
+      
+      const vorigKwart = kwartIndex > 0 ? wedstrijd.kwarten[kwartIndex - 1] : null;
+      const volgendKwart = kwartIndex < 3 ? wedstrijd.kwarten[kwartIndex + 1] : null;
+      
+      const speeltAlsVeldspelerInVorig = vorigKwart && speeltAlsVeldspeler(kId, vorigKwart);
+      const speeltAlsVeldspelerInVolgend = volgendKwart && speeltAlsVeldspeler(kId, volgendKwart);
+      
+      // Als keeper NIET als veldspeler speelt voor EN NIET na = te weinig veldspeler ervaring!
+      if (!speeltAlsVeldspelerInVorig && !speeltAlsVeldspelerInVolgend) {
+        const kwartNamen = [];
+        if (vorigKwart) kwartNamen.push(`kwart ${kwartIndex}`);
+        if (volgendKwart) kwartNamen.push(`kwart ${kwartIndex + 2}`);
+        waarschuwingen.push(
+          `🧤 ${keeperNaam} speelt niet als veldspeler ${kwartNamen.length === 2 ? 'in ' + kwartNamen.join(' en ') : kwartNamen.length === 1 ? 'in ' + kwartNamen[0] : ''} (te weinig veldervaring!)`
+        );
       }
-    }
+    });
     
     // 2. DUBBELE BANK: Check of speler 2 kwarten op rij op bank zit (vanaf dit kwart)
+    // Alleen voor BESCHIKBARE spelers
     if (kwartIndex < wedstrijd.kwarten.length - 1) {
       const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
-      spelers.forEach(speler => {
-        const speeltDitKwart = Object.values(kwart.opstelling).includes(speler.id.toString()) || 
-                               kwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
-        const speeltVolgendKwart = Object.values(volgendKwart.opstelling).includes(speler.id.toString()) || 
-                                   volgendKwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+      beschikbareSpelers.forEach(speler => {
+        const speeltDitKwart = speeltInKwart(speler.id.toString(), kwart);
+        const speeltVolgendKwart = speeltInKwart(speler.id.toString(), volgendKwart);
         
         if (!speeltDitKwart && !speeltVolgendKwart) {
           waarschuwingen.push(
@@ -328,15 +391,15 @@ export default function WedstrijdOpstelling({
     }
     
     // 3. INVALLER-BANK: Check of invaller daarna weer op bank zit
-    spelers.forEach(speler => {
+    // Alleen voor BESCHIKBARE spelers
+    beschikbareSpelers.forEach(speler => {
       const basisDitKwart = Object.values(kwart.opstelling).includes(speler.id.toString());
       const valtInDitKwart = kwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
       
       // Check: valt in dit kwart, maar speelt niet in volgend kwart
       if (valtInDitKwart && !basisDitKwart && kwartIndex < wedstrijd.kwarten.length - 1) {
         const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
-        const speeltVolgendKwart = Object.values(volgendKwart.opstelling).includes(speler.id.toString()) || 
-                                   volgendKwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
+        const speeltVolgendKwart = speeltInKwart(speler.id.toString(), volgendKwart);
         
         if (!speeltVolgendKwart) {
           waarschuwingen.push(
@@ -350,6 +413,73 @@ export default function WedstrijdOpstelling({
   };
 
   const stats = berekenWedstrijdStats();
+
+  // Helper: Vind afwezige spelers die toch in de opstelling staan
+  const getAfwezigeSpelersInOpstelling = () => {
+    const afwezigeIds = wedstrijd.afwezigeSpelers || [];
+    if (afwezigeIds.length === 0) return [];
+    
+    const afwezigeInOpstelling: { speler: Speler; kwarten: { kwart: number; posities: string[] }[] }[] = [];
+    
+    afwezigeIds.forEach(afwezigId => {
+      const speler = spelers.find(s => s.id === afwezigId);
+      if (!speler) return;
+      
+      const kwarten: { kwart: number; posities: string[] }[] = [];
+      
+      wedstrijd.kwarten.forEach((kwart, kwartIndex) => {
+        const posities: string[] = [];
+        
+        // Check basis opstelling
+        Object.entries(kwart.opstelling).forEach(([positie, spelerId]) => {
+          if (spelerId === afwezigId.toString()) {
+            posities.push(positie);
+          }
+        });
+        
+        // Check wissels
+        kwart.wissels?.forEach(wissel => {
+          if (wissel.wisselSpelerId === afwezigId.toString()) {
+            posities.push(`Wissel naar ${wissel.positie}`);
+          }
+        });
+        
+        if (posities.length > 0) {
+          kwarten.push({ kwart: kwartIndex + 1, posities });
+        }
+      });
+      
+      if (kwarten.length > 0) {
+        afwezigeInOpstelling.push({ speler, kwarten });
+      }
+    });
+    
+    return afwezigeInOpstelling;
+  };
+
+  // Verwijder afwezige spelers uit opstelling
+  const verwijderAfwezigeUitOpstelling = () => {
+    const afwezigeIds = wedstrijd.afwezigeSpelers || [];
+    if (afwezigeIds.length === 0) return;
+    
+    wedstrijd.kwarten.forEach((kwart, kwartIndex) => {
+      // Verwijder uit basis opstelling
+      Object.entries(kwart.opstelling).forEach(([positie, spelerId]) => {
+        if (afwezigeIds.includes(Number(spelerId))) {
+          onUpdateOpstelling(kwartIndex, positie, '');
+        }
+      });
+      
+      // Verwijder uit wissels
+      kwart.wissels?.forEach((wissel, wisselIndex) => {
+        if (afwezigeIds.includes(Number(wissel.wisselSpelerId))) {
+          onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', '');
+        }
+      });
+    });
+  };
+
+  const afwezigeInOpstelling = getAfwezigeSpelersInOpstelling();
 
   // Open modal voor speler selectie
   const openSelectieModal = (kwartIndex: number, positie: string) => {
@@ -367,35 +497,72 @@ export default function WedstrijdOpstelling({
     sluitSelectieModal();
   };
 
+  // NIEUW: Bereken eindstand van de wedstrijd
+  const berekenEindstand = () => {
+    let eigenDoelpunten = 0;
+    let tegenstanderDoelpunten = 0;
+    const doelpuntenmakers: Record<number, { naam: string; goals: number }> = {};
+    
+    wedstrijd.kwarten.forEach(kwart => {
+      if (kwart.doelpunten) {
+        kwart.doelpunten.forEach(doelpunt => {
+          if (doelpunt.type === 'eigen') {
+            eigenDoelpunten++;
+            if (doelpunt.spelerId) {
+              if (!doelpuntenmakers[doelpunt.spelerId]) {
+                const speler = spelers.find(s => s.id === doelpunt.spelerId);
+                doelpuntenmakers[doelpunt.spelerId] = {
+                  naam: speler?.naam || 'Onbekend',
+                  goals: 0
+                };
+              }
+              doelpuntenmakers[doelpunt.spelerId].goals++;
+            }
+          } else {
+            tegenstanderDoelpunten++;
+          }
+        });
+      }
+    });
+    
+    const doelpuntenmakersList = Object.values(doelpuntenmakers).sort((a, b) => b.goals - a.goals);
+    
+    return {
+      eigenDoelpunten,
+      tegenstanderDoelpunten,
+      doelpuntenmakers: doelpuntenmakersList,
+      resultaat: eigenDoelpunten > tegenstanderDoelpunten ? 'gewonnen' :
+                 eigenDoelpunten < tegenstanderDoelpunten ? 'verloren' : 'gelijkspel'
+    };
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-4 flex-wrap">
-            <h2 className="text-2xl font-bold">{clubNaam} {teamNaam} - {getFormatieNaam(wedstrijd.formatie)}</h2>
+      {/* AANGEPAST: Compacte mobiele header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex-1 space-y-3 min-w-0">
+          {/* Titel en formatie - compacter op mobiel */}
+          <div className="space-y-1">
+            <h2 className="text-lg sm:text-2xl font-bold truncate">
+              {clubNaam} {teamNaam}
+            </h2>
+            <p className="text-xs sm:text-sm text-blue-600 font-medium">
+              {getFormatieNaam(wedstrijd.formatie)}
+            </p>
+          </div>
+          
+          {/* Datum en locatie op eigen rij */}
+          <div className="flex flex-wrap items-center gap-3">
             <input 
               type="date" 
               value={wedstrijd.datum} 
               onChange={(e) => onUpdateDatum(e.target.value)} 
-              className="px-3 py-2 border-2 border-blue-500 rounded-lg font-medium" 
+              className="px-3 py-2 border-2 border-blue-500 rounded-lg font-medium text-sm" 
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Tegenstander:</label>
-            <input 
-              type="text" 
-              value={wedstrijd.tegenstander || ''} 
-              onChange={(e) => onUpdateTegenstander(e.target.value)} 
-              placeholder="Optioneel" 
-              className="px-3 py-2 border rounded-lg" 
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Locatie:</label>
             <div className="flex gap-2">
               <button
                 onClick={() => onUpdateThuisUit('thuis')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors text-sm ${
                   (wedstrijd.thuisUit || 'thuis') === 'thuis'
                     ? 'bg-green-500 text-white shadow-md'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -405,7 +572,7 @@ export default function WedstrijdOpstelling({
               </button>
               <button
                 onClick={() => onUpdateThuisUit('uit')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors text-sm ${
                   (wedstrijd.thuisUit || 'thuis') === 'uit'
                     ? 'bg-orange-500 text-white shadow-md'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -415,37 +582,191 @@ export default function WedstrijdOpstelling({
               </button>
             </div>
           </div>
+          
+          {/* Tegenstander */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Tegenstander:</label>
+            <input 
+              type="text" 
+              value={wedstrijd.tegenstander || ''} 
+              onChange={(e) => onUpdateTegenstander(e.target.value)} 
+              placeholder="Optioneel" 
+              className="flex-1 px-3 py-2 border rounded-lg text-sm" 
+            />
+          </div>
+
+          {/* NIEUW: Wedstrijd Notities */}
+          <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-3">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+              <FileText className="w-4 h-4" />
+              📝 Wedstrijd Notities
+            </label>
+            <textarea
+              value={wedstrijd.notities || ''}
+              onChange={(e) => onUpdateWedstrijdNotities(e.target.value)}
+              placeholder="Algemene opmerkingen over deze wedstrijd..."
+              className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows={2}
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              💡 Bijvoorbeeld: "Belangrijk om verdediging te versterken", "Veel wind verwacht"
+            </p>
+          </div>
+
+          {/* Afwezigheid Tracking - Uitklapbaar */}
+          <div className="border-2 border-orange-200 bg-orange-50 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setAfwezigheidOpen(!afwezigheidOpen)}
+              className="w-full px-3 py-2 flex items-center justify-between hover:bg-orange-100 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🚫</span>
+                <span className="text-sm font-semibold text-gray-700">
+                  Afwezige Spelers
+                </span>
+                {wedstrijd.afwezigeSpelers && wedstrijd.afwezigeSpelers.length > 0 && (
+                  <span className="px-2 py-0.5 bg-orange-500 text-white rounded-full text-xs font-bold">
+                    {wedstrijd.afwezigeSpelers.length}
+                  </span>
+                )}
+              </div>
+              {afwezigheidOpen ? (
+                <ChevronUp className="w-5 h-5 text-gray-600" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-600" />
+              )}
+            </button>
+            
+            {afwezigheidOpen && (
+              <div className="px-3 py-3 border-t border-orange-200 bg-white">
+                <p className="text-xs text-gray-600 mb-3">
+                  Vink aan wie er NIET is bij deze wedstrijd. Ze worden automatisch uitgefilterd bij het maken van de opstelling.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {spelers.map(speler => {
+                    const isAfwezig = wedstrijd.afwezigeSpelers?.includes(speler.id) || false;
+                    return (
+                      <label
+                        key={speler.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
+                          isAfwezig
+                            ? 'bg-red-50 border-red-300 text-red-700'
+                            : 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isAfwezig}
+                          onChange={() => onToggleAfwezig(speler.id)}
+                          className="w-4 h-4 rounded"
+                        />
+                        <span className={`text-sm font-medium ${isAfwezig ? 'line-through' : ''}`}>
+                          {speler.naam}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {wedstrijd.afwezigeSpelers && wedstrijd.afwezigeSpelers.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-orange-200">
+                    <p className="text-xs text-gray-600">
+                      💡 <strong>Tip:</strong> Afwezige spelers verschijnen niet in de speler selectie bij het maken van de opstelling.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
+
+        {/* WAARSCHUWING: Afwezige spelers in opstelling */}
+        {afwezigeInOpstelling.length > 0 && (
+          <div className="bg-red-50 border-2 border-red-400 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-red-800 text-base mb-2">
+                  Let op! Je hebt {afwezigeInOpstelling.length} afwezige {afwezigeInOpstelling.length === 1 ? 'speler' : 'spelers'} in de opstelling
+                </h3>
+                <div className="space-y-2 mb-3">
+                  {afwezigeInOpstelling.map(({ speler, kwarten }) => (
+                    <div key={speler.id} className="bg-white rounded p-2 border border-red-200">
+                      <div className="font-semibold text-red-700">{speler.naam}</div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {kwarten.map(({ kwart, posities }) => (
+                          <div key={kwart}>
+                            Kwart {kwart}: {posities.join(', ')}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={verwijderAfwezigeUitOpstelling}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors text-sm"
+                  >
+                    🗑️ Verwijder automatisch
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Haal alle afwezige spelers weg uit afwezigheid lijst
+                      afwezigeInOpstelling.forEach(({ speler }) => {
+                        onToggleAfwezig(speler.id);
+                      });
+                    }}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium transition-colors text-sm"
+                  >
+                    ✅ Markeer als aanwezig
+                  </button>
+                </div>
+                <p className="text-xs text-red-700 mt-3">
+                  💡 <strong>Tip:</strong> Je kunt ze automatisch verwijderen of alsnog aanwezig markeren als ze toch kunnen spelen.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Action buttons */}
+        <div className="flex gap-2 w-full sm:w-auto">
           <button 
             onClick={onKopieer} 
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+            className="flex-1 sm:flex-none px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 text-sm"
           >
-            <Plus className="w-4 h-4" />Kopieer
+            <Copy className="w-4 h-4" />
+            <span className="hidden sm:inline">Kopieer</span>
           </button>
           <button 
             onClick={onSluiten} 
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            className="flex-1 sm:flex-none px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
           >
-            Opslaan & Sluiten
+            Sluiten
           </button>
         </div>
       </div>
 
       {wedstrijd.kwarten.map((kwart, kwartIndex) => (
-        <div key={kwartIndex} className="border rounded-lg p-4 bg-white">
-          <h3 className="font-bold mb-3 flex items-center gap-2">
-            <Clock className="w-5 h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
+        <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white">
+          <h3 className="font-bold mb-3 flex items-center gap-2 text-sm sm:text-base">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
           </h3>
           
-          <div className="bg-green-100 rounded-lg p-6 mb-4">
+          <div className="bg-green-100 rounded-lg p-4 sm:p-6 mb-4">
             {layout.rijen.map((rij, rijIndex) => (
-              <div key={rijIndex} className={`grid ${layout.gridCols} gap-4 mb-4`}>
+              <div key={rijIndex} className={`grid ${layout.gridCols} gap-2 sm:gap-4 mb-3 sm:mb-4`}>
                 {rij.map(({ positie, col }) => {
                   const heeftWissel = kwart.wissels?.some(w => w.positie === positie);
                   const spelerId = kwart.opstelling[positie];
-                  const spelerNaam = spelerId ? spelers.find(s => s.id.toString() === spelerId)?.naam : '';
+                  const speler = spelerId ? spelers.find(s => s.id.toString() === spelerId) : null;
+                  const spelerNaam = speler?.naam || '';
                   const isKeeper = positie === 'Keeper';
+                  
+                  // AANGEPAST: Voornaam op mobiel, volledige naam op desktop
+                  const displayNaam = spelerNaam 
+                    ? spelerNaam.split(' ')[0]  // Alleen voornaam
+                    : '+';
                   
                   return (
                     <div key={positie} className={`space-y-1 ${col || ''}`}>
@@ -455,7 +776,7 @@ export default function WedstrijdOpstelling({
                       </label>
                       <button
                         onClick={() => openSelectieModal(kwartIndex, positie)}
-                        className={`w-full px-3 py-3 border-2 rounded-lg font-medium text-sm transition-all ${
+                        className={`w-full px-2 sm:px-3 py-2 sm:py-3 border-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
                           spelerId
                             ? isKeeper 
                               ? 'bg-yellow-50 border-yellow-500 hover:bg-yellow-100 text-gray-900'
@@ -463,13 +784,27 @@ export default function WedstrijdOpstelling({
                             : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-500'
                         }`}
                       >
-                        {spelerNaam || '+ Kies speler'}
+                        {/* Mobiel: alleen voornaam of + */}
+                        <span className="sm:hidden truncate block">{displayNaam}</span>
+                        {/* Desktop: volledige naam of + Kies speler */}
+                        <span className="hidden sm:inline">{spelerNaam || '+ Kies speler'}</span>
                       </button>
                     </div>
                   );
                 })}
               </div>
             ))}
+          </div>
+
+          {/* NIEUW: Score Tracking */}
+          <div className="mt-4">
+            <ScoreTracking
+              kwartIndex={kwartIndex}
+              doelpunten={kwart.doelpunten || []}
+              spelers={spelers}
+              onVoegDoelpuntToe={onVoegDoelpuntToe}
+              onVerwijderDoelpunt={onVerwijderDoelpunt}
+            />
           </div>
 
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
@@ -504,22 +839,7 @@ export default function WedstrijdOpstelling({
                     .filter((w, i) => i !== wisselIndex && w.positie) // Andere wissels die al een positie hebben
                     .map(w => w.positie);
                   
-                  const spelersInVeld = Object.entries(kwart.opstelling)
-                    .filter(([_, sid]) => sid) // Alleen posities met speler
-                    .filter(([pos, _]) => !reedsGewisseldePosities.includes(pos)) // Filter al gewisselde posities
-                    .map(([pos, sid]) => ({
-                      spelerId: sid,
-                      positie: pos,
-                      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
-                      isKeeperGeweest: keepersDezeWedstrijd.has(sid),
-                      isNuKeeper: pos === 'Keeper'
-                    }));
-                  
-                  // Huidige selectie
-                  const geselecteerdeSpeler = wissel.positie ? 
-                    spelersInVeld.find(s => s.positie === wissel.positie) : null;
-                  
-                  // Bereken minuten per speler tot nu toe in deze wedstrijd
+                  // Bereken minuten per speler tot nu toe in deze wedstrijd (VOOR spelersInVeld)
                   const berekenMinutenTotNu = () => {
                     const minuten: Record<string, number> = {};
                     wedstrijd.kwarten.forEach((k, ki) => {
@@ -543,11 +863,38 @@ export default function WedstrijdOpstelling({
                   
                   const minutenTotNu = berekenMinutenTotNu();
                   
-                  // Beschikbare wisselspelers (niet in veld, niet al wisselend)
+                  const spelersInVeld = Object.entries(kwart.opstelling)
+                    .filter(([_, sid]) => sid) // Alleen posities met speler
+                    .filter(([pos, _]) => !reedsGewisseldePosities.includes(pos)) // Filter al gewisselde posities
+                    .map(([pos, sid]) => ({
+                      spelerId: sid,
+                      positie: pos,
+                      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
+                      isKeeperGeweest: keepersDezeWedstrijd.has(sid),
+                      isNuKeeper: pos === 'Keeper',
+                      minutenGespeeld: minutenTotNu[sid] || 0 // NIEUW: minuten toevoegen
+                    }))
+                    .sort((a, b) => {
+                      // NIEUW: Sorteer logica
+                      // 1. Keepers altijd onderaan
+                      if (a.isKeeperGeweest !== b.isKeeperGeweest) {
+                        return a.isKeeperGeweest ? 1 : -1;
+                      }
+                      // 2. Binnen keepers/niet-keepers: minst gespeeld eerst
+                      return a.minutenGespeeld - b.minutenGespeeld;
+                    });
+                  
+                  // Huidige selectie
+                  const geselecteerdeSpeler = wissel.positie ? 
+                    spelersInVeld.find(s => s.positie === wissel.positie) : null;
+                  
+                  // Beschikbare wisselspelers (niet in veld, niet al wisselend, niet afwezig)
+                  const afwezigeSpelerIds = wedstrijd.afwezigeSpelers || [];
                   const beschikbareWisselSpelers = spelers
                     .filter(s => 
                       !Object.values(kwart.opstelling).includes(s.id.toString()) &&
-                      !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString())
+                      !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString()) &&
+                      !afwezigeSpelerIds.includes(s.id)
                     )
                     .map(s => ({
                       ...s,
@@ -572,14 +919,14 @@ export default function WedstrijdOpstelling({
                               <option value="">-- Kies speler --</option>
                               {spelersInVeld.map(s => (
                                 <option key={s.spelerId} value={s.positie}>
-                                  {s.naam} ({s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
+                                  {s.naam} ({s.minutenGespeeld} min • {s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
                                 </option>
                               ))}
                             </select>
                             {geselecteerdeSpeler && (
                               <div className="text-xs mt-1 space-y-0.5">
                                 <p className="text-gray-600 font-medium">
-                                  ⚽ Positie: {geselecteerdeSpeler.positie}
+                                  ⏱️ {geselecteerdeSpeler.minutenGespeeld} min gespeeld
                                 </p>
                                 {geselecteerdeSpeler.isKeeperGeweest && (
                                   <p className="text-blue-600 font-medium">
@@ -638,6 +985,24 @@ export default function WedstrijdOpstelling({
             )}
           </div>
           
+          {/* NIEUW: Kwart Aantekeningen */}
+          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 mt-4">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+              <FileText className="w-4 h-4" />
+              📋 Aantekeningen dit kwart
+            </label>
+            <textarea
+              value={kwart.aantekeningen || ''}
+              onChange={(e) => onUpdateKwartAantekeningen(kwartIndex, e.target.value)}
+              placeholder="Notities voor dit specifieke kwart..."
+              className="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              rows={2}
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              💡 Bijvoorbeeld: "Veel druk van tegenstander", "Goed verdedigd"
+            </p>
+          </div>
+          
           {/* NIEUW: Regelchecks per kwart */}
           {(() => {
             const kwartWaarschuwingen = checkKwartRegels(kwartIndex);
@@ -663,34 +1028,108 @@ export default function WedstrijdOpstelling({
         </div>
       ))}
 
-      <div className="border rounded-lg p-4 bg-blue-50">
-        <h3 className="font-bold mb-3">Wedstrijd Statistieken</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-2">Speler</th>
-                <th className="text-right py-2">Gespeeld</th>
-                <th className="text-right py-2">Wissel</th>
-                <th className="text-right py-2">Keeper</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.map(stat => (
-                <tr key={stat.naam} className="border-b">
-                  <td className="py-2">{stat.naam}</td>
-                  <td className="text-right py-2">{stat.minuten} min</td>
-                  <td className="text-right py-2">{stat.wisselMinuten} min</td>
-                  <td className="text-right py-2">{stat.keeperBeurten}x</td>
+      {/* NIEUW: Eindstand */}
+      {(() => {
+        const eindstand = berekenEindstand();
+        
+        // Alleen tonen als er doelpunten zijn gescoord
+        if (eindstand.eigenDoelpunten === 0 && eindstand.tegenstanderDoelpunten === 0) {
+          return null;
+        }
+        
+        const resultaatKleur = 
+          eindstand.resultaat === 'gewonnen' ? 'bg-green-100 border-green-400 text-green-800' :
+          eindstand.resultaat === 'verloren' ? 'bg-red-100 border-red-400 text-red-800' :
+          'bg-gray-100 border-gray-400 text-gray-800';
+        
+        const resultaatEmoji = 
+          eindstand.resultaat === 'gewonnen' ? '🏆' :
+          eindstand.resultaat === 'verloren' ? '😔' : '🤝';
+        
+        const resultaatTekst = 
+          eindstand.resultaat === 'gewonnen' ? 'Gewonnen!' :
+          eindstand.resultaat === 'verloren' ? 'Verloren' : 'Gelijkspel';
+        
+        return (
+          <div className={`border-2 rounded-lg p-4 sm:p-6 ${resultaatKleur}`}>
+            <div className="text-center mb-4">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <span className="text-4xl">{resultaatEmoji}</span>
+                <h3 className="text-2xl sm:text-3xl font-bold">Eindstand</h3>
+                <span className="text-4xl">{resultaatEmoji}</span>
+              </div>
+              <div className="flex items-center justify-center gap-4 sm:gap-6 mt-4">
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold">{eindstand.eigenDoelpunten}</div>
+                  <div className="text-sm font-medium mt-1">{teamNaam}</div>
+                </div>
+                <div className="text-3xl font-bold text-gray-600">-</div>
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold">{eindstand.tegenstanderDoelpunten}</div>
+                  <div className="text-sm font-medium mt-1">{wedstrijd.tegenstander || 'Tegenstander'}</div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <span className="inline-block px-6 py-2 bg-white bg-opacity-50 rounded-full text-xl font-bold">
+                  {resultaatTekst}
+                </span>
+              </div>
+            </div>
+            
+            {eindstand.doelpuntenmakers.length > 0 && (
+              <div className="bg-white bg-opacity-60 rounded-lg p-4 mt-4">
+                <h4 className="font-semibold text-lg mb-3 text-center">⚽ Doelpuntenmakers</h4>
+                <div className="space-y-2">
+                  {eindstand.doelpuntenmakers.map((maker, index) => (
+                    <div key={index} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⚽'}
+                        </span>
+                        <span className="font-semibold text-lg">{maker.naam}</span>
+                      </div>
+                      <span className="text-2xl font-bold text-green-600">
+                        {maker.goals} {maker.goals === 1 ? 'goal' : 'goals'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      <div className="border rounded-lg p-3 sm:p-4 bg-blue-50">
+        <h3 className="font-bold mb-3 text-sm sm:text-base">Wedstrijd Statistieken</h3>
+        <div className="overflow-x-auto -mx-3 sm:mx-0">
+          <div className="inline-block min-w-full px-3 sm:px-0">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 text-xs sm:text-sm">Speler</th>
+                  <th className="text-right py-2 text-xs sm:text-sm">Gespeeld</th>
+                  <th className="text-right py-2 text-xs sm:text-sm">Wissel</th>
+                  <th className="text-right py-2 text-xs sm:text-sm">Keeper</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {stats.map(stat => (
+                  <tr key={stat.naam} className="border-b">
+                    <td className="py-2 text-xs sm:text-sm">{stat.naam}</td>
+                    <td className="text-right py-2 text-xs sm:text-sm">{stat.minuten} min</td>
+                    <td className="text-right py-2 text-xs sm:text-sm">{stat.wisselMinuten} min</td>
+                    <td className="text-right py-2 text-xs sm:text-sm">{stat.keeperBeurten}x</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div className="border rounded-lg p-4 bg-green-50">
-        <h3 className="font-bold mb-3 flex items-center gap-2">📋 Regelcheck Samenvatting</h3>
+      <div className="border rounded-lg p-3 sm:p-4 bg-green-50">
+        <h3 className="font-bold mb-3 flex items-center gap-2 text-sm sm:text-base">📋 Regelcheck Samenvatting</h3>
         {(() => {
           const alleKwartChecks = wedstrijd.kwarten.map((_, index) => checkKwartRegels(index)).flat();
           const totaalWaarschuwingen = alleKwartChecks.length;
@@ -840,7 +1279,6 @@ export default function WedstrijdOpstelling({
                         <div className="flex-1 pr-8">
                           <div className="font-semibold text-lg">
                             {speler.naam}
-                            {speler.keeperBeurten > 0 && ' 🧤'}
                           </div>
                           {priorityLabel && (
                             <div className="text-sm font-semibold mt-1 mb-1">{priorityLabel}</div>
@@ -867,9 +1305,6 @@ export default function WedstrijdOpstelling({
                               <>
                                 {speler.minutenGespeeld > 0 && (
                                   <div>⚽ {speler.minutenGespeeld} min gespeeld</div>
-                                )}
-                                {speler.keeperBeurten > 0 && (
-                                  <div>🧤 {speler.keeperBeurten}x keeper geweest</div>
                                 )}
                                 {speler.aantalWissel > 0 && (
                                   <div>🪑 {speler.aantalWissel}x op de bank</div>

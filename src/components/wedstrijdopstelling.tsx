@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Clock, Plus, Trash2, X, Copy, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Clock, Plus, Trash2, X, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import { Speler, Wedstrijd, Doelpunt, formaties } from '../types';
 import ScoreTracking from './ScoreTracking';
 
@@ -21,7 +21,6 @@ interface Props {
   onVerwijderDoelpunt: (kwartIndex: number, doelpuntId: number) => void;
   onUpdateWedstrijdNotities: (notities: string) => void;
   onUpdateKwartAantekeningen: (kwartIndex: number, aantekeningen: string) => void;
-  onKopieer: () => void;
   onSluiten: () => void;
 }
 
@@ -43,7 +42,6 @@ export default function WedstrijdOpstelling({
   onVerwijderDoelpunt,
   onUpdateWedstrijdNotities,
   onUpdateKwartAantekeningen,
-  onKopieer,
   onSluiten
 }: Props) {
   
@@ -56,6 +54,9 @@ export default function WedstrijdOpstelling({
   
   // Afwezigheid sectie state
   const [afwezigheidOpen, setAfwezigheidOpen] = useState(false);
+  
+  // NIEUW: Wedstrijd notities state
+  const [notitiesOpen, setNotitiesOpen] = useState(false);
   
   const posities = formaties[wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8'];
 
@@ -595,22 +596,44 @@ export default function WedstrijdOpstelling({
             />
           </div>
 
-          {/* NIEUW: Wedstrijd Notities */}
-          <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-3">
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-              <FileText className="w-4 h-4" />
-              📝 Wedstrijd Notities
-            </label>
-            <textarea
-              value={wedstrijd.notities || ''}
-              onChange={(e) => onUpdateWedstrijdNotities(e.target.value)}
-              placeholder="Algemene opmerkingen over deze wedstrijd..."
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              rows={2}
-            />
-            <p className="text-xs text-gray-600 mt-1">
-              💡 Bijvoorbeeld: "Belangrijk om verdediging te versterken", "Veel wind verwacht"
-            </p>
+          {/* NIEUW: Wedstrijd Notities - Uitklapbaar */}
+          <div className="border-2 border-blue-200 bg-blue-50 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setNotitiesOpen(!notitiesOpen)}
+              className="w-full px-3 py-2 flex items-center justify-between hover:bg-blue-100 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="text-sm font-semibold text-gray-700">
+                  📝 Wedstrijd Notities
+                </span>
+                {wedstrijd.notities && wedstrijd.notities.length > 0 && (
+                  <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-xs font-bold">
+                    ✓
+                  </span>
+                )}
+              </div>
+              {notitiesOpen ? (
+                <ChevronUp className="w-5 h-5 text-gray-600" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-600" />
+              )}
+            </button>
+            
+            {notitiesOpen && (
+              <div className="px-3 py-3 border-t border-blue-200 bg-white">
+                <textarea
+                  value={wedstrijd.notities || ''}
+                  onChange={(e) => onUpdateWedstrijdNotities(e.target.value)}
+                  placeholder="Algemene opmerkingen over deze wedstrijd..."
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
+                />
+                <p className="text-xs text-gray-600 mt-2">
+                  💡 Bijvoorbeeld: "Belangrijk om verdediging te versterken", "Veel wind verwacht"
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Afwezigheid Tracking - Uitklapbaar */}
@@ -732,15 +755,8 @@ export default function WedstrijdOpstelling({
         {/* Action buttons */}
         <div className="flex gap-2 w-full sm:w-auto">
           <button 
-            onClick={onKopieer} 
-            className="flex-1 sm:flex-none px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 text-sm"
-          >
-            <Copy className="w-4 h-4" />
-            <span className="hidden sm:inline">Kopieer</span>
-          </button>
-          <button 
             onClick={onSluiten} 
-            className="flex-1 sm:flex-none px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
+            className="w-full sm:w-auto px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm font-medium"
           >
             Sluiten
           </button>
@@ -800,8 +816,11 @@ export default function WedstrijdOpstelling({
           <div className="mt-4">
             <ScoreTracking
               kwartIndex={kwartIndex}
-              doelpunten={kwart.doelpunten || []}
+              wedstrijd={wedstrijd}
               spelers={spelers}
+              thuisUit={wedstrijd.thuisUit || 'thuis'}
+              teamNaam={teamNaam}
+              tegenstander={wedstrijd.tegenstander || 'Tegenstander'}
               onVoegDoelpuntToe={onVoegDoelpuntToe}
               onVerwijderDoelpunt={onVerwijderDoelpunt}
             />

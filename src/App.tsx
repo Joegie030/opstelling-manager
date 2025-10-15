@@ -27,6 +27,12 @@ function App() {
   const [huidigScherm, setHuidigScherm] = useState('wedstrijden');
   const [huidgeWedstrijd, setHuidgeWedstrijd] = useState<Wedstrijd | null>(null);
   const [formatieModal, setFormatieModal] = useState(false);
+  const [kopieerModal, setKopieerModal] = useState<{
+    open: boolean;
+    wedstrijd: Wedstrijd | null;
+    datum: string;
+    tegenstander: string;
+  }>({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
 
   // Helper functie om formatie naam mooi weer te geven (met backward compatibility)
   const getFormatieNaam = (formatie: string): string => {
@@ -76,14 +82,29 @@ function App() {
   };
 
   const kopieerWedstrijd = (wedstrijd: Wedstrijd) => {
-    const gekopieerd: Wedstrijd = {
-      ...wedstrijd,
-      id: Date.now(),
+    // Open modal met huidige datum en tegenstander vooraf ingevuld
+    setKopieerModal({
+      open: true,
+      wedstrijd: wedstrijd,
       datum: new Date().toISOString().split('T')[0],
-      tegenstander: wedstrijd.tegenstander ? `${wedstrijd.tegenstander} (kopie)` : '',
-      thuisUit: wedstrijd.thuisUit || 'thuis'
+      tegenstander: wedstrijd.tegenstander ? `${wedstrijd.tegenstander}` : ''
+    });
+  };
+
+  const bevestigKopieerWedstrijd = () => {
+    if (!kopieerModal.wedstrijd) return;
+    
+    const gekopieerd: Wedstrijd = {
+      ...kopieerModal.wedstrijd,
+      id: Date.now(),
+      datum: kopieerModal.datum,
+      tegenstander: kopieerModal.tegenstander,
+      thuisUit: kopieerModal.wedstrijd.thuisUit || 'thuis'
     };
     setWedstrijden([...wedstrijden, gekopieerd]);
+    setKopieerModal({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
+    
+    // Optioneel: open de nieuwe wedstrijd direct
     setHuidgeWedstrijd(gekopieerd);
     setHuidigScherm('wedstrijd');
   };
@@ -554,13 +575,75 @@ function App() {
                 onVerwijderDoelpunt={verwijderDoelpunt}
                 onUpdateWedstrijdNotities={updateWedstrijdNotities}
                 onUpdateKwartAantekeningen={updateKwartAantekeningen}
-                onKopieer={() => kopieerWedstrijd(huidgeWedstrijd)}
                 onSluiten={() => { setHuidgeWedstrijd(null); setHuidigScherm('wedstrijden'); }}
               />
             )}
           </div>
         </div>
       </div>
+
+      {/* Kopieer Wedstrijd Modal */}
+      {kopieerModal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-t-xl">
+              <h3 className="text-xl font-bold">Wedstrijd kopiëren</h3>
+              <p className="text-sm opacity-90 mt-1">Vul nieuwe gegevens in</p>
+            </div>
+            
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  ðŸ"… Datum
+                </label>
+                <input
+                  type="date"
+                  value={kopieerModal.datum}
+                  onChange={(e) => setKopieerModal({ ...kopieerModal, datum: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  âš½ Tegenstander
+                </label>
+                <input
+                  type="text"
+                  value={kopieerModal.tegenstander}
+                  onChange={(e) => setKopieerModal({ ...kopieerModal, tegenstander: e.target.value })}
+                  placeholder="Naam tegenstander"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  ðŸ'¡ <strong>Let op:</strong> De opstellingen worden gekopieerd, maar de scores en doelpunten niet.
+                </p>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="border-t p-4 bg-gray-50 rounded-b-xl flex gap-3">
+              <button
+                onClick={() => setKopieerModal({ open: false, wedstrijd: null, datum: '', tegenstander: '' })}
+                className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium transition-colors"
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={bevestigKopieerWedstrijd}
+                className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors"
+              >
+                Kopiëren
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Formatie Selectie Modal - RESPONSIVE */}
       {formatieModal && (
