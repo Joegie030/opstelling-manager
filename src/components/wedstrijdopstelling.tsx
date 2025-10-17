@@ -492,7 +492,6 @@ export default function WedstrijdOpstelling({
         {wedstrijd.kwarten.map((kwart, kwartIndex) => {
           const [doelpuntenOpen, setDoelpuntenOpen] = useState(false);
           const [evaluatieOpen, setEvaluatieOpen] = useState(false);
-          const [regelchecksOpen, setRegelchecksOpen] = useState(false); 
           
           return (
             <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white space-y-4">
@@ -872,40 +871,22 @@ export default function WedstrijdOpstelling({
                 if (kwartWaarschuwingen.length === 0) return null;
                 
                 return (
-                  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg overflow-hidden mt-4">
-                    <button
-                      onClick={() => setRegelchecksOpen(!regelchecksOpen)}
-                      className="w-full px-3 py-2 flex items-center justify-between hover:bg-yellow-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">⚠️</span>
-                        <span className="text-sm font-semibold text-gray-700">
-                          Let op in dit kwart
-                        </span>
-                        <span className="px-2 py-0.5 bg-yellow-500 text-white rounded-full text-xs font-bold">
-                          {kwartWaarschuwingen.length}
-                        </span>
-                      </div>
-                      {regelchecksOpen ? (
-                        <ChevronUp className="w-5 h-5 text-gray-600" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-600" />
-                      )}
-                    </button>
-                    
-                    {regelchecksOpen && (
-                      <div className="px-3 py-3 border-t border-yellow-200 bg-white">
-                        <div className="space-y-2">
-                          {kwartWaarschuwingen.map((waarschuwing, index) => (
-                            <div key={index} className="flex items-start gap-2 text-sm text-orange-700 p-2 bg-yellow-50 rounded">
-                              <span className="text-base shrink-0">•</span>
-                              <span>{waarschuwing}</span>
-                            </div>
-                          ))}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                      <span>⚠️</span>
+                      <span>Let op in dit kwart:</span>
+                    </h4>
+                    <div className="space-y-2">
+                      {kwartWaarschuwingen.map((waarschuwing, index) => (
+                        <div key={index} className="flex items-start gap-2 text-sm text-orange-700">
+                          <span className="text-base shrink-0">•</span>
+                          <span>{waarschuwing}</span>
                         </div>
-                      </div>
-                )}
-              ))
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           );
         })}
