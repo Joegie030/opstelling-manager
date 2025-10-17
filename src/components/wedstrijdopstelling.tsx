@@ -907,7 +907,7 @@ export default function WedstrijdOpstelling({
                     )}
                   </div>
                 );
-              })()}
+            })}
 
         {(() => {
           const eindstand = berekenEindstand();
