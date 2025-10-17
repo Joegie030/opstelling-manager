@@ -905,7 +905,7 @@ export default function WedstrijdOpstelling({
                         </div>
                       </div>
                 )}
-              )()}
+              })()}
             </div>
           );
         })}
