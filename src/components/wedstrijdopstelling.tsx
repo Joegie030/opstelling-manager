@@ -847,17 +847,8 @@ export default function WedstrijdOpstelling({
             <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
           </h3>
           
-          {/* ⭐ WISSELS BOVENAAN - PRIORITEIT */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-            <div className="flex justify-between items-center mb-3">
-              <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
-              <button 
-                onClick={() => onVoegWisselToe(kwartIndex)} 
-                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
-              >
-                <Plus className="w-3 h-3" />Wissel toevoegen
-              </button>
-            </div>
+          {/* VELD LAYOUT - EERST */}
+          <div className="bg-green-100 rounded-lg p-4 sm:p-6 mb-4">
             {layout.rijen.map((rij, rijIndex) => (
               <div key={rijIndex} className={`grid ${layout.gridCols} gap-2 sm:gap-4 mb-3 sm:mb-4`}>
                 {rij.map(({ positie, col }) => {
@@ -867,9 +858,8 @@ export default function WedstrijdOpstelling({
                   const spelerNaam = speler?.naam || '';
                   const isKeeper = positie === 'Keeper';
                   
-                  // AANGEPAST: Voornaam op mobiel, volledige naam op desktop
                   const displayNaam = spelerNaam 
-                    ? spelerNaam.split(' ')[0]  // Alleen voornaam
+                    ? spelerNaam.split(' ')[0]
                     : '+';
                   
                   return (
@@ -888,9 +878,7 @@ export default function WedstrijdOpstelling({
                             : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-500'
                         }`}
                       >
-                        {/* Mobiel: alleen voornaam of + */}
                         <span className="sm:hidden truncate block">{displayNaam}</span>
-                        {/* Desktop: volledige naam of + Kies speler */}
                         <span className="hidden sm:inline">{spelerNaam || '+ Kies speler'}</span>
                       </button>
                     </div>
@@ -900,7 +888,17 @@ export default function WedstrijdOpstelling({
             ))}
           </div>
 
-          {/* SCORE TRACKING - INKLAPPEND */}
+          {/* WISSELS - DAARNA */}
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
+              <button 
+                onClick={() => onVoegWisselToe(kwartIndex)} 
+                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
+              >
+                <Plus className="w-3 h-3" />Wissel toevoegen
+              </button>
+            </div>
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg overflow-hidden mb-4">
             <button
               onClick={() => setDoelpuntenOpen(!doelpuntenOpen)}
