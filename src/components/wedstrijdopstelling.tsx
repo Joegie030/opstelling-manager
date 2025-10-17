@@ -1341,6 +1341,7 @@ export default function WedstrijdOpstelling({
         );
       })}
 
+
       {/* NIEUW: Eindstand */}
       {(() => {
         const eindstand = berekenEindstand();
