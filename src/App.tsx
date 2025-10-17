@@ -237,6 +237,33 @@ function App() {
     setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
   };
 
+  // NIEUW: Thema handlers
+  const updateWedstrijdThemas = (themas: string[]) => {
+    if (!huidgeWedstrijd) return;
+    const updated = { ...huidgeWedstrijd, themas };
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  const updateKwartThemaBeoordeling = (kwartIndex: number, themaId: string, beoordeling: 'goed' | 'beter' | null) => {
+    if (!huidgeWedstrijd) return;
+    const updated = { ...huidgeWedstrijd };
+    if (!updated.kwarten[kwartIndex].themaBeoordelingen) {
+      updated.kwarten[kwartIndex].themaBeoordelingen = {};
+    }
+    updated.kwarten[kwartIndex].themaBeoordelingen![themaId] = beoordeling;
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  const updateKwartObservaties = (kwartIndex: number, observaties: string[]) => {
+    if (!huidgeWedstrijd) return;
+    const updated = { ...huidgeWedstrijd };
+    updated.kwarten[kwartIndex].observaties = observaties;
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
   // Testdata handlers
   const TESTDATA_SPELERS = [
     'Jan Jansen',
@@ -574,7 +601,10 @@ function App() {
                 onVoegDoelpuntToe={voegDoelpuntToe}
                 onVerwijderDoelpunt={verwijderDoelpunt}
                 onUpdateWedstrijdNotities={updateWedstrijdNotities}
+                onUpdateWedstrijdThemas={updateWedstrijdThemas}
                 onUpdateKwartAantekeningen={updateKwartAantekeningen}
+                onUpdateKwartThemaBeoordeling={updateKwartThemaBeoordeling}
+                onUpdateKwartObservaties={updateKwartObservaties}
                 onSluiten={() => { setHuidgeWedstrijd(null); setHuidigScherm('wedstrijden'); }}
               />
             )}

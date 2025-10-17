@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Clock, Plus, Trash2, X, ChevronDown, ChevronUp, FileText } from 'lucide-react';
-import { Speler, Wedstrijd, Doelpunt, formaties } from '../types';
+import { Speler, Wedstrijd, Doelpunt, formaties, ALLE_THEMAS, KWART_OBSERVATIES } from '../types';
 import ScoreTracking from './ScoreTracking';
 
 interface Props {
@@ -20,7 +20,10 @@ interface Props {
   onVoegDoelpuntToe: (kwartIndex: number, doelpunt: Omit<Doelpunt, 'id'>) => void;
   onVerwijderDoelpunt: (kwartIndex: number, doelpuntId: number) => void;
   onUpdateWedstrijdNotities: (notities: string) => void;
+  onUpdateWedstrijdThemas: (themas: string[]) => void;
   onUpdateKwartAantekeningen: (kwartIndex: number, aantekeningen: string) => void;
+  onUpdateKwartThemaBeoordeling: (kwartIndex: number, themaId: string, beoordeling: 'goed' | 'beter' | null) => void;
+  onUpdateKwartObservaties: (kwartIndex: number, observaties: string[]) => void;
   onSluiten: () => void;
 }
 
@@ -41,7 +44,10 @@ export default function WedstrijdOpstelling({
   onVoegDoelpuntToe,
   onVerwijderDoelpunt,
   onUpdateWedstrijdNotities,
+  onUpdateWedstrijdThemas,
   onUpdateKwartAantekeningen,
+  onUpdateKwartThemaBeoordeling,
+  onUpdateKwartObservaties,
   onSluiten
 }: Props) {
   
@@ -596,7 +602,7 @@ export default function WedstrijdOpstelling({
             />
           </div>
 
-          {/* NIEUW: Wedstrijd Notities - Uitklapbaar */}
+          {/* NIEUW: Wedstrijd Focus & Thema's - Uitklapbaar */}
           <div className="border-2 border-blue-200 bg-blue-50 rounded-lg overflow-hidden">
             <button
               onClick={() => setNotitiesOpen(!notitiesOpen)}
@@ -605,11 +611,11 @@ export default function WedstrijdOpstelling({
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 <span className="text-sm font-semibold text-gray-700">
-                  📝 Wedstrijd Notities
+                  🎯 Wedstrijd Focus & Thema's
                 </span>
-                {wedstrijd.notities && wedstrijd.notities.length > 0 && (
+                {wedstrijd.themas && wedstrijd.themas.length > 0 && (
                   <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-xs font-bold">
-                    ✓
+                    {wedstrijd.themas.length}
                   </span>
                 )}
               </div>
@@ -621,17 +627,87 @@ export default function WedstrijdOpstelling({
             </button>
             
             {notitiesOpen && (
-              <div className="px-3 py-3 border-t border-blue-200 bg-white">
-                <textarea
-                  value={wedstrijd.notities || ''}
-                  onChange={(e) => onUpdateWedstrijdNotities(e.target.value)}
-                  placeholder="Algemene opmerkingen over deze wedstrijd..."
-                  className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={3}
-                />
-                <p className="text-xs text-gray-600 mt-2">
-                  💡 Bijvoorbeeld: "Belangrijk om verdediging te versterken", "Veel wind verwacht"
-                </p>
+              <div className="px-3 py-3 border-t border-blue-200 bg-white space-y-3">
+                {/* Thema selectie */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">
+                    🎯 Selecteer thema's om per kwart te evalueren
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {ALLE_THEMAS.map(thema => {
+                      const isSelected = wedstrijd.themas?.includes(thema.id) || false;
+                      return (
+                        <button
+                          key={thema.id}
+                          onClick={() => {
+                            const current = wedstrijd.themas || [];
+                            if (isSelected) {
+                              onUpdateWedstrijdThemas(current.filter(t => t !== thema.id));
+                            } else {
+                              onUpdateWedstrijdThemas([...current, thema.id]);
+                            }
+                          }}
+                          className={`px-3 py-2 rounded-lg border-2 font-medium text-sm transition-all ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="mr-1">{thema.emoji}</span>
+                          {thema.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Geselecteerde thema's samenvatting */}
+                  {wedstrijd.themas && wedstrijd.themas.length > 0 && (
+                    <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs font-semibold text-blue-800 mb-1">Geselecteerd:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {wedstrijd.themas.map(themaId => {
+                          const thema = ALLE_THEMAS.find(t => t.id === themaId);
+                          if (!thema) return null;
+                          return (
+                            <span key={themaId} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                              {thema.emoji} {thema.label}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const current = wedstrijd.themas || [];
+                                  onUpdateWedstrijdThemas(current.filter(t => t !== themaId));
+                                }}
+                                className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {wedstrijd.themas && wedstrijd.themas.length === 0 && (
+                    <p className="text-xs text-orange-600 mt-2">
+                      💡 Tip: Selecteer thema's om deze per kwart te kunnen evalueren
+                    </p>
+                  )}
+                </div>
+                
+                {/* Vrije tekst notities (optioneel) */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1">
+                    💬 Extra opmerkingen (optioneel)
+                  </label>
+                  <textarea
+                    value={wedstrijd.notities || ''}
+                    onChange={(e) => onUpdateWedstrijdNotities(e.target.value)}
+                    placeholder="Bijv: Extra focus op lange ballen, tegenstander speelt hoog..."
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows={2}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -1004,22 +1080,188 @@ export default function WedstrijdOpstelling({
             )}
           </div>
           
-          {/* NIEUW: Kwart Aantekeningen */}
-          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 mt-4">
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+          {/* NIEUW: Kwart Evaluatie */}
+          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-3 sm:p-4 mt-4 space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              📋 Aantekeningen dit kwart
-            </label>
-            <textarea
-              value={kwart.aantekeningen || ''}
-              onChange={(e) => onUpdateKwartAantekeningen(kwartIndex, e.target.value)}
-              placeholder="Notities voor dit specifieke kwart..."
-              className="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              rows={2}
-            />
-            <p className="text-xs text-gray-600 mt-1">
-              💡 Bijvoorbeeld: "Veel druk van tegenstander", "Goed verdedigd"
-            </p>
+              <h4 className="text-sm font-semibold text-gray-700">
+                📋 Evaluatie Kwart {kwart.nummer}
+              </h4>
+            </div>
+            
+            {/* Thema beoordelingen - alleen als er thema's geselecteerd zijn */}
+            {wedstrijd.themas && wedstrijd.themas.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-600">
+                  🎯 Beoordeel de wedstrijdthema's voor dit kwart
+                </p>
+                {wedstrijd.themas.map(themaId => {
+                  const thema = ALLE_THEMAS.find(t => t.id === themaId);
+                  if (!thema) return null;
+                  
+                  const beoordeling = kwart.themaBeoordelingen?.[themaId] || null;
+                  
+                  return (
+                    <div key={themaId} className="bg-white rounded-lg p-3 border border-purple-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">{thema.emoji}</span>
+                        <span className="font-medium text-sm">{thema.label}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                          beoordeling === 'goed'
+                            ? 'border-green-500 bg-green-50 text-green-700 font-semibold'
+                            : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                        }`}>
+                          <input
+                            type="radio"
+                            name={`thema-${kwartIndex}-${themaId}`}
+                            checked={beoordeling === 'goed'}
+                            onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, 'goed')}
+                            className="sr-only"
+                          />
+                          <span className="text-base">✅</span>
+                          <span className="text-xs sm:text-sm">Goed</span>
+                        </label>
+                        
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                          beoordeling === 'beter'
+                            ? 'border-orange-500 bg-orange-50 text-orange-700 font-semibold'
+                            : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                        }`}>
+                          <input
+                            type="radio"
+                            name={`thema-${kwartIndex}-${themaId}`}
+                            checked={beoordeling === 'beter'}
+                            onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, 'beter')}
+                            className="sr-only"
+                          />
+                          <span className="text-base">⚠️</span>
+                          <span className="text-xs sm:text-sm">Kan beter</span>
+                        </label>
+                        
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                          beoordeling === null
+                            ? 'border-gray-400 bg-gray-50 text-gray-700 font-semibold'
+                            : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                        }`}>
+                          <input
+                            type="radio"
+                            name={`thema-${kwartIndex}-${themaId}`}
+                            checked={beoordeling === null}
+                            onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, null)}
+                            className="sr-only"
+                          />
+                          <span className="text-base">—</span>
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-xs text-yellow-800">
+                  💡 Geen thema's geselecteerd. Selecteer thema's in "Wedstrijd Focus & Thema's" om deze per kwart te evalueren.
+                </p>
+              </div>
+            )}
+            
+            {/* Algemene observaties */}
+            <div>
+              <p className="text-xs text-gray-600 mb-2">
+                ➕ Algemene observaties (optioneel)
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {KWART_OBSERVATIES.map(observatie => {
+                  const isSelected = kwart.observaties?.includes(observatie.id) || false;
+                  return (
+                    <button
+                      key={observatie.id}
+                      onClick={() => {
+                        const current = kwart.observaties || [];
+                        if (isSelected) {
+                          onUpdateKwartObservaties(kwartIndex, current.filter(o => o !== observatie.id));
+                        } else {
+                          onUpdateKwartObservaties(kwartIndex, [...current, observatie.id]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-lg border-2 font-medium text-xs sm:text-sm transition-all ${
+                        isSelected
+                          ? 'border-purple-500 bg-purple-50 text-purple-700'
+                          : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="mr-1">{observatie.emoji}</span>
+                      {observatie.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Vrije tekst (optioneel) */}
+            <div>
+              <label className="text-xs font-semibold text-gray-700 block mb-1">
+                💬 Extra opmerkingen (optioneel)
+              </label>
+              <textarea
+                value={kwart.aantekeningen || ''}
+                onChange={(e) => onUpdateKwartAantekeningen(kwartIndex, e.target.value)}
+                placeholder="Aanvullende notities voor dit kwart..."
+                className="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                rows={2}
+              />
+            </div>
+            
+            {/* Compacte weergave van evaluatie */}
+            {(() => {
+              const goedThemas: string[] = [];
+              const beterThemas: string[] = [];
+              const observaties = kwart.observaties || [];
+              
+              wedstrijd.themas?.forEach(themaId => {
+                const beoordeling = kwart.themaBeoordelingen?.[themaId];
+                const thema = ALLE_THEMAS.find(t => t.id === themaId);
+                if (!thema) return;
+                
+                if (beoordeling === 'goed') {
+                  goedThemas.push(`${thema.emoji} ${thema.label}`);
+                } else if (beoordeling === 'beter') {
+                  beterThemas.push(`${thema.emoji} ${thema.label}`);
+                }
+              });
+              
+              const heeftEvaluatie = goedThemas.length > 0 || beterThemas.length > 0 || observaties.length > 0;
+              
+              if (!heeftEvaluatie) return null;
+              
+              return (
+                <div className="pt-3 border-t border-purple-200">
+                  <p className="text-xs font-semibold text-purple-700 mb-2">📊 Samenvatting:</p>
+                  <div className="space-y-1 text-xs">
+                    {goedThemas.length > 0 && (
+                      <div className="text-green-700">
+                        <span className="font-semibold">✅ Goed:</span> {goedThemas.join(', ')}
+                      </div>
+                    )}
+                    {beterThemas.length > 0 && (
+                      <div className="text-orange-700">
+                        <span className="font-semibold">⚠️ Kan beter:</span> {beterThemas.join(', ')}
+                      </div>
+                    )}
+                    {observaties.length > 0 && (
+                      <div className="text-purple-700">
+                        <span className="font-semibold">➕</span> {observaties.map(obsId => {
+                          const obs = KWART_OBSERVATIES.find(o => o.id === obsId);
+                          return obs ? `${obs.emoji} ${obs.label}` : null;
+                        }).filter(Boolean).join(', ')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
           
           {/* NIEUW: Regelchecks per kwart */}
