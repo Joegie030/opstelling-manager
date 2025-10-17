@@ -1338,6 +1338,8 @@ export default function WedstrijdOpstelling({
             );
           })}
         </div>
+        );
+      })}
 
       {/* NIEUW: Eindstand */}
       {(() => {
