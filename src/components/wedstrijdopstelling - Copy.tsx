@@ -370,10 +370,13 @@ export default function WedstrijdOpstelling({
       const speeltAlsVeldspelerInVorig = vorigKwart && speeltAlsVeldspeler(kId, vorigKwart);
       const speeltAlsVeldspelerInVolgend = volgendKwart && speeltAlsVeldspeler(kId, volgendKwart);
       
-      // Als keeper NIET als veldspeler speelt voor EN NIET na = keeper geweest maar geen veld ervaring!
+      // Als keeper NIET als veldspeler speelt voor EN NIET na = te weinig veldspeler ervaring!
       if (!speeltAlsVeldspelerInVorig && !speeltAlsVeldspelerInVolgend) {
+        const kwartNamen = [];
+        if (vorigKwart) kwartNamen.push(`kwart ${kwartIndex}`);
+        if (volgendKwart) kwartNamen.push(`kwart ${kwartIndex + 2}`);
         waarschuwingen.push(
-          `🧤 ${keeperNaam}: Was/wordt keeper in vorige/volgende kwart`
+          `🧤 ${keeperNaam} speelt niet als veldspeler ${kwartNamen.length === 2 ? 'in ' + kwartNamen.join(' en ') : kwartNamen.length === 1 ? 'in ' + kwartNamen[0] : ''} (te weinig veldervaring!)`
         );
       }
     });
@@ -836,28 +839,13 @@ export default function WedstrijdOpstelling({
         </div>
       </div>
 
-      {wedstrijd.kwarten.map((kwart, kwartIndex) => {
-        // State voor inklappen doelpunten en evaluatie
-        const [doelpuntenOpen, setDoelpuntenOpen] = useState(false);
-        const [evaluatieOpen, setEvaluatieOpen] = useState(false);
-        
-        return (
+      {wedstrijd.kwarten.map((kwart, kwartIndex) => (
         <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white">
           <h3 className="font-bold mb-3 flex items-center gap-2 text-sm sm:text-base">
             <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
           </h3>
           
-          {/* ⭐ WISSELS BOVENAAN - PRIORITEIT */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-            <div className="flex justify-between items-center mb-3">
-              <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
-              <button 
-                onClick={() => onVoegWisselToe(kwartIndex)} 
-                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
-              >
-                <Plus className="w-3 h-3" />Wissel toevoegen
-              </button>
-            </div>
+          <div className="bg-green-100 rounded-lg p-4 sm:p-6 mb-4">
             {layout.rijen.map((rij, rijIndex) => (
               <div key={rijIndex} className={`grid ${layout.gridCols} gap-2 sm:gap-4 mb-3 sm:mb-4`}>
                 {rij.map(({ positie, col }) => {
@@ -900,44 +888,18 @@ export default function WedstrijdOpstelling({
             ))}
           </div>
 
-          {/* SCORE TRACKING - INKLAPPEND */}
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg overflow-hidden mb-4">
-            <button
-              onClick={() => setDoelpuntenOpen(!doelpuntenOpen)}
-              className="w-full px-3 py-2 flex items-center justify-between hover:bg-blue-100 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">⚽</span>
-                <span className="text-sm font-semibold text-gray-700">
-                  Doelpunten Kwart {kwart.nummer}
-                </span>
-                {kwart.doelpunten && kwart.doelpunten.length > 0 && (
-                  <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-xs font-bold">
-                    {kwart.doelpunten.length}
-                  </span>
-                )}
-              </div>
-              {doelpuntenOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-            
-            {doelpuntenOpen && (
-              <div className="px-3 py-3 border-t border-blue-200 bg-white">
-                <ScoreTracking
-                  kwartIndex={kwartIndex}
-                  wedstrijd={wedstrijd}
-                  spelers={spelers}
-                  thuisUit={wedstrijd.thuisUit || 'thuis'}
-                  teamNaam={teamNaam}
-                  tegenstander={wedstrijd.tegenstander || 'Tegenstander'}
-                  onVoegDoelpuntToe={onVoegDoelpuntToe}
-                  onVerwijderDoelpunt={onVerwijderDoelpunt}
-                />
-              </div>
-            )}
+          {/* NIEUW: Score Tracking */}
+          <div className="mt-4">
+            <ScoreTracking
+              kwartIndex={kwartIndex}
+              wedstrijd={wedstrijd}
+              spelers={spelers}
+              thuisUit={wedstrijd.thuisUit || 'thuis'}
+              teamNaam={teamNaam}
+              tegenstander={wedstrijd.tegenstander || 'Tegenstander'}
+              onVoegDoelpuntToe={onVoegDoelpuntToe}
+              onVerwijderDoelpunt={onVerwijderDoelpunt}
+            />
           </div>
 
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
@@ -1118,27 +1080,14 @@ export default function WedstrijdOpstelling({
             )}
           </div>
           
-          {/* EVALUATIE - INKLAPPEND */}
-          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg overflow-hidden mb-4">
-            <button
-              onClick={() => setEvaluatieOpen(!evaluatieOpen)}
-              className="w-full px-3 py-2 flex items-center justify-between hover:bg-purple-100 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                <span className="text-sm font-semibold text-gray-700">
-                  📋 Evaluatie Kwart {kwart.nummer}
-                </span>
-              </div>
-              {evaluatieOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-            
-            {evaluatieOpen && (
-              <div className="px-3 py-4 border-t border-purple-200 bg-white space-y-3 sm:space-y-4">
+          {/* NIEUW: Kwart Evaluatie */}
+          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-3 sm:p-4 mt-4 space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              <h4 className="text-sm font-semibold text-gray-700">
+                📋 Evaluatie Kwart {kwart.nummer}
+              </h4>
+            </div>
             
             {/* Thema beoordelingen - alleen als er thema's geselecteerd zijn */}
             {wedstrijd.themas && wedstrijd.themas.length > 0 ? (
@@ -1313,8 +1262,6 @@ export default function WedstrijdOpstelling({
                 </div>
               );
             })()}
-              </div>
-            )}
           </div>
           
           {/* NIEUW: Regelchecks per kwart */}
