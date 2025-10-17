@@ -51,22 +51,12 @@ export default function WedstrijdOpstelling({
   onSluiten
 }: Props) {
   
-  // Modal state
-  const [selectieModal, setSelectieModal] = useState<{
-    open: boolean;
-    kwartIndex: number;
-    positie: string;
-  }>({ open: false, kwartIndex: 0, positie: '' });
-  
-  // Afwezigheid sectie state
+  const [selectieModal, setSelectieModal] = useState<{ open: boolean; kwartIndex: number; positie: string }>({ open: false, kwartIndex: 0, positie: '' });
   const [afwezigheidOpen, setAfwezigheidOpen] = useState(false);
-  
-  // NIEUW: Wedstrijd notities state
   const [notitiesOpen, setNotitiesOpen] = useState(false);
   
   const posities = formaties[wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8'];
 
-  // Helper functie om formatie naam mooi weer te geven
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
       '6x6': '✈️ 6x6 Vliegtuig',
@@ -77,7 +67,6 @@ export default function WedstrijdOpstelling({
     return namen[formatie] || formatie;
   };
 
-  // Bereken statistieken voor deze wedstrijd
   const berekenWedstrijdStats = () => {
     const stats: Record<number, { naam: string; minuten: number; keeperBeurten: number; wisselMinuten: number }> = {};
     
@@ -116,19 +105,16 @@ export default function WedstrijdOpstelling({
     return Object.values(stats);
   };
 
-  // Bereken TOTAAL keeper beurten over ALLE wedstrijden
   const berekenTotaalKeeperBeurten = () => {
     const totaalKeeperTelling: Record<number, number> = {};
     spelers.forEach(s => { totaalKeeperTelling[s.id] = 0; });
     
-    // Itereer door ALLE wedstrijden
     wedstrijden.forEach(w => {
       w.kwarten.forEach(kwart => {
         const keeperId = kwart.opstelling['Keeper'];
         if (keeperId) {
           totaalKeeperTelling[Number(keeperId)] = (totaalKeeperTelling[Number(keeperId)] || 0) + 1;
         }
-        // Tel ook wissels die keeper worden
         kwart.wissels?.forEach(wissel => {
           if (wissel.positie === 'Keeper' && wissel.wisselSpelerId) {
             totaalKeeperTelling[Number(wissel.wisselSpelerId)] = (totaalKeeperTelling[Number(wissel.wisselSpelerId)] || 0) + 1;
@@ -140,9 +126,7 @@ export default function WedstrijdOpstelling({
     return totaalKeeperTelling;
   };
 
-  // Veldindeling
   const getPositieLayout = () => {
-    // Backward compatibility: oude '6x6' behandelen als '6x6-vliegtuig'
     const formatie = wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie;
     
     if (formatie === '6x6-vliegtuig') {
@@ -167,7 +151,6 @@ export default function WedstrijdOpstelling({
         gridCols: 'grid-cols-3'
       };
     }
-    // 8x8
     return {
       rijen: [
         [{ positie: 'Links voor', col: 'col-start-2' }, { positie: 'Rechts voor', col: 'col-start-4' }],
@@ -181,7 +164,6 @@ export default function WedstrijdOpstelling({
 
   const layout = getPositieLayout();
 
-  // Hulpfuncties
   const getGebruikteSpelers = (kwartIndex: number) => {
     const gebruikt = new Set<string>();
     Object.values(wedstrijd.kwarten[kwartIndex].opstelling).forEach(sid => {
@@ -199,7 +181,6 @@ export default function WedstrijdOpstelling({
     return keepers;
   };
 
-  // Tel keeper beurten in deze wedstrijd (niet totaal)
   const getKeeperBeurtenInWedstrijd = () => {
     const keeperTeller: Record<number, number> = {};
     spelers.forEach(s => { keeperTeller[s.id] = 0; });
@@ -209,7 +190,6 @@ export default function WedstrijdOpstelling({
       if (keeperId) {
         keeperTeller[Number(keeperId)] += 1;
       }
-      // Tel ook wissels die keeper worden
       kwart.wissels?.forEach(w => {
         if (w.positie === 'Keeper' && w.wisselSpelerId) {
           keeperTeller[Number(w.wisselSpelerId)] += 1;
@@ -239,12 +219,11 @@ export default function WedstrijdOpstelling({
     const keepers = getKeeperSpelers();
     const wisselBeurten = getWisselBeurten();
     const keeperBeurten = getKeeperBeurtenInWedstrijd();
-    const totaalKeeperBeurten = berekenTotaalKeeperBeurten(); // NIEUWE: Totaal over alle wedstrijden!
+    const totaalKeeperBeurten = berekenTotaalKeeperBeurten();
     const stats = berekenWedstrijdStats();
     const isKeeperPositie = huidigePositie === 'Keeper';
     const afwezigeSpelers = wedstrijd.afwezigeSpelers || [];
     
-    // Filter afwezige spelers eruit, behalve als ze al in dit kwart spelen
     const beschikbareSpelers = spelers.filter(s => 
       !afwezigeSpelers.includes(s.id) || s.id.toString() === huidigeSid
     );
@@ -257,44 +236,35 @@ export default function WedstrijdOpstelling({
         isKeeper: keepers.has(s.id.toString()),
         aantalWissel: wisselBeurten[s.id] || 0,
         minutenGespeeld: spelerStats?.minuten || 0,
-        keeperBeurten: totaalKeeperBeurten[s.id] || 0, // TOTAAL over ALLE wedstrijden!
+        keeperBeurten: totaalKeeperBeurten[s.id] || 0,
         keeperBeurtenDezeWedstrijd: keeperBeurten[s.id] || 0,
         isAfwezig: afwezigeSpelers.includes(s.id)
       };
     });
     
-    // Speciale sortering voor Keeper positie - combinatie van deze wedstrijd + totaal
     if (isKeeperPositie) {
       return spelersMetInfo.sort((a, b) => {
-        // Beschikbare spelers altijd boven gebruikte
         if (a.isGebruikt !== b.isGebruikt) {
           return a.isGebruikt ? 1 : -1;
         }
-        // Als beide beschikbaar: sorteer op combinatie
         if (!a.isGebruikt && !b.isGebruikt) {
-          // Eerst: wie heeft het minst keeper gestaan deze wedstrijd (0 eerst)
           if (a.keeperBeurtenDezeWedstrijd !== b.keeperBeurtenDezeWedstrijd) {
             return a.keeperBeurtenDezeWedstrijd - b.keeperBeurtenDezeWedstrijd;
           }
-          // Dan: wie heeft het minst keeper gestaan totaal (alle wedstrijden)
           if (a.keeperBeurten !== b.keeperBeurten) {
             return a.keeperBeurten - b.keeperBeurten;
           }
-          // Tenslotte alfabetisch
           return a.naam.localeCompare(b.naam);
         }
         return 0;
       });
     }
     
-    // Normale sortering vanaf kwart 2: minst gespeeld eerst
     if (kwartIndex > 0) {
       return spelersMetInfo.sort((a, b) => {
-        // Beschikbare spelers altijd boven gebruikte
         if (a.isGebruikt !== b.isGebruikt) {
           return a.isGebruikt ? 1 : -1;
         }
-        // Als beide beschikbaar: sorteer op minuten (minst eerst)
         if (!a.isGebruikt && !b.isGebruikt) {
           return a.minutenGespeeld - b.minutenGespeeld;
         }
@@ -302,7 +272,6 @@ export default function WedstrijdOpstelling({
       });
     }
     
-    // Kwart 1: alfabetisch, maar beschikbare eerst
     return spelersMetInfo.sort((a, b) => {
       if (a.isGebruikt !== b.isGebruikt) {
         return a.isGebruikt ? 1 : -1;
@@ -311,20 +280,15 @@ export default function WedstrijdOpstelling({
     });
   };
 
-  // Regelchecks PER KWART - NIEUWE AANPAK!
   const checkKwartRegels = (kwartIndex: number) => {
     const waarschuwingen: string[] = [];
     const kwart = wedstrijd.kwarten[kwartIndex];
     const afwezigeSpelerIds = wedstrijd.afwezigeSpelers || [];
     
-    // Filter alleen beschikbare (niet-afwezige) spelers
     const beschikbareSpelers = spelers.filter(s => !afwezigeSpelerIds.includes(s.id));
     
-    // Helper: Check of speler in een kwart speelt (basis of wissel)
     const speeltInKwart = (spelerIdStr: string, kwartObj: typeof kwart) => {
-      // Check basis opstelling
       const inBasis = Object.values(kwartObj.opstelling).includes(spelerIdStr);
-      // Check wissels (zowel eruit als erin)
       const inWissel = kwartObj.wissels?.some(w => 
         w.wisselSpelerId === spelerIdStr || 
         (w.positie && kwartObj.opstelling[w.positie] === spelerIdStr)
@@ -332,33 +296,22 @@ export default function WedstrijdOpstelling({
       return inBasis || inWissel;
     };
     
-    // Helper: Check of speler als VELDSPELER speelt (niet keeper)
     const speeltAlsVeldspeler = (spelerIdStr: string, kwartObj: typeof kwart) => {
-      // Check of speler keeper is in basis
       const isKeeperInBasis = kwartObj.opstelling['Keeper'] === spelerIdStr;
-      
-      // Check of speler wordt gewisseld naar keeper positie
       const wordtKeeperViaWissel = kwartObj.wissels?.some(w => 
         w.positie === 'Keeper' && w.wisselSpelerId === spelerIdStr
       );
-      
-      // Check of speler op veld staat (maar niet als keeper)
       const speelt = speeltInKwart(spelerIdStr, kwartObj);
       const isKeeper = isKeeperInBasis || wordtKeeperViaWissel;
-      
       return speelt && !isKeeper;
     };
     
-    // 1. KEEPER REGEL: Keeper moet juist WEL spelen voor of na keeper beurt ALS VELDSPELER
     const keeperId = kwart.opstelling['Keeper'];
     const wisselNaarKeeper = kwart.wissels?.find(w => w.positie === 'Keeper');
-    
-    // Check beide keepers (basis + wissel)
     const keeperIds = [keeperId, wisselNaarKeeper?.wisselSpelerId].filter(Boolean);
     
     keeperIds.forEach(kId => {
       if (!kId) return;
-      // Skip afwezige spelers
       if (afwezigeSpelerIds.includes(Number(kId))) return;
       
       const keeperNaam = spelers.find(s => s.id.toString() === kId)?.naam;
@@ -370,16 +323,11 @@ export default function WedstrijdOpstelling({
       const speeltAlsVeldspelerInVorig = vorigKwart && speeltAlsVeldspeler(kId, vorigKwart);
       const speeltAlsVeldspelerInVolgend = volgendKwart && speeltAlsVeldspeler(kId, volgendKwart);
       
-      // Als keeper NIET als veldspeler speelt voor EN NIET na = keeper geweest maar geen veld ervaring!
       if (!speeltAlsVeldspelerInVorig && !speeltAlsVeldspelerInVolgend) {
-        waarschuwingen.push(
-          `🧤 ${keeperNaam}: Was/wordt keeper in vorige/volgende kwart`
-        );
+        waarschuwingen.push(`🧤 ${keeperNaam}: Was/wordt keeper in vorige/volgende kwart`);
       }
     });
     
-    // 2. DUBBELE BANK: Check of speler 2 kwarten op rij op bank zit (vanaf dit kwart)
-    // Alleen voor BESCHIKBARE spelers
     if (kwartIndex < wedstrijd.kwarten.length - 1) {
       const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
       beschikbareSpelers.forEach(speler => {
@@ -394,20 +342,17 @@ export default function WedstrijdOpstelling({
       });
     }
     
-    // 3. INVALLER-BANK: Check of invaller daarna weer op bank zit
-    // Alleen voor BESCHIKBARE spelers
     beschikbareSpelers.forEach(speler => {
       const basisDitKwart = Object.values(kwart.opstelling).includes(speler.id.toString());
       const valtInDitKwart = kwart.wissels?.some(w => w.wisselSpelerId === speler.id.toString());
       
-      // Check: valt in dit kwart, maar speelt niet in volgend kwart
       if (valtInDitKwart && !basisDitKwart && kwartIndex < wedstrijd.kwarten.length - 1) {
         const volgendKwart = wedstrijd.kwarten[kwartIndex + 1];
         const speeltVolgendKwart = speeltInKwart(speler.id.toString(), volgendKwart);
         
         if (!speeltVolgendKwart) {
           waarschuwingen.push(
-            `🔄 ${speler.naam} valt in maar zit daarna weer op de bank (kwart ${kwartIndex + 2})`
+            `📤 ${speler.naam} valt in maar zit daarna weer op de bank (kwart ${kwartIndex + 2})`
           );
         }
       }
@@ -418,7 +363,6 @@ export default function WedstrijdOpstelling({
 
   const stats = berekenWedstrijdStats();
 
-  // Helper: Vind afwezige spelers die toch in de opstelling staan
   const getAfwezigeSpelersInOpstelling = () => {
     const afwezigeIds = wedstrijd.afwezigeSpelers || [];
     if (afwezigeIds.length === 0) return [];
@@ -434,14 +378,12 @@ export default function WedstrijdOpstelling({
       wedstrijd.kwarten.forEach((kwart, kwartIndex) => {
         const posities: string[] = [];
         
-        // Check basis opstelling
         Object.entries(kwart.opstelling).forEach(([positie, spelerId]) => {
           if (spelerId === afwezigId.toString()) {
             posities.push(positie);
           }
         });
         
-        // Check wissels
         kwart.wissels?.forEach(wissel => {
           if (wissel.wisselSpelerId === afwezigId.toString()) {
             posities.push(`Wissel naar ${wissel.positie}`);
@@ -461,20 +403,17 @@ export default function WedstrijdOpstelling({
     return afwezigeInOpstelling;
   };
 
-  // Verwijder afwezige spelers uit opstelling
   const verwijderAfwezigeUitOpstelling = () => {
     const afwezigeIds = wedstrijd.afwezigeSpelers || [];
     if (afwezigeIds.length === 0) return;
     
     wedstrijd.kwarten.forEach((kwart, kwartIndex) => {
-      // Verwijder uit basis opstelling
       Object.entries(kwart.opstelling).forEach(([positie, spelerId]) => {
         if (afwezigeIds.includes(Number(spelerId))) {
           onUpdateOpstelling(kwartIndex, positie, '');
         }
       });
       
-      // Verwijder uit wissels
       kwart.wissels?.forEach((wissel, wisselIndex) => {
         if (afwezigeIds.includes(Number(wissel.wisselSpelerId))) {
           onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', '');
@@ -485,23 +424,19 @@ export default function WedstrijdOpstelling({
 
   const afwezigeInOpstelling = getAfwezigeSpelersInOpstelling();
 
-  // Open modal voor speler selectie
   const openSelectieModal = (kwartIndex: number, positie: string) => {
     setSelectieModal({ open: true, kwartIndex, positie });
   };
 
-  // Sluit modal
   const sluitSelectieModal = () => {
     setSelectieModal({ open: false, kwartIndex: 0, positie: '' });
   };
 
-  // Selecteer speler
   const selecteerSpeler = (spelerId: string) => {
     onUpdateOpstelling(selectieModal.kwartIndex, selectieModal.positie, spelerId);
     sluitSelectieModal();
   };
 
-  // NIEUW: Bereken eindstand van de wedstrijd
   const berekenEindstand = () => {
     let eigenDoelpunten = 0;
     let tegenstanderDoelpunten = 0;
@@ -542,10 +477,8 @@ export default function WedstrijdOpstelling({
 
   return (
     <div className="space-y-6">
-      {/* AANGEPAST: Compacte mobiele header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex-1 space-y-3 min-w-0">
-          {/* Titel en formatie - compacter op mobiel */}
           <div className="space-y-1">
             <h2 className="text-lg sm:text-2xl font-bold truncate">
               {clubNaam} {teamNaam}
@@ -555,7 +488,6 @@ export default function WedstrijdOpstelling({
             </p>
           </div>
           
-          {/* Datum en locatie op eigen rij */}
           <div className="flex flex-wrap items-center gap-3">
             <input 
               type="date" 
@@ -587,7 +519,6 @@ export default function WedstrijdOpstelling({
             </div>
           </div>
           
-          {/* Tegenstander */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">Tegenstander:</label>
             <input 
@@ -599,7 +530,6 @@ export default function WedstrijdOpstelling({
             />
           </div>
 
-          {/* NIEUW: Wedstrijd Focus & Thema's - Uitklapbaar */}
           <div className="border-2 border-blue-200 bg-blue-50 rounded-lg overflow-hidden">
             <button
               onClick={() => setNotitiesOpen(!notitiesOpen)}
@@ -625,7 +555,6 @@ export default function WedstrijdOpstelling({
             
             {notitiesOpen && (
               <div className="px-3 py-3 border-t border-blue-200 bg-white space-y-3">
-                {/* Thema selectie */}
                 <div>
                   <p className="text-xs text-gray-600 mb-2">
                     🎯 Selecteer thema's om per kwart te evalueren
@@ -657,7 +586,6 @@ export default function WedstrijdOpstelling({
                     })}
                   </div>
                   
-                  {/* Geselecteerde thema's samenvatting */}
                   {wedstrijd.themas && wedstrijd.themas.length > 0 && (
                     <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
                       <p className="text-xs font-semibold text-blue-800 mb-1">Geselecteerd:</p>
@@ -692,7 +620,6 @@ export default function WedstrijdOpstelling({
                   )}
                 </div>
                 
-                {/* Vrije tekst notities (optioneel) */}
                 <div>
                   <label className="text-xs font-semibold text-gray-700 block mb-1">
                     💬 Extra opmerkingen (optioneel)
@@ -709,7 +636,6 @@ export default function WedstrijdOpstelling({
             )}
           </div>
 
-          {/* Afwezigheid Tracking - Uitklapbaar */}
           <div className="border-2 border-orange-200 bg-orange-50 rounded-lg overflow-hidden">
             <button
               onClick={() => setAfwezigheidOpen(!afwezigheidOpen)}
@@ -775,7 +701,6 @@ export default function WedstrijdOpstelling({
           </div>
         </div>
 
-        {/* WAARSCHUWING: Afwezige spelers in opstelling */}
         {afwezigeInOpstelling.length > 0 && (
           <div className="bg-red-50 border-2 border-red-400 rounded-lg p-4">
             <div className="flex items-start gap-3">
@@ -807,7 +732,6 @@ export default function WedstrijdOpstelling({
                   </button>
                   <button
                     onClick={() => {
-                      // Haal alle afwezige spelers weg uit afwezigheid lijst
                       afwezigeInOpstelling.forEach(({ speler }) => {
                         onToggleAfwezig(speler.id);
                       });
@@ -825,7 +749,6 @@ export default function WedstrijdOpstelling({
           </div>
         )}
         
-        {/* Action buttons */}
         <div className="flex gap-2 w-full sm:w-auto">
           <button 
             onClick={onSluiten} 
@@ -837,515 +760,436 @@ export default function WedstrijdOpstelling({
       </div>
 
       {wedstrijd.kwarten.map((kwart, kwartIndex) => {
-        // State voor inklappen doelpunten en evaluatie
         const [doelpuntenOpen, setDoelpuntenOpen] = useState(false);
         const [evaluatieOpen, setEvaluatieOpen] = useState(false);
         
         return (
-        <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white">
-          <h3 className="font-bold mb-3 flex items-center gap-2 text-sm sm:text-base">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
-          </h3>
-          
-          {/* VELD LAYOUT - EERST */}
-          <div className="bg-green-100 rounded-lg p-4 sm:p-6 mb-4">
-            {layout.rijen.map((rij, rijIndex) => (
-              <div key={rijIndex} className={`grid ${layout.gridCols} gap-2 sm:gap-4 mb-3 sm:mb-4`}>
-                {rij.map(({ positie, col }) => {
-                  const heeftWissel = kwart.wissels?.some(w => w.positie === positie);
-                  const spelerId = kwart.opstelling[positie];
-                  const speler = spelerId ? spelers.find(s => s.id.toString() === spelerId) : null;
-                  const spelerNaam = speler?.naam || '';
-                  const isKeeper = positie === 'Keeper';
-                  
-                  const displayNaam = spelerNaam 
-                    ? spelerNaam.split(' ')[0]
-                    : '+';
-                  
-                  return (
-                    <div key={positie} className={`space-y-1 ${col || ''}`}>
-                      <label className="text-xs font-bold text-gray-700 block text-center">
-                        {positie}
-                        {heeftWissel && <span className="text-orange-600"> 🔄</span>}
-                      </label>
-                      <button
-                        onClick={() => openSelectieModal(kwartIndex, positie)}
-                        className={`w-full px-2 sm:px-3 py-2 sm:py-3 border-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
-                          spelerId
-                            ? isKeeper 
-                              ? 'bg-yellow-50 border-yellow-500 hover:bg-yellow-100 text-gray-900'
-                              : 'bg-white border-green-600 hover:bg-green-50 text-gray-900'
-                            : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        <span className="sm:hidden truncate block">{displayNaam}</span>
-                        <span className="hidden sm:inline">{spelerNaam || '+ Kies speler'}</span>
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-
-          {/* WISSELS - DAARNA */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-            <div className="flex justify-between items-center mb-3">
-              <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
-              <button 
-                onClick={() => onVoegWisselToe(kwartIndex)} 
-                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
-              >
-                <Plus className="w-3 h-3" />Wissel toevoegen
-              </button>
-            </div>
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg overflow-hidden mb-4">
-            <button
-              onClick={() => setDoelpuntenOpen(!doelpuntenOpen)}
-              className="w-full px-3 py-2 flex items-center justify-between hover:bg-blue-100 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">⚽</span>
-                <span className="text-sm font-semibold text-gray-700">
-                  Doelpunten Kwart {kwart.nummer}
-                </span>
-                {kwart.doelpunten && kwart.doelpunten.length > 0 && (
-                  <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-xs font-bold">
-                    {kwart.doelpunten.length}
-                  </span>
-                )}
-              </div>
-              {doelpuntenOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
+          <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white space-y-4">
+            {/* 1. KWART HEADER */}
+            <h3 className="font-bold mb-0 flex items-center gap-2 text-sm sm:text-base">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
+            </h3>
             
-            {doelpuntenOpen && (
-              <div className="px-3 py-3 border-t border-blue-200 bg-white">
-                <ScoreTracking
-                  kwartIndex={kwartIndex}
-                  wedstrijd={wedstrijd}
-                  spelers={spelers}
-                  thuisUit={wedstrijd.thuisUit || 'thuis'}
-                  teamNaam={teamNaam}
-                  tegenstander={wedstrijd.tegenstander || 'Tegenstander'}
-                  onVoegDoelpuntToe={onVoegDoelpuntToe}
-                  onVerwijderDoelpunt={onVerwijderDoelpunt}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
-            <div className="flex justify-between items-center mb-3">
-              <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
-              <button 
-                onClick={() => onVoegWisselToe(kwartIndex)} 
-                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
-              >
-                <Plus className="w-3 h-3" />Wissel toevoegen
-              </button>
-            </div>
-            {kwart.wissels && kwart.wissels.length > 0 ? (
-              <div className="space-y-3">
-                {kwart.wissels.map((wissel, wisselIndex) => {
-                  // Check welke spelers keeper zijn/waren in deze wedstrijd
-                  const keepersDezeWedstrijd = new Set<string>();
-                  wedstrijd.kwarten.forEach((k, ki) => {
-                    if (ki > kwartIndex) return; // Tot en met huidig kwart
-                    const keeperId = k.opstelling['Keeper'];
-                    if (keeperId) keepersDezeWedstrijd.add(keeperId);
-                    // Ook wissels naar keeper positie
-                    k.wissels?.forEach(w => {
-                      if (w.positie === 'Keeper' && w.wisselSpelerId) {
-                        keepersDezeWedstrijd.add(w.wisselSpelerId);
-                      }
-                    });
-                  });
-                  
-                  // Haal spelers op die NU in het veld staan EN die niet al in een andere wissel zitten
-                  const reedsGewisseldePosities = kwart.wissels
-                    .filter((w, i) => i !== wisselIndex && w.positie) // Andere wissels die al een positie hebben
-                    .map(w => w.positie);
-                  
-                  // Bereken minuten per speler tot nu toe in deze wedstrijd (VOOR spelersInVeld)
-                  const berekenMinutenTotNu = () => {
-                    const minuten: Record<string, number> = {};
-                    wedstrijd.kwarten.forEach((k, ki) => {
-                      if (ki > kwartIndex) return; // Stop na huidig kwart
-                      
-                      Object.entries(k.opstelling).forEach(([pos, sid]) => {
-                        if (!sid) return;
-                        const kwartWissel = k.wissels?.find(w => w.positie === pos);
-                        const min = kwartWissel && kwartWissel.wisselSpelerId ? 6.25 : k.minuten;
-                        minuten[sid] = (minuten[sid] || 0) + min;
-                      });
-                      
-                      k.wissels?.forEach(w => {
-                        if (w.wisselSpelerId) {
-                          minuten[w.wisselSpelerId] = (minuten[w.wisselSpelerId] || 0) + 6.25;
-                        }
-                      });
-                    });
-                    return minuten;
-                  };
-                  
-                  const minutenTotNu = berekenMinutenTotNu();
-                  
-                  const spelersInVeld = Object.entries(kwart.opstelling)
-                    .filter(([_, sid]) => sid) // Alleen posities met speler
-                    .filter(([pos, _]) => !reedsGewisseldePosities.includes(pos)) // Filter al gewisselde posities
-                    .map(([pos, sid]) => ({
-                      spelerId: sid,
-                      positie: pos,
-                      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
-                      isKeeperGeweest: keepersDezeWedstrijd.has(sid),
-                      isNuKeeper: pos === 'Keeper',
-                      minutenGespeeld: minutenTotNu[sid] || 0 // NIEUW: minuten toevoegen
-                    }))
-                    .sort((a, b) => {
-                      // NIEUW: Sorteer logica
-                      // 1. Keepers altijd onderaan
-                      if (a.isKeeperGeweest !== b.isKeeperGeweest) {
-                        return a.isKeeperGeweest ? 1 : -1;
-                      }
-                      // 2. Binnen keepers/niet-keepers: minst gespeeld eerst
-                      return a.minutenGespeeld - b.minutenGespeeld;
-                    });
-                  
-                  // Huidige selectie
-                  const geselecteerdeSpeler = wissel.positie ? 
-                    spelersInVeld.find(s => s.positie === wissel.positie) : null;
-                  
-                  // Beschikbare wisselspelers (niet in veld, niet al wisselend, niet afwezig)
-                  const afwezigeSpelerIds = wedstrijd.afwezigeSpelers || [];
-                  const beschikbareWisselSpelers = spelers
-                    .filter(s => 
-                      !Object.values(kwart.opstelling).includes(s.id.toString()) &&
-                      !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString()) &&
-                      !afwezigeSpelerIds.includes(s.id)
-                    )
-                    .map(s => ({
-                      ...s,
-                      minutenGespeeld: minutenTotNu[s.id.toString()] || 0
-                    }))
-                    .sort((a, b) => a.minutenGespeeld - b.minutenGespeeld); // Minst gespeeld eerst!
-                  
-                  return (
-                    <div key={wissel.id} className="bg-white rounded p-3 border-2 border-orange-200">
-                      <div className="flex gap-2 items-start">
-                        <div className="flex-1 grid grid-cols-2 gap-3">
-                          {/* UIT dropdown - Toon spelers in veld */}
-                          <div>
-                            <label className="text-xs font-bold text-gray-700 block mb-1">
-                              🔴 Speler UIT (na 6,25 min)
-                            </label>
-                            <select 
-                              value={wissel.positie} 
-                              onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'positie', e.target.value)} 
-                              className="w-full px-2 py-2 border-2 border-red-300 rounded-lg text-sm font-medium bg-red-50"
-                            >
-                              <option value="">-- Kies speler --</option>
-                              {spelersInVeld.map(s => (
-                                <option key={s.spelerId} value={s.positie}>
-                                  {s.naam} ({s.minutenGespeeld} min • {s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
-                                </option>
-                              ))}
-                            </select>
-                            {geselecteerdeSpeler && (
-                              <div className="text-xs mt-1 space-y-0.5">
-                                <p className="text-gray-600 font-medium">
-                                  ⏱️ {geselecteerdeSpeler.minutenGespeeld} min gespeeld
-                                </p>
-                                {geselecteerdeSpeler.isKeeperGeweest && (
-                                  <p className="text-blue-600 font-medium">
-                                    🧤 Was/is keeper deze wedstrijd
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* IN dropdown - Toon wisselspelers gesorteerd */}
-                          <div>
-                            <label className="text-xs font-bold text-gray-700 block mb-1">
-                              🟢 Speler IN (na 6,25 min)
-                            </label>
-                            <select 
-                              value={wissel.wisselSpelerId} 
-                              onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', e.target.value)} 
-                              className="w-full px-2 py-2 border-2 border-green-300 rounded-lg text-sm font-medium bg-green-50" 
-                              disabled={!wissel.positie}
-                            >
-                              <option value="">-- Kies speler --</option>
-                              {beschikbareWisselSpelers.map(s => (
-                                <option key={s.id} value={s.id}>
-                                  {s.naam} ({s.minutenGespeeld} min)
-                                </option>
-                              ))}
-                            </select>
-                            {!wissel.positie && (
-                              <p className="text-xs text-orange-600 mt-1">
-                                ⚠️ Kies eerst uit-speler
-                              </p>
-                            )}
-                            {wissel.positie && beschikbareWisselSpelers.length === 0 && (
-                              <p className="text-xs text-orange-600 mt-1">
-                                ⚠️ Geen spelers beschikbaar
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <button 
-                          onClick={() => onVerwijderWissel(kwartIndex, wisselIndex)} 
-                          className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded transition-colors mt-5"
-                          title="Verwijder wissel"
+            {/* 2. VELD LAYOUT */}
+            <div className="bg-green-100 rounded-lg p-4 sm:p-6">
+              {layout.rijen.map((rij, rijIndex) => (
+                <div key={rijIndex} className={`grid ${layout.gridCols} gap-2 sm:gap-4 mb-3 sm:mb-4`}>
+                  {rij.map(({ positie, col }) => {
+                    const heeftWissel = kwart.wissels?.some(w => w.positie === positie);
+                    const spelerId = kwart.opstelling[positie];
+                    const speler = spelerId ? spelers.find(s => s.id.toString() === spelerId) : null;
+                    const spelerNaam = speler?.naam || '';
+                    const isKeeper = positie === 'Keeper';
+                    const displayNaam = spelerNaam ? spelerNaam.split(' ')[0] : '+';
+                    
+                    return (
+                      <div key={positie} className={`space-y-1 ${col || ''}`}>
+                        <label className="text-xs font-bold text-gray-700 block text-center">
+                          {positie}
+                          {heeftWissel && <span className="text-orange-600"> 🔄</span>}
+                        </label>
+                        <button
+                          onClick={() => openSelectieModal(kwartIndex, positie)}
+                          className={`w-full px-2 sm:px-3 py-2 sm:py-3 border-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
+                            spelerId
+                              ? isKeeper 
+                                ? 'bg-yellow-50 border-yellow-500 hover:bg-yellow-100 text-gray-900'
+                                : 'bg-white border-green-600 hover:bg-green-50 text-gray-900'
+                              : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-500'
+                          }`}
                         >
-                          <Trash2 className="w-5 h-5" />
+                          <span className="sm:hidden truncate block">{displayNaam}</span>
+                          <span className="hidden sm:inline">{spelerNaam || '+ Kies speler'}</span>
                         </button>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
-            )}
-          </div>
-          
-          {/* EVALUATIE - INKLAPPEND */}
-          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg overflow-hidden mb-4">
-            <button
-              onClick={() => setEvaluatieOpen(!evaluatieOpen)}
-              className="w-full px-3 py-2 flex items-center justify-between hover:bg-purple-100 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                <span className="text-sm font-semibold text-gray-700">
-                  📋 Evaluatie Kwart {kwart.nummer}
-                </span>
-              </div>
-              {evaluatieOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
             
-            {evaluatieOpen && (
-              <div className="px-3 py-4 border-t border-purple-200 bg-white space-y-3 sm:space-y-4">
-            
-            {/* Thema beoordelingen - alleen als er thema's geselecteerd zijn */}
-            {wedstrijd.themas && wedstrijd.themas.length > 0 ? (
-              <div className="space-y-3">
-                <p className="text-xs text-gray-600">
-                  🎯 Beoordeel de wedstrijdthema's voor dit kwart
-                </p>
-                {wedstrijd.themas.map(themaId => {
-                  const thema = ALLE_THEMAS.find(t => t.id === themaId);
-                  if (!thema) return null;
-                  
-                  const beoordeling = kwart.themaBeoordelingen?.[themaId] || null;
-                  
-                  return (
-                    <div key={themaId} className="bg-white rounded-lg p-3 border border-purple-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">{thema.emoji}</span>
-                        <span className="font-medium text-sm">{thema.label}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                          beoordeling === 'goed'
-                            ? 'border-green-500 bg-green-50 text-green-700 font-semibold'
-                            : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
-                        }`}>
-                          <input
-                            type="radio"
-                            name={`thema-${kwartIndex}-${themaId}`}
-                            checked={beoordeling === 'goed'}
-                            onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, 'goed')}
-                            className="sr-only"
-                          />
-                          <span className="text-base">✅</span>
-                          <span className="text-xs sm:text-sm">Goed</span>
-                        </label>
-                        
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                          beoordeling === 'beter'
-                            ? 'border-orange-500 bg-orange-50 text-orange-700 font-semibold'
-                            : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
-                        }`}>
-                          <input
-                            type="radio"
-                            name={`thema-${kwartIndex}-${themaId}`}
-                            checked={beoordeling === 'beter'}
-                            onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, 'beter')}
-                            className="sr-only"
-                          />
-                          <span className="text-base">⚠️</span>
-                          <span className="text-xs sm:text-sm">Kan beter</span>
-                        </label>
-                        
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                          beoordeling === null
-                            ? 'border-gray-400 bg-gray-50 text-gray-700 font-semibold'
-                            : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
-                        }`}>
-                          <input
-                            type="radio"
-                            name={`thema-${kwartIndex}-${themaId}`}
-                            checked={beoordeling === null}
-                            onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, null)}
-                            className="sr-only"
-                          />
-                          <span className="text-base">—</span>
-                        </label>
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* 3. WISSELS */}
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
+                <button 
+                  onClick={() => onVoegWisselToe(kwartIndex)} 
+                  className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
+                >
+                  <Plus className="w-3 h-3" />Wissel toevoegen
+                </button>
               </div>
-            ) : (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-xs text-yellow-800">
-                  💡 Geen thema's geselecteerd. Selecteer thema's in "Wedstrijd Focus & Thema's" om deze per kwart te evalueren.
-                </p>
-              </div>
-            )}
-            
-            {/* Algemene observaties */}
-            <div>
-              <p className="text-xs text-gray-600 mb-2">
-                ➕ Algemene observaties (optioneel)
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {KWART_OBSERVATIES.map(observatie => {
-                  const isSelected = kwart.observaties?.includes(observatie.id) || false;
-                  return (
-                    <button
-                      key={observatie.id}
-                      onClick={() => {
-                        const current = kwart.observaties || [];
-                        if (isSelected) {
-                          onUpdateKwartObservaties(kwartIndex, current.filter(o => o !== observatie.id));
-                        } else {
-                          onUpdateKwartObservaties(kwartIndex, [...current, observatie.id]);
+              {kwart.wissels && kwart.wissels.length > 0 ? (
+                <div className="space-y-3">
+                  {kwart.wissels.map((wissel, wisselIndex) => {
+                    const keepersDezeWedstrijd = new Set<string>();
+                    wedstrijd.kwarten.forEach((k, ki) => {
+                      if (ki > kwartIndex) return;
+                      const keeperId = k.opstelling['Keeper'];
+                      if (keeperId) keepersDezeWedstrijd.add(keeperId);
+                      k.wissels?.forEach(w => {
+                        if (w.positie === 'Keeper' && w.wisselSpelerId) {
+                          keepersDezeWedstrijd.add(w.wisselSpelerId);
                         }
-                      }}
-                      className={`px-3 py-1.5 rounded-lg border-2 font-medium text-xs sm:text-sm transition-all ${
-                        isSelected
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="mr-1">{observatie.emoji}</span>
-                      {observatie.label}
-                    </button>
-                  );
-                })}
-              </div>
+                      });
+                    });
+                    
+                    const reedsGewisseldePosities = kwart.wissels
+                      .filter((w, i) => i !== wisselIndex && w.positie)
+                      .map(w => w.positie);
+                    
+                    const berekenMinutenTotNu = () => {
+                      const minuten: Record<string, number> = {};
+                      wedstrijd.kwarten.forEach((k, ki) => {
+                        if (ki > kwartIndex) return;
+                        
+                        Object.entries(k.opstelling).forEach(([pos, sid]) => {
+                          if (!sid) return;
+                          const kwartWissel = k.wissels?.find(w => w.positie === pos);
+                          const min = kwartWissel && kwartWissel.wisselSpelerId ? 6.25 : k.minuten;
+                          minuten[sid] = (minuten[sid] || 0) + min;
+                        });
+                        
+                        k.wissels?.forEach(w => {
+                          if (w.wisselSpelerId) {
+                            minuten[w.wisselSpelerId] = (minuten[w.wisselSpelerId] || 0) + 6.25;
+                          }
+                        });
+                      });
+                      return minuten;
+                    };
+                    
+                    const minutenTotNu = berekenMinutenTotNu();
+                    
+                    const spelersInVeld = Object.entries(kwart.opstelling)
+                      .filter(([_, sid]) => sid)
+                      .filter(([pos, _]) => !reedsGewisseldePosities.includes(pos))
+                      .map(([pos, sid]) => ({
+                        spelerId: sid,
+                        positie: pos,
+                        naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
+                        isKeeperGeweest: keepersDezeWedstrijd.has(sid),
+                        isNuKeeper: pos === 'Keeper',
+                        minutenGespeeld: minutenTotNu[sid] || 0
+                      }))
+                      .sort((a, b) => {
+                        if (a.isKeeperGeweest !== b.isKeeperGeweest) {
+                          return a.isKeeperGeweest ? 1 : -1;
+                        }
+                        return a.minutenGespeeld - b.minutenGespeeld;
+                      });
+                    
+                    const geselecteerdeSpeler = wissel.positie ? 
+                      spelersInVeld.find(s => s.positie === wissel.positie) : null;
+                    
+                    const afwezigeSpelerIds = wedstrijd.afwezigeSpelers || [];
+                    const beschikbareWisselSpelers = spelers
+                      .filter(s => 
+                        !Object.values(kwart.opstelling).includes(s.id.toString()) &&
+                        !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString()) &&
+                        !afwezigeSpelerIds.includes(s.id)
+                      )
+                      .map(s => ({
+                        ...s,
+                        minutenGespeeld: minutenTotNu[s.id.toString()] || 0
+                      }))
+                      .sort((a, b) => a.minutenGespeeld - b.minutenGespeeld);
+                    
+                    return (
+                      <div key={wissel.id} className="bg-white rounded p-3 border-2 border-orange-200">
+                        <div className="flex gap-2 items-start">
+                          <div className="flex-1 grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-bold text-gray-700 block mb-1">
+                                🔴 Speler UIT (na 6,25 min)
+                              </label>
+                              <select 
+                                value={wissel.positie} 
+                                onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'positie', e.target.value)} 
+                                className="w-full px-2 py-2 border-2 border-red-300 rounded-lg text-sm font-medium bg-red-50"
+                              >
+                                <option value="">-- Kies speler --</option>
+                                {spelersInVeld.map(s => (
+                                  <option key={s.spelerId} value={s.positie}>
+                                    {s.naam} ({s.minutenGespeeld} min • {s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
+                                  </option>
+                                ))}
+                              </select>
+                              {geselecteerdeSpeler && (
+                                <div className="text-xs mt-1 space-y-0.5">
+                                  <p className="text-gray-600 font-medium">
+                                    ⏱️ {geselecteerdeSpeler.minutenGespeeld} min gespeeld
+                                  </p>
+                                  {geselecteerdeSpeler.isKeeperGeweest && (
+                                    <p className="text-blue-600 font-medium">
+                                      🧤 Was/is keeper deze wedstrijd
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div>
+                              <label className="text-xs font-bold text-gray-700 block mb-1">
+                                🟢 Speler IN (na 6,25 min)
+                              </label>
+                              <select 
+                                value={wissel.wisselSpelerId} 
+                                onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', e.target.value)} 
+                                className="w-full px-2 py-2 border-2 border-green-300 rounded-lg text-sm font-medium bg-green-50" 
+                                disabled={!wissel.positie}
+                              >
+                                <option value="">-- Kies speler --</option>
+                                {beschikbareWisselSpelers.map(s => (
+                                  <option key={s.id} value={s.id}>
+                                    {s.naam} ({s.minutenGespeeld} min)
+                                  </option>
+                                ))}
+                              </select>
+                              {!wissel.positie && (
+                                <p className="text-xs text-orange-600 mt-1">
+                                  ⚠️ Kies eerst uit-speler
+                                </p>
+                              )}
+                              {wissel.positie && beschikbareWisselSpelers.length === 0 && (
+                                <p className="text-xs text-orange-600 mt-1">
+                                  ⚠️ Geen spelers beschikbaar
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <button 
+                            onClick={() => onVerwijderWissel(kwartIndex, wisselIndex)} 
+                            className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded transition-colors mt-5"
+                            title="Verwijder wissel"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
+              )}
             </div>
             
-            {/* Vrije tekst (optioneel) */}
-            <div>
-              <label className="text-xs font-semibold text-gray-700 block mb-1">
-                💬 Extra opmerkingen (optioneel)
-              </label>
-              <textarea
-                value={kwart.aantekeningen || ''}
-                onChange={(e) => onUpdateKwartAantekeningen(kwartIndex, e.target.value)}
-                placeholder="Aanvullende notities voor dit kwart..."
-                className="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                rows={2}
-              />
+            {/* 4. DOELPUNTEN (INKLAP) */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setDoelpuntenOpen(!doelpuntenOpen)}
+                className="w-full px-3 py-2 flex items-center justify-between hover:bg-blue-100 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">⚽</span>
+                  <span className="text-sm font-semibold text-gray-700">
+                    Doelpunten Kwart {kwart.nummer}
+                  </span>
+                  {kwart.doelpunten && kwart.doelpunten.length > 0 && (
+                    <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-xs font-bold">
+                      {kwart.doelpunten.length}
+                    </span>
+                  )}
+                </div>
+                {doelpuntenOpen ? (
+                  <ChevronUp className="w-5 h-5 text-gray-600" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-600" />
+                )}
+              </button>
+              
+              {doelpuntenOpen && (
+                <div className="px-3 py-3 border-t border-blue-200 bg-white">
+                  <ScoreTracking
+                    kwartIndex={kwartIndex}
+                    wedstrijd={wedstrijd}
+                    spelers={spelers}
+                    thuisUit={wedstrijd.thuisUit || 'thuis'}
+                    teamNaam={teamNaam}
+                    tegenstander={wedstrijd.tegenstander || 'Tegenstander'}
+                    onVoegDoelpuntToe={onVoegDoelpuntToe}
+                    onVerwijderDoelpunt={onVerwijderDoelpunt}
+                  />
+                </div>
+              )}
             </div>
             
-            {/* Compacte weergave van evaluatie */}
+            {/* 5. EVALUATIE (INKLAP) */}
+            <div className="bg-purple-50 border-2 border-purple-300 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setEvaluatieOpen(!evaluatieOpen)}
+                className="w-full px-3 py-2 flex items-center justify-between hover:bg-purple-100 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  <span className="text-sm font-semibold text-gray-700">
+                    📋 Evaluatie Kwart {kwart.nummer}
+                  </span>
+                </div>
+                {evaluatieOpen ? (
+                  <ChevronUp className="w-5 h-5 text-gray-600" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-600" />
+                )}
+              </button>
+              
+              {evaluatieOpen && (
+                <div className="px-3 py-4 border-t border-purple-200 bg-white space-y-3 sm:space-y-4">
+                  {wedstrijd.themas && wedstrijd.themas.length > 0 ? (
+                    <div className="space-y-3">
+                      <p className="text-xs text-gray-600">
+                        🎯 Beoordeel de wedstrijdthema's voor dit kwart
+                      </p>
+                      {wedstrijd.themas.map(themaId => {
+                        const thema = ALLE_THEMAS.find(t => t.id === themaId);
+                        if (!thema) return null;
+                        
+                        const beoordeling = kwart.themaBeoordelingen?.[themaId] || null;
+                        
+                        return (
+                          <div key={themaId} className="bg-white rounded-lg p-3 border border-purple-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-lg">{thema.emoji}</span>
+                              <span className="font-medium text-sm">{thema.label}</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                                beoordeling === 'goed'
+                                  ? 'border-green-500 bg-green-50 text-green-700 font-semibold'
+                                  : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                              }`}>
+                                <input
+                                  type="radio"
+                                  name={`thema-${kwartIndex}-${themaId}`}
+                                  checked={beoordeling === 'goed'}
+                                  onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, 'goed')}
+                                  className="sr-only"
+                                />
+                                <span className="text-base">✅</span>
+                                <span className="text-xs sm:text-sm">Goed</span>
+                              </label>
+                              
+                              <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                                beoordeling === 'beter'
+                                  ? 'border-orange-500 bg-orange-50 text-orange-700 font-semibold'
+                                  : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                              }`}>
+                                <input
+                                  type="radio"
+                                  name={`thema-${kwartIndex}-${themaId}`}
+                                  checked={beoordeling === 'beter'}
+                                  onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, 'beter')}
+                                  className="sr-only"
+                                />
+                                <span className="text-base">⚠️</span>
+                                <span className="text-xs sm:text-sm">Kan beter</span>
+                              </label>
+                              
+                              <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                                beoordeling === null
+                                  ? 'border-gray-400 bg-gray-50 text-gray-700 font-semibold'
+                                  : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                              }`}>
+                                <input
+                                  type="radio"
+                                  name={`thema-${kwartIndex}-${themaId}`}
+                                  checked={beoordeling === null}
+                                  onChange={() => onUpdateKwartThemaBeoordeling(kwartIndex, themaId, null)}
+                                  className="sr-only"
+                                />
+                                <span className="text-base">–</span>
+                              </label>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <p className="text-xs text-yellow-800">
+                        💡 Geen thema's geselecteerd. Selecteer thema's in "Wedstrijd Focus & Thema's" om deze per kwart te evalueren.
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <p className="text-xs text-gray-600 mb-2">
+                      ➕ Algemene observaties (optioneel)
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {KWART_OBSERVATIES.map(observatie => {
+                        const isSelected = kwart.observaties?.includes(observatie.id) || false;
+                        return (
+                          <button
+                            key={observatie.id}
+                            onClick={() => {
+                              const current = kwart.observaties || [];
+                              if (isSelected) {
+                                onUpdateKwartObservaties(kwartIndex, current.filter(o => o !== observatie.id));
+                              } else {
+                                onUpdateKwartObservaties(kwartIndex, [...current, observatie.id]);
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-lg border-2 font-medium text-xs sm:text-sm transition-all ${
+                              isSelected
+                                ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <span className="mr-1">{observatie.emoji}</span>
+                            {observatie.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">
+                      💬 Extra opmerkingen (optioneel)
+                    </label>
+                    <textarea
+                      value={kwart.aantekeningen || ''}
+                      onChange={(e) => onUpdateKwartAantekeningen(kwartIndex, e.target.value)}
+                      placeholder="Aanvullende notities voor dit kwart..."
+                      className="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            
             {(() => {
-              const goedThemas: string[] = [];
-              const beterThemas: string[] = [];
-              const observaties = kwart.observaties || [];
-              
-              wedstrijd.themas?.forEach(themaId => {
-                const beoordeling = kwart.themaBeoordelingen?.[themaId];
-                const thema = ALLE_THEMAS.find(t => t.id === themaId);
-                if (!thema) return;
-                
-                if (beoordeling === 'goed') {
-                  goedThemas.push(`${thema.emoji} ${thema.label}`);
-                } else if (beoordeling === 'beter') {
-                  beterThemas.push(`${thema.emoji} ${thema.label}`);
-                }
-              });
-              
-              const heeftEvaluatie = goedThemas.length > 0 || beterThemas.length > 0 || observaties.length > 0;
-              
-              if (!heeftEvaluatie) return null;
+              const kwartWaarschuwingen = checkKwartRegels(kwartIndex);
+              if (kwartWaarschuwingen.length === 0) return null;
               
               return (
-                <div className="pt-3 border-t border-purple-200">
-                  <p className="text-xs font-semibold text-purple-700 mb-2">📊 Samenvatting:</p>
-                  <div className="space-y-1 text-xs">
-                    {goedThemas.length > 0 && (
-                      <div className="text-green-700">
-                        <span className="font-semibold">✅ Goed:</span> {goedThemas.join(', ')}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span>Let op in dit kwart:</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {kwartWaarschuwingen.map((waarschuwing, index) => (
+                      <div key={index} className="flex items-start gap-2 text-sm text-orange-700">
+                        <span className="text-base shrink-0">•</span>
+                        <span>{waarschuwing}</span>
                       </div>
-                    )}
-                    {beterThemas.length > 0 && (
-                      <div className="text-orange-700">
-                        <span className="font-semibold">⚠️ Kan beter:</span> {beterThemas.join(', ')}
-                      </div>
-                    )}
-                    {observaties.length > 0 && (
-                      <div className="text-purple-700">
-                        <span className="font-semibold">➕</span> {observaties.map(obsId => {
-                          const obs = KWART_OBSERVATIES.find(o => o.id === obsId);
-                          return obs ? `${obs.emoji} ${obs.label}` : null;
-                        }).filter(Boolean).join(', ')}
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               );
             })()}
-              </div>
-            )}
           </div>
-          
-          {/* NIEUW: Regelchecks per kwart */}
-          {(() => {
-            const kwartWaarschuwingen = checkKwartRegels(kwartIndex);
-            if (kwartWaarschuwingen.length === 0) return null;
-            
-            return (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
-                <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                  <span>⚠️</span>
-                  <span>Let op in dit kwart:</span>
-                </h4>
-                <div className="space-y-2">
-                  {kwartWaarschuwingen.map((waarschuwing, index) => (
-                    <div key={index} className="flex items-start gap-2 text-sm text-orange-700">
-                      <span className="text-base shrink-0">•</span>
-                      <span>{waarschuwing}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
         );
       })}
 
-      {/* NIEUW: Eindstand */}
       {(() => {
         const eindstand = berekenEindstand();
         
-        // Alleen tonen als er doelpunten zijn gescoord
         if (eindstand.eigenDoelpunten === 0 && eindstand.tegenstanderDoelpunten === 0) {
           return null;
         }
@@ -1470,7 +1314,6 @@ export default function WedstrijdOpstelling({
         })()}
       </div>
 
-      {/* Speler Selectie Modal */}
       {selectieModal.open && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
@@ -1489,7 +1332,6 @@ export default function WedstrijdOpstelling({
             
             <div className="overflow-y-auto p-4 flex-1">
               <div className="space-y-2">
-                {/* Info banner - aangepast per positie type */}
                 {selectieModal.positie === 'Keeper' ? (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
                     <p className="text-sm text-yellow-800">
@@ -1504,7 +1346,6 @@ export default function WedstrijdOpstelling({
                   </div>
                 )}
                 
-                {/* Leeg maken optie */}
                 {wedstrijd.kwarten[selectieModal.kwartIndex].opstelling[selectieModal.positie] && (
                   <button
                     onClick={() => selecteerSpeler('')}
@@ -1515,21 +1356,16 @@ export default function WedstrijdOpstelling({
                   </button>
                 )}
                 
-                {/* Beschikbare spelers met kleurcodering */}
                 {getBeschikbareSpelers(selectieModal.kwartIndex, selectieModal.positie).map((speler, index) => {
                   const isBeschikbaar = !speler.isGebruikt;
                   const isKeeperPositie = selectieModal.positie === 'Keeper';
                   
-                  // Bepaal prioriteit kleur
                   let priorityColor = 'green';
                   let priorityLabel = '';
                   
                   if (isBeschikbaar) {
-                    // Keeper positie: prioriteit op basis van deze wedstrijd + totaal
                     if (isKeeperPositie) {
-                      // Nog niet keeper geweest deze wedstrijd = hoogste prioriteit
                       if (speler.keeperBeurtenDezeWedstrijd === 0) {
-                        // Check ook totaal
                         if (speler.keeperBeurten === 0) {
                           priorityColor = 'yellow';
                           priorityLabel = '🟡 Nog nooit keeper geweest';
@@ -1541,13 +1377,10 @@ export default function WedstrijdOpstelling({
                           priorityLabel = '🟢 Al vaker keeper geweest';
                         }
                       } else {
-                        // Al keeper geweest deze wedstrijd
                         priorityColor = 'gray';
                         priorityLabel = '⚪ Al keeper geweest deze wedstrijd';
                       }
-                    }
-                    // Normale positie vanaf kwart 2: prioriteit op basis van speeltijd
-                    else if (selectieModal.kwartIndex > 0) {
+                    } else if (selectieModal.kwartIndex > 0) {
                       if (speler.minutenGespeeld === 0) {
                         priorityColor = 'red';
                         priorityLabel = '🔴 Nog niet gespeeld!';
@@ -1560,23 +1393,9 @@ export default function WedstrijdOpstelling({
                     }
                   }
                   
-                  const borderColor = !isBeschikbaar ? 'border-gray-300' : 
-                                     priorityColor === 'red' ? 'border-red-400' :
-                                     priorityColor === 'yellow' ? 'border-yellow-400' :
-                                     priorityColor === 'orange' ? 'border-orange-400' : 
-                                     priorityColor === 'gray' ? 'border-gray-400' : 'border-green-500';
-                  
-                  const bgColor = !isBeschikbaar ? 'bg-gray-100' : 
-                                 priorityColor === 'red' ? 'bg-red-50' :
-                                 priorityColor === 'yellow' ? 'bg-yellow-50' :
-                                 priorityColor === 'orange' ? 'bg-orange-50' : 
-                                 priorityColor === 'gray' ? 'bg-gray-50' : 'bg-green-50';
-                  
-                  const hoverColor = !isBeschikbaar ? '' : 
-                                    priorityColor === 'red' ? 'hover:bg-red-100' :
-                                    priorityColor === 'yellow' ? 'hover:bg-yellow-100' :
-                                    priorityColor === 'orange' ? 'hover:bg-orange-100' : 
-                                    priorityColor === 'gray' ? 'hover:bg-gray-100' : 'hover:bg-green-100';
+                  const borderColor = !isBeschikbaar ? 'border-gray-300' : priorityColor === 'red' ? 'border-red-400' : priorityColor === 'yellow' ? 'border-yellow-400' : priorityColor === 'orange' ? 'border-orange-400' : priorityColor === 'gray' ? 'border-gray-400' : 'border-green-500';
+                  const bgColor = !isBeschikbaar ? 'bg-gray-100' : priorityColor === 'red' ? 'bg-red-50' : priorityColor === 'yellow' ? 'bg-yellow-50' : priorityColor === 'orange' ? 'bg-orange-50' : priorityColor === 'gray' ? 'bg-gray-50' : 'bg-green-50';
+                  const hoverColor = !isBeschikbaar ? '' : priorityColor === 'red' ? 'hover:bg-red-100' : priorityColor === 'yellow' ? 'hover:bg-yellow-100' : priorityColor === 'orange' ? 'hover:bg-orange-100' : priorityColor === 'gray' ? 'hover:bg-gray-100' : 'hover:bg-green-100';
                   
                   return (
                     <button
@@ -1597,7 +1416,6 @@ export default function WedstrijdOpstelling({
                             <div className="text-sm font-semibold mt-1 mb-1">{priorityLabel}</div>
                           )}
                           <div className="text-xs text-gray-600 mt-1 space-y-1">
-                            {/* Toon keeper info voor keeper positie */}
                             {isKeeperPositie && (
                               <div className="space-y-1">
                                 <div className="font-bold text-base text-gray-800">
@@ -1613,7 +1431,6 @@ export default function WedstrijdOpstelling({
                                 )}
                               </div>
                             )}
-                            {/* Normale info voor andere posities */}
                             {!isKeeperPositie && (
                               <>
                                 {speler.minutenGespeeld > 0 && (
