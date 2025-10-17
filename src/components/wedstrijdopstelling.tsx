@@ -904,10 +904,11 @@ export default function WedstrijdOpstelling({
                           ))}
                         </div>
                       </div>
-                    )}
-                  </div>
                 );
-            })}
+              })()}
+            </div>
+          );
+        })}
 
         {(() => {
           const eindstand = berekenEindstand();
