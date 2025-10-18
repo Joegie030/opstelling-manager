@@ -493,7 +493,6 @@ export default function WedstrijdOpstelling({
           const [doelpuntenOpen, setDoelpuntenOpen] = useState(false);
           const [evaluatieOpen, setEvaluatieOpen] = useState(false);
           const [regelchecksOpen, setRegelchecksOpen] = useState(false);
-          const [regelchecksExpanded, setRegelchecksExpanded] = useState(false);
           
           return (
             <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white space-y-4">
@@ -868,78 +867,49 @@ export default function WedstrijdOpstelling({
                 )}
               </div>
               
-                {checkKwartRegels(kwartIndex).length > 0 && (
-                  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg overflow-hidden mt-4">
-                    <button
-                      onClick={() => setRegelchecksOpen(!regelchecksOpen)}
-                      className="w-full px-3 py-2 flex items-center justify-between hover:bg-yellow-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">⚠️</span>
-                        <span className="text-sm font-semibold text-gray-700">Let op in dit kwart</span>
-                        <span className="px-2 py-0.5 bg-yellow-500 text-white rounded-full text-xs font-bold">
-                          {checkKwartRegels(kwartIndex).length}
-                        </span>
-                      </div>
-                      {regelchecksOpen ? (
-                        <ChevronUp className="w-5 h-5 text-gray-600" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-600" />
-                      )}
-                    </button>
-                    
-                    {regelchecksOpen && (
-                      <div className="px-3 py-3 border-t border-yellow-200 bg-white space-y-2">
-                        {(() => {
-                          const warnings = checkKwartRegels(kwartIndex);
-                          const eerstetwee = warnings.slice(0, 2);
-                          const rest = warnings.slice(2);
-                          
-                          return (
-                            <>
-                              {eerstetwee.map((waarschuwing, index) => (
-                                <div key={index} className="flex items-start gap-2 text-sm text-orange-700 p-2 bg-yellow-50 rounded">
-                                  <span className="text-base shrink-0">•</span>
-                                  <span>{waarschuwing}</span>
-                                </div>
-                              ))}
-                              
-                              {rest.length > 0 && (
-                                <>
-                                  <button
-                                    onClick={() => setRegelchecksExpanded(!regelchecksExpanded)}
-                                    className="w-full px-3 py-2 text-sm font-semibold text-yellow-700 hover:bg-yellow-100 rounded transition-colors flex items-center justify-center gap-1"
-                                  >
-                                    {regelchecksExpanded ? (
-                                      <>
-                                        <ChevronUp className="w-4 h-4" /> Minder tonen
-                                      </>
-                                    ) : (
-                                      <>
-                                        <ChevronDown className="w-4 h-4" /> {rest.length} meer tonen
-                                      </>
-                                    )}
-                                  </button>
-                                  
-                                  {regelchecksExpanded && (
-                                    <div className="space-y-2 border-t border-yellow-200 pt-2">
-                                      {rest.map((waarschuwing, index) => (
-                                        <div key={index + 2} className="flex items-start gap-2 text-sm text-orange-700 p-2 bg-yellow-50 rounded">
-                                          <span className="text-base shrink-0">•</span>
-                                          <span>{waarschuwing}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </div>
+              {checkKwartRegels(kwartIndex).length > 0 && (
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg overflow-hidden mt-4">
+                  <button
+                    onClick={() => setRegelchecksOpen(!regelchecksOpen)}
+                    className="w-full px-3 py-2 flex items-center justify-between hover:bg-yellow-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">⚠️</span>
+                      <span className="text-sm font-semibold text-gray-700">Let op in dit kwart</span>
+                      <span className="px-2 py-0.5 bg-yellow-500 text-white rounded-full text-xs font-bold">
+                        {checkKwartRegels(kwartIndex).length}
+                      </span>
+                    </div>
+                    {regelchecksOpen ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
                     )}
-                  </div>
-                )}
+                  </button>
+                  
+                  {regelchecksOpen && (
+                    <div className="px-3 py-3 border-t border-yellow-200 bg-white space-y-2">
+                      {checkKwartRegels(kwartIndex).map((waarschuwing, index) => (
+                        <div key={index} className="flex items-start gap-2 text-sm text-orange-700 p-2 bg-yellow-50 rounded">
+                          <span className="text-base shrink-0">•</span>
+                          <span>{waarschuwing}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {!regelchecksOpen && checkKwartRegels(kwartIndex).length > 0 && (
+                    <div className="px-3 py-3 border-t border-yellow-200 bg-white space-y-2">
+                      {checkKwartRegels(kwartIndex).slice(0, 2).map((waarschuwing, index) => (
+                        <div key={index} className="flex items-start gap-2 text-sm text-orange-700 p-2 bg-yellow-50 rounded">
+                          <span className="text-base shrink-0">•</span>
+                          <span>{waarschuwing}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
                 
             </div>
           );
