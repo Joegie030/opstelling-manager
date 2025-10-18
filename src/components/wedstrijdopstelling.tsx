@@ -493,6 +493,7 @@ export default function WedstrijdOpstelling({
           const [doelpuntenOpen, setDoelpuntenOpen] = useState(false);
           const [evaluatieOpen, setEvaluatieOpen] = useState(false);
           const [regelchecksOpen, setRegelchecksOpen] = useState(false);
+          const [regelchecksExpanded, setRegelchecksExpanded] = useState(false);
           
           return (
             <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white space-y-4">
@@ -889,16 +890,57 @@ export default function WedstrijdOpstelling({
                     
                     {regelchecksOpen && (
                       <div className="px-3 py-3 border-t border-yellow-200 bg-white space-y-2">
-                        {checkKwartRegels(kwartIndex).map((waarschuwing, index) => (
-                          <div key={index} className="flex items-start gap-2 text-sm text-orange-700 p-2 bg-yellow-50 rounded">
-                            <span className="text-base shrink-0">•</span>
-                            <span>{waarschuwing}</span>
-                          </div>
-                        ))}
+                        {(() => {
+                          const warnings = checkKwartRegels(kwartIndex);
+                          const eerstetwee = warnings.slice(0, 2);
+                          const rest = warnings.slice(2);
+                          
+                          return (
+                            <>
+                              {eerstetwee.map((waarschuwing, index) => (
+                                <div key={index} className="flex items-start gap-2 text-sm text-orange-700 p-2 bg-yellow-50 rounded">
+                                  <span className="text-base shrink-0">•</span>
+                                  <span>{waarschuwing}</span>
+                                </div>
+                              ))}
+                              
+                              {rest.length > 0 && (
+                                <>
+                                  <button
+                                    onClick={() => setRegelchecksExpanded(!regelchecksExpanded)}
+                                    className="w-full px-3 py-2 text-sm font-semibold text-yellow-700 hover:bg-yellow-100 rounded transition-colors flex items-center justify-center gap-1"
+                                  >
+                                    {regelchecksExpanded ? (
+                                      <>
+                                        <ChevronUp className="w-4 h-4" /> Minder tonen
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ChevronDown className="w-4 h-4" /> {rest.length} meer tonen
+                                      </>
+                                    )}
+                                  </button>
+                                  
+                                  {regelchecksExpanded && (
+                                    <div className="space-y-2 border-t border-yellow-200 pt-2">
+                                      {rest.map((waarschuwing, index) => (
+                                        <div key={index + 2} className="flex items-start gap-2 text-sm text-orange-700 p-2 bg-yellow-50 rounded">
+                                          <span className="text-base shrink-0">•</span>
+                                          <span>{waarschuwing}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
                 )}
+                
             </div>
           );
         })}
