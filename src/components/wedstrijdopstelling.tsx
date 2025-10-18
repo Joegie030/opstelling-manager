@@ -4,6 +4,7 @@ import { Speler, Wedstrijd, Doelpunt, formaties, ALLE_THEMAS, KWART_OBSERVATIES 
 import ScoreTracking from './ScoreTracking';
 import { WedstrijdProvider } from './WedstrijdContext';
 import { WedstrijdHeader } from './WedstrijdHeader';
+import { WedstrijdSamenvatting } from './WedstrijdSamenvatting';
 
 interface Props {
   wedstrijd: Wedstrijd;
@@ -984,6 +985,10 @@ export default function WedstrijdOpstelling({
             </div>
           );
         })()}
+
+        {/* 📊 WEDSTRIJD SAMENVATTING - Automatisch gegenereerd overzicht van de hele wedstrijd */}
+        <WedstrijdSamenvatting />
+
 
         <div className="border rounded-lg p-3 sm:p-4 bg-blue-50">
           <h3 className="font-bold mb-3 text-sm sm:text-base">Wedstrijd Statistieken</h3>
