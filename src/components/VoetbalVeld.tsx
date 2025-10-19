@@ -94,27 +94,48 @@ export default function VoetbalVeld({
         className="absolute transform -translate-x-1/2 -translate-y-1/2"
         style={{ top, left }}
       >
-        <div
-          className={`
-            rounded-full flex flex-col items-center justify-center cursor-pointer
-            transition-all duration-200 relative border-2 font-bold
-            w-12 h-12 sm:w-16 sm:h-16 text-xs sm:text-sm
-            ${spelerId 
-              ? isKeeper
-                ? 'bg-yellow-400 border-yellow-600 text-gray-900 hover:shadow-lg hover:scale-110'
-                : 'bg-blue-500 border-blue-700 text-white hover:shadow-lg hover:scale-110'
-              : 'bg-gray-200 border-gray-400 text-gray-500 hover:bg-gray-300'
-            }
-            ${isEditable ? 'cursor-pointer hover:ring-2 ring-offset-1 ring-yellow-400' : 'cursor-default'}
-          `}
-          onClick={() => isEditable && onSelectSpeler?.(positie)}
-          title={`${rol}: ${spelerNaam}`}
-        >
-          <span className="text-center line-clamp-2 leading-tight px-1">
-            {displayNaam}
-          </span>
-        </div>
-        <p className="text-xs text-gray-600 text-center mt-0.5 sm:mt-1 whitespace-nowrap font-medium">{rol}</p>
+        {/* Alleen tonen als geselecteerd */}
+        {spelerId ? (
+          <>
+            <div
+              className={`
+                rounded-full flex flex-col items-center justify-center cursor-pointer
+                transition-all duration-200 relative border-2 font-bold
+                w-12 h-12 sm:w-16 sm:h-16 text-xs sm:text-sm
+                ${isKeeper
+                  ? 'bg-yellow-400 border-yellow-600 text-gray-900 hover:shadow-lg hover:scale-110'
+                  : 'bg-blue-500 border-blue-700 text-white hover:shadow-lg hover:scale-110'
+                }
+                ${isEditable ? 'cursor-pointer hover:ring-2 ring-offset-1 ring-yellow-400' : 'cursor-default'}
+              `}
+              onClick={() => isEditable && onSelectSpeler?.(positie)}
+              title={`${rol}: ${spelerNaam}`}
+            >
+              <span className="text-center line-clamp-2 leading-tight px-1">
+                {displayNaam}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600 text-center mt-0.5 sm:mt-1 whitespace-nowrap font-medium">{rol}</p>
+          </>
+        ) : (
+          /* Leeg positie - alleen + tonen als klikbaar */
+          <>
+            <div
+              className={`
+                rounded-full flex flex-col items-center justify-center cursor-pointer
+                transition-all duration-200 relative border-2 font-bold
+                w-12 h-12 sm:w-16 sm:h-16 text-xs sm:text-sm
+                bg-transparent border-gray-300 text-gray-500
+                ${isEditable ? 'hover:border-gray-400 hover:text-gray-700 hover:bg-gray-100' : 'cursor-default'}
+              `}
+              onClick={() => isEditable && onSelectSpeler?.(positie)}
+              title={`${rol}: Selecteer speler`}
+            >
+              <span className="text-center leading-tight">+</span>
+            </div>
+            <p className="text-xs text-gray-600 text-center mt-0.5 sm:mt-1 whitespace-nowrap font-medium">{rol}</p>
+          </>
+        )}
       </div>
     );
   };
@@ -147,14 +168,17 @@ export default function VoetbalVeld({
           {/* Middenstip */}
           <circle cx="50" cy="5" r="1" fill="white" />
           
-          {/* Strafschopgebied */}
-          <rect x="25" y="50" width="50" height="20" fill="none" stroke="white" strokeWidth="0.8" />
+          {/* 16-meter gebied (strafschopgebied) - VAN ACHTERLIJN */}
+          <rect x="20" y="55" width="60" height="30" fill="none" stroke="white" strokeWidth="0.8" />
           
-          {/* Doelgebied */}
-          <rect x="35" y="70" width="30" height="10" fill="none" stroke="white" strokeWidth="0.8" />
+          {/* Doelgebied - VAN ACHTERLIJN */}
+          <rect x="35" y="75" width="30" height="10" fill="none" stroke="white" strokeWidth="0.8" />
           
-          {/* Doellijn (benedenkant) */}
+          {/* Achterlijn (benedenkant) */}
           <line x1="5" y1="85" x2="95" y2="85" stroke="white" strokeWidth="0.8" />
+          
+          {/* Doel markering op achterlijn */}
+          <line x1="40" y1="85" x2="60" y2="85" stroke="yellow" strokeWidth="1.5" />
         </svg>
 
         {/* Spelers */}
