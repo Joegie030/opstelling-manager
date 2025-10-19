@@ -101,7 +101,7 @@ export default function VoetbalVeld({
               className={`
                 rounded-full flex flex-col items-center justify-center cursor-pointer
                 transition-all duration-200 relative border-2 font-bold
-                w-12 h-12 sm:w-16 sm:h-16 text-xs sm:text-sm
+                w-10 h-10 sm:w-16 sm:h-16 text-xs sm:text-sm
                 ${isKeeper
                   ? 'bg-yellow-300 border-yellow-500 text-gray-900 hover:shadow-lg hover:scale-110'
                   : 'bg-green-200 border-green-600 text-gray-800 hover:shadow-lg hover:scale-110'
@@ -115,7 +115,8 @@ export default function VoetbalVeld({
                 {displayNaam}
               </span>
             </div>
-            <p className="text-xs text-gray-600 text-center mt-0.5 sm:mt-1 whitespace-nowrap font-medium">{rol}</p>
+            {/* Labels alleen op desktop */}
+            <p className="hidden sm:block text-xs text-gray-600 text-center mt-0.5 sm:mt-1 whitespace-nowrap font-medium">{rol}</p>
           </>
         ) : (
           /* Leeg positie - alleen + tonen als klikbaar */
@@ -124,7 +125,7 @@ export default function VoetbalVeld({
               className={`
                 rounded-full flex flex-col items-center justify-center cursor-pointer
                 transition-all duration-200 relative border-2 font-bold
-                w-12 h-12 sm:w-16 sm:h-16 text-xs sm:text-sm
+                w-10 h-10 sm:w-16 sm:h-16 text-xs sm:text-sm
                 bg-transparent border-gray-300 text-gray-400
                 ${isEditable ? 'hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50' : 'cursor-default'}
               `}
@@ -133,7 +134,8 @@ export default function VoetbalVeld({
             >
               <span className="text-center leading-tight">+</span>
             </div>
-            <p className="text-xs text-gray-600 text-center mt-0.5 sm:mt-1 whitespace-nowrap font-medium">{rol}</p>
+            {/* Labels alleen op desktop */}
+            <p className="hidden sm:block text-xs text-gray-600 text-center mt-0.5 sm:mt-1 whitespace-nowrap font-medium">{rol}</p>
           </>
         )}
       </div>
