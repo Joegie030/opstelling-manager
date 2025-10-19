@@ -86,10 +86,10 @@ export function Navigation({
             
             <div className="flex flex-col">
               <h1 className="font-bold text-lg truncate">
-                🏆 {clubNaam}
+                ⚽ Opstelling Manager
               </h1>
               <p className="text-xs text-blue-200 truncate">
-                {teamNaam}
+                🏆 {clubNaam} • {teamNaam}
               </p>
             </div>
           </div>
