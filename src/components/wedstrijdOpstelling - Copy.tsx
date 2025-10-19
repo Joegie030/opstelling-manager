@@ -5,7 +5,6 @@ import ScoreTracking from './ScoreTracking';
 import { WedstrijdProvider } from './WedstrijdContext';
 import { WedstrijdHeader } from './WedstrijdHeader';
 import { WedstrijdSamenvatting } from './WedstrijdSamenvatting';
-import VoetbalVeld from './VoetbalVeld';
 
 interface Props {
   wedstrijd: Wedstrijd;
@@ -502,15 +501,42 @@ export default function WedstrijdOpstelling({
                 <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
               </h3>
               
-              {/* 🎮 VOETBALVELD - Visuele opstelling */}
-              <VoetbalVeld
-                formatie={wedstrijd.formatie}
-                opstelling={kwart.opstelling}
-                spelers={spelers}
-                teamNaam={teamNaam}
-                isEditable={true}
-                onSelectSpeler={(positie) => openSelectieModal(kwartIndex, positie)}
-              />
+              <div className="bg-green-100 rounded-lg p-4 sm:p-6">
+                {layout.rijen.map((rij, rijIndex) => (
+                  <div key={rijIndex} className={`grid ${layout.gridCols} gap-2 sm:gap-4 mb-3 sm:mb-4`}>
+                    {rij.map(({ positie, col }) => {
+                      const heeftWissel = kwart.wissels?.some(w => w.positie === positie);
+                      const spelerId = kwart.opstelling[positie];
+                      const speler = spelerId ? spelers.find(s => s.id.toString() === spelerId) : null;
+                      const spelerNaam = speler?.naam || '';
+                      const isKeeper = positie === 'Keeper';
+                      const displayNaam = spelerNaam ? spelerNaam.split(' ')[0] : '+';
+                      
+                      return (
+                        <div key={positie} className={`space-y-1 ${col || ''}`}>
+                          <label className="text-xs font-bold text-gray-700 block text-center">
+                            {positie}
+                            {heeftWissel && <span className="text-orange-600"> 🔄</span>}
+                          </label>
+                          <button
+                            onClick={() => openSelectieModal(kwartIndex, positie)}
+                            className={`w-full px-2 sm:px-3 py-2 sm:py-3 border-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
+                              spelerId
+                                ? isKeeper 
+                                  ? 'bg-yellow-50 border-yellow-500 hover:bg-yellow-100 text-gray-900'
+                                  : 'bg-white border-green-600 hover:bg-green-50 text-gray-900'
+                                : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            <span className="sm:hidden truncate block">{displayNaam}</span>
+                            <span className="hidden sm:inline">{spelerNaam || '+ Kies speler'}</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
               
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-3">
