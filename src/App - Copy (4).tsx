@@ -344,10 +344,10 @@ function App() {
                         kwarten: Array(4).fill(null).map((_, i) => ({
                           nummer: i + 1,
                           minuten: 12.5,
-                          opstelling: formatie.reduce((acc, pos) => ({
+                          opstelling: Object.keys(formatie).reduce((acc, pos) => ({
                             ...acc,
                             [pos]: ''
-                          }), {} as Record<string, string>)
+                          }), {})
                         }))
                       };
                       setWedstrijden([...wedstrijden, newWedstrijd]);
@@ -359,7 +359,7 @@ function App() {
                   >
                     <h4 className="font-bold">{getFormatieNaam(key)}</h4>
                     <p className="text-sm text-gray-600">
-                      {formatie.length} posities
+                      {Object.entries(formatie).map(([_, count]) => count).join('-')}
                     </p>
                   </button>
                 ))}
