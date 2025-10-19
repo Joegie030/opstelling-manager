@@ -32,12 +32,12 @@ export default function VoetbalVeld({
   // 6x6 Vliegtuig Formatie
   const render6x6Vliegtuig = () => {
     const positions = [
-      { positie: 'Keeper', top: '8%', left: '50%', rol: 'Keeper' },
-      { positie: 'Achter', top: '28%', left: '50%', rol: 'Achter' },
-      { positie: 'Links', top: '50%', left: '25%', rol: 'Links' },
-      { positie: 'Midden', top: '50%', left: '50%', rol: 'Midden' },
-      { positie: 'Rechts', top: '50%', left: '75%', rol: 'Rechts' },
-      { positie: 'Voor', top: '75%', left: '50%', rol: 'Voor' },
+      { positie: 'Voor', top: '25%', left: '50%', rol: 'Voor' },
+      { positie: 'Links', top: '45%', left: '25%', rol: 'Links' },
+      { positie: 'Midden', top: '45%', left: '50%', rol: 'Midden' },
+      { positie: 'Rechts', top: '45%', left: '75%', rol: 'Rechts' },
+      { positie: 'Achter', top: '65%', left: '50%', rol: 'Achter' },
+      { positie: 'Keeper', top: '90%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
       <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
@@ -47,12 +47,12 @@ export default function VoetbalVeld({
   // 6x6 Dobbelsteen Formatie
   const render6x6Dobbelsteen = () => {
     const positions = [
-      { positie: 'Keeper', top: '8%', left: '50%', rol: 'Keeper' },
-      { positie: 'Links achter', top: '28%', left: '30%', rol: 'Links Achter' },
-      { positie: 'Rechts achter', top: '28%', left: '70%', rol: 'Rechts Achter' },
+      { positie: 'Links voor', top: '20%', left: '30%', rol: 'Links Voor' },
+      { positie: 'Rechts voor', top: '20%', left: '70%', rol: 'Rechts Voor' },
       { positie: 'Midden', top: '50%', left: '50%', rol: 'Midden' },
-      { positie: 'Links voor', top: '75%', left: '30%', rol: 'Links Voor' },
-      { positie: 'Rechts voor', top: '75%', left: '70%', rol: 'Rechts Voor' },
+      { positie: 'Links achter', top: '70%', left: '30%', rol: 'Links Achter' },
+      { positie: 'Rechts achter', top: '70%', left: '70%', rol: 'Rechts Achter' },
+      { positie: 'Keeper', top: '90%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
       <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
@@ -62,14 +62,14 @@ export default function VoetbalVeld({
   // 8x8 Formatie
   const render8x8 = () => {
     const positions = [
-      { positie: 'Keeper', top: '8%', left: '50%', rol: 'Keeper' },
-      { positie: 'Links achter', top: '25%', left: '30%', rol: 'Links Achter' },
-      { positie: 'Rechts achter', top: '25%', left: '70%', rol: 'Rechts Achter' },
-      { positie: 'Links midden', top: '48%', left: '18%', rol: 'Links Midden' },
-      { positie: 'Midden', top: '48%', left: '50%', rol: 'Midden' },
-      { positie: 'Rechts midden', top: '48%', left: '82%', rol: 'Rechts Midden' },
-      { positie: 'Links voor', top: '72%', left: '30%', rol: 'Links Voor' },
-      { positie: 'Rechts voor', top: '72%', left: '70%', rol: 'Rechts Voor' },
+      { positie: 'Links voor', top: '18%', left: '28%', rol: 'Links Voor' },
+      { positie: 'Rechts voor', top: '18%', left: '72%', rol: 'Rechts Voor' },
+      { positie: 'Links midden', top: '42%', left: '15%', rol: 'Links Midden' },
+      { positie: 'Midden', top: '42%', left: '50%', rol: 'Midden' },
+      { positie: 'Rechts midden', top: '42%', left: '85%', rol: 'Rechts Midden' },
+      { positie: 'Links achter', top: '68%', left: '30%', rol: 'Links Achter' },
+      { positie: 'Rechts achter', top: '68%', left: '70%', rol: 'Rechts Achter' },
+      { positie: 'Keeper', top: '90%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
       <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
@@ -87,6 +87,7 @@ export default function VoetbalVeld({
   }: any) => {
     const spelerNaam = spelerId ? getSpelerNaam(spelerId) : '';
     const displayNaam = spelerNaam ? spelerNaam.split(' ')[0] : '+';
+    const isKeeper = positie === 'Keeper';
     
     return (
       <div
@@ -95,10 +96,11 @@ export default function VoetbalVeld({
       >
         <div
           className={`
-            w-16 h-16 rounded-full flex flex-col items-center justify-center cursor-pointer
-            transition-all duration-200 relative border-2 font-bold text-sm
+            rounded-full flex flex-col items-center justify-center cursor-pointer
+            transition-all duration-200 relative border-2 font-bold
+            w-12 h-12 sm:w-16 sm:h-16 text-xs sm:text-sm
             ${spelerId 
-              ? positie === 'Keeper'
+              ? isKeeper
                 ? 'bg-yellow-400 border-yellow-600 text-gray-900 hover:shadow-lg hover:scale-110'
                 : 'bg-blue-500 border-blue-700 text-white hover:shadow-lg hover:scale-110'
               : 'bg-gray-200 border-gray-400 text-gray-500 hover:bg-gray-300'
@@ -108,42 +110,51 @@ export default function VoetbalVeld({
           onClick={() => isEditable && onSelectSpeler?.(positie)}
           title={`${rol}: ${spelerNaam}`}
         >
-          <span className="text-center line-clamp-2 leading-tight">
+          <span className="text-center line-clamp-2 leading-tight px-1">
             {displayNaam}
           </span>
         </div>
-        <p className="text-xs text-gray-600 text-center mt-1 whitespace-nowrap font-medium">{rol}</p>
+        <p className="text-xs text-gray-600 text-center mt-0.5 sm:mt-1 whitespace-nowrap font-medium">{rol}</p>
       </div>
     );
   };
 
   return (
-    <div className="w-full bg-gradient-to-b from-green-600 to-green-500 rounded-lg p-4 shadow-lg">
+    <div className="w-full bg-gradient-to-b from-green-600 to-green-500 rounded-lg p-3 sm:p-4 shadow-lg">
       {/* Header */}
-      <div className="text-center mb-3">
-        <h3 className="text-lg font-bold text-white">{teamNaam}</h3>
+      <div className="text-center mb-2 sm:mb-3">
+        <h3 className="text-base sm:text-lg font-bold text-white">{teamNaam}</h3>
         <p className="text-xs text-green-100">Opstelling {formatie}</p>
       </div>
 
-      {/* HALF VELD - Van achterlijn tot middenlijn */}
-      <div className="relative w-full bg-green-400 rounded-lg overflow-hidden" style={{ aspectRatio: '1/0.5' }}>
-        {/* Veldmarkering - HALF VELD (achterlijn tot middenlijn) */}
+      {/* HALF VELD - Van middenlijn tot achterlijn */}
+      <div className="relative w-full bg-green-400 rounded-lg overflow-hidden mx-auto" style={{ aspectRatio: '2/1.8', maxWidth: '600px', margin: '0 auto' }}>
+        {/* Veldmarkering */}
         <svg
           className="absolute inset-0 w-full h-full"
-          viewBox="0 0 100 50"
+          viewBox="0 0 100 90"
           style={{ pointerEvents: 'none' }}
         >
           {/* Buitenlijnen */}
-          <rect x="5" y="5" width="90" height="40" fill="none" stroke="white" strokeWidth="0.6" />
+          <rect x="5" y="5" width="90" height="80" fill="none" stroke="white" strokeWidth="0.8" />
           
-          {/* Middellijn (bovenkant = doelmidde) */}
-          <line x1="5" y1="45" x2="95" y2="45" stroke="white" strokeWidth="0.6" />
+          {/* Middellijn (bovenkant) */}
+          <line x1="5" y1="5" x2="95" y2="5" stroke="white" strokeWidth="0.8" />
+          
+          {/* Halve cirkel rond middenstip */}
+          <circle cx="50" cy="5" r="10" fill="none" stroke="white" strokeWidth="0.8" />
+          
+          {/* Middenstip */}
+          <circle cx="50" cy="5" r="1" fill="white" />
           
           {/* Strafschopgebied */}
-          <rect x="25" y="30" width="50" height="15" fill="none" stroke="white" strokeWidth="0.6" />
+          <rect x="25" y="50" width="50" height="20" fill="none" stroke="white" strokeWidth="0.8" />
           
           {/* Doelgebied */}
-          <rect x="35" y="40" width="30" height="5" fill="none" stroke="white" strokeWidth="0.6" />
+          <rect x="35" y="70" width="30" height="10" fill="none" stroke="white" strokeWidth="0.8" />
+          
+          {/* Doellijn (benedenkant) */}
+          <line x1="5" y1="85" x2="95" y2="85" stroke="white" strokeWidth="0.8" />
         </svg>
 
         {/* Spelers */}
@@ -159,7 +170,7 @@ export default function VoetbalVeld({
 
       {/* Legend */}
       {isEditable && (
-        <div className="mt-3 p-2 bg-yellow-50 rounded text-xs text-gray-600 text-center">
+        <div className="mt-2 sm:mt-3 p-2 bg-yellow-50 rounded text-xs text-gray-600 text-center">
           💡 Klik op een speler om te wijzigen
         </div>
       )}
