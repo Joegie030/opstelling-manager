@@ -101,7 +101,7 @@ export default function VoetbalVeld({
               className={`
                 rounded-full flex flex-col items-center justify-center cursor-pointer
                 transition-all duration-200 relative border-2 font-bold
-                w-10 h-10 sm:w-16 sm:h-16 text-xs sm:text-sm
+                w-10 h-10 sm:w-16 sm:h-16 text-[0.65rem] sm:text-sm
                 ${isKeeper
                   ? 'bg-yellow-300 border-yellow-500 text-gray-900 hover:shadow-lg hover:scale-110'
                   : 'bg-green-200 border-green-600 text-gray-800 hover:shadow-lg hover:scale-110'
@@ -111,7 +111,7 @@ export default function VoetbalVeld({
               onClick={() => isEditable && onSelectSpeler?.(positie)}
               title={`${rol}: ${spelerNaam}`}
             >
-              <span className="text-center line-clamp-2 leading-tight px-1">
+              <span className="text-center line-clamp-2 leading-tight px-0.5">
                 {displayNaam}
               </span>
             </div>
