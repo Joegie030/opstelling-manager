@@ -64,8 +64,6 @@ export default function VoetbalVeld({
       <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
     ));
   };
-    ));
-  };
 
   // 8x8 Formatie: 1 keeper, 2 achterveld, 3 middenveld, 2 voorveld
   const render8x8 = () => {
