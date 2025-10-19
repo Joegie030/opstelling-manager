@@ -37,7 +37,15 @@ function App() {
   }>({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
 
   // Helper functie om formatie naam mooi weer te geven (met backward compatibility)
-  // Opmerking: Ook gebruikt in WedstrijdOverzicht.tsx voor consistentie
+  const getFormatieNaam = (formatie: string): string => {
+    const namen: Record<string, string> = {
+      '6x6': '✈️ 6x6 Vliegtuig',
+      '6x6-vliegtuig': '✈️ 6x6 Vliegtuig',
+      '6x6-dobbelsteen': '🎲 6x6 Dobbelsteen',
+      '8x8': '⚽ 8x8'
+    };
+    return namen[formatie] || formatie;
+  };
 
   useEffect(() => {
     localStorage.setItem('voetbal_spelers', JSON.stringify(spelers));
