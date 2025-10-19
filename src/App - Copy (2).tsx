@@ -153,193 +153,43 @@ function App() {
             </button>
           </div>
 
-          {/* KOMENDE WEDSTRIJDEN */}
-          {wedstrijden.length > 0 && (
-            <>
-              {wedstrijden.some(w => new Date(w.datum) >= new Date()) && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xl">📅</span>
-                    <h3 className="text-xl font-bold">Komende Wedstrijden</h3>
-                    <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
-                      {wedstrijden.filter(w => new Date(w.datum) >= new Date()).length}
-                    </span>
-                  </div>
-                  <div className="grid gap-4 mb-8">
-                    {wedstrijden
-                      .filter(w => new Date(w.datum) >= new Date())
-                      .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
-                      .map((wedstrijd) => {
-                        const isThuis = wedstrijd.thuisUit !== 'uit';
-                        const badge = isThuis ? '🏠 Thuis' : '✈️ Uit';
-                        const badgeBg = isThuis ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
-                        
-                        return (
-                          <div 
-                            key={wedstrijd.id} 
-                            className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 hover:shadow-md transition-shadow"
-                          >
-                            {/* Header: Formatie, Datum, Badge */}
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-bold text-lg text-blue-900">{getFormatieNaam(wedstrijd.formatie)}</h4>
-                                <p className="text-sm text-gray-600">{wedstrijd.datum}</p>
-                              </div>
-                              <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeBg}`}>
-                                {badge}
-                              </span>
-                            </div>
-
-                            {/* Match-up Display */}
-                            <div className="mb-4 flex items-center gap-2 flex-wrap">
-                              {isThuis ? (
-                                <>
-                                  <span className="font-bold text-blue-600">{teamNaam}</span>
-                                  <span className="text-gray-400 font-medium">vs</span>
-                                  <span className="font-bold text-gray-700">
-                                    {wedstrijd.tegenstander || '(Tegenstander)'}
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="font-bold text-gray-700">
-                                    {wedstrijd.tegenstander || '(Tegenstander)'}
-                                  </span>
-                                  <span className="text-gray-400 font-medium">vs</span>
-                                  <span className="font-bold text-blue-600">{teamNaam}</span>
-                                </>
-                              )}
-                            </div>
-
-                            {/* Buttons */}
-                            <div className="flex gap-2 flex-wrap">
-                              <button 
-                                onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
-                                className="flex-1 min-w-24 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-sm transition-colors flex items-center justify-center gap-1"
-                              >
-                                <Eye className="w-4 h-4" />
-                                <span className="hidden sm:inline">Bekijk</span>
-                              </button>
-                              <button 
-                                onClick={() => kopieerWedstrijd(wedstrijd)} 
-                                className="flex-1 min-w-24 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm transition-colors flex items-center justify-center gap-1"
-                              >
-                                <Copy className="w-4 h-4" />
-                                <span className="hidden sm:inline">Kopieer</span>
-                              </button>
-                              <button 
-                                onClick={() => verwijderWedstrijd(wedstrijd.id)} 
-                                className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-sm transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+          {/* Wedstrijden Lijst */}
+          <div className="grid gap-4">
+            {wedstrijden.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">Geen wedstrijden gepland</p>
+            ) : (
+              wedstrijden.map((wedstrijd) => (
+                <div key={wedstrijd.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-bold text-lg">{getFormatieNaam(wedstrijd.formatie)}</h3>
+                      <p className="text-gray-600">{wedstrijd.datum} • {wedstrijd.tegenstander || 'Tegenstander'}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => kopieerWedstrijd(wedstrijd)} 
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => verwijderWedstrijd(wedstrijd.id)} 
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
-            </>
-          )}
-
-          {/* GESPEELDE WEDSTRIJDEN */}
-          {wedstrijden.length > 0 && (
-            <>
-              {wedstrijden.some(w => new Date(w.datum) < new Date()) && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xl">🏁</span>
-                    <h3 className="text-xl font-bold">Gespeelde Wedstrijden</h3>
-                    <span className="bg-gray-200 text-gray-800 text-xs font-bold px-3 py-1 rounded-full">
-                      {wedstrijden.filter(w => new Date(w.datum) < new Date()).length}
-                    </span>
-                  </div>
-                  <div className="grid gap-4">
-                    {wedstrijden
-                      .filter(w => new Date(w.datum) < new Date())
-                      .sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime())
-                      .map((wedstrijd) => {
-                        const isThuis = wedstrijd.thuisUit !== 'uit';
-                        const badge = isThuis ? '🏠 Thuis' : '✈️ Uit';
-                        const badgeBg = isThuis ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
-                        
-                        return (
-                          <div 
-                            key={wedstrijd.id} 
-                            className="bg-gray-50 border-2 border-gray-300 rounded-lg p-4 hover:shadow-md transition-shadow"
-                          >
-                            {/* Header: Formatie, Datum, Badge */}
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-bold text-lg text-gray-800">{getFormatieNaam(wedstrijd.formatie)}</h4>
-                                <p className="text-sm text-gray-600">{wedstrijd.datum}</p>
-                              </div>
-                              <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeBg}`}>
-                                {badge}
-                              </span>
-                            </div>
-
-                            {/* Match-up Display */}
-                            <div className="mb-4 flex items-center gap-2 flex-wrap">
-                              {isThuis ? (
-                                <>
-                                  <span className="font-bold text-blue-600">{teamNaam}</span>
-                                  <span className="text-gray-400 font-medium">vs</span>
-                                  <span className="font-bold text-gray-700">
-                                    {wedstrijd.tegenstander || '(Tegenstander)'}
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="font-bold text-gray-700">
-                                    {wedstrijd.tegenstander || '(Tegenstander)'}
-                                  </span>
-                                  <span className="text-gray-400 font-medium">vs</span>
-                                  <span className="font-bold text-blue-600">{teamNaam}</span>
-                                </>
-                              )}
-                            </div>
-
-                            {/* Buttons */}
-                            <div className="flex gap-2 flex-wrap">
-                              <button 
-                                onClick={() => { setHuidgeWedstrijd(wedstrijd); setHuidigScherm('wedstrijd'); }} 
-                                className="flex-1 min-w-24 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-sm transition-colors flex items-center justify-center gap-1"
-                              >
-                                <Eye className="w-4 h-4" />
-                                <span className="hidden sm:inline">Bekijk</span>
-                              </button>
-                              <button 
-                                onClick={() => kopieerWedstrijd(wedstrijd)} 
-                                className="flex-1 min-w-24 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm transition-colors flex items-center justify-center gap-1"
-                              >
-                                <Copy className="w-4 h-4" />
-                                <span className="hidden sm:inline">Kopieer</span>
-                              </button>
-                              <button 
-                                onClick={() => verwijderWedstrijd(wedstrijd.id)} 
-                                className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-sm transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Geen wedstrijden */}
-          {wedstrijden.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg mb-4">Geen wedstrijden gepland</p>
-              <p className="text-gray-400 text-sm">Maak je eerste wedstrijd aan om te beginnen!</p>
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </div>
       )}
 
