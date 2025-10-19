@@ -92,14 +92,26 @@ function App() {
   };
 
   const bevestigKopieerWedstrijd = () => {
-    if (!kopieerModal.wedstrijd) return;
-    
+  if (!kopieerModal.wedstrijd) return;
+  
+    // Kopieert ALLEEN de opstelling, wist alles ander schoon
     const gekopieerd: Wedstrijd = {
       ...kopieerModal.wedstrijd,
       id: Date.now(),
       datum: kopieerModal.datum,
       tegenstander: kopieerModal.tegenstander,
-      thuisUit: kopieerModal.wedstrijd.thuisUit || 'thuis'
+      thuisUit: kopieerModal.wedstrijd.thuisUit || 'thuis',
+      notities: '', // Wis notities
+      themas: [], // Wis thema's
+      afwezigeSpelers: [], // Wis afwezigen
+      kwarten: kopieerModal.wedstrijd.kwarten.map(kwart => ({
+        ...kwart,
+        doelpunten: [], // Wis doelpunten
+        wissels: [], // Wis wissels
+        aantekeningen: '', // Wis aantekeningen
+        themaBeoordelingen: {}, // Wis thema beoordelingen
+        observaties: [] // Wis observaties
+      }))
     };
     setWedstrijden([...wedstrijden, gekopieerd]);
     setKopieerModal({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
