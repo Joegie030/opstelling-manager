@@ -32,12 +32,12 @@ export default function VoetbalVeld({
   // 6x6 Vliegtuig Formatie
   const render6x6Vliegtuig = () => {
     const positions = [
-      { positie: 'Voor', top: '25%', left: '50%', rol: 'Voor' },
-      { positie: 'Links', top: '45%', left: '25%', rol: 'Links' },
-      { positie: 'Midden', top: '45%', left: '50%', rol: 'Midden' },
-      { positie: 'Rechts', top: '45%', left: '75%', rol: 'Rechts' },
-      { positie: 'Achter', top: '65%', left: '50%', rol: 'Achter' },
-      { positie: 'Keeper', top: '90%', left: '50%', rol: 'Keeper' },
+      { positie: 'Voor', top: '20%', left: '50%', rol: 'Voor' },
+      { positie: 'Links', top: '42%', left: '25%', rol: 'Links' },
+      { positie: 'Midden', top: '42%', left: '50%', rol: 'Midden' },
+      { positie: 'Rechts', top: '42%', left: '75%', rol: 'Rechts' },
+      { positie: 'Achter', top: '62%', left: '50%', rol: 'Achter' },
+      { positie: 'Keeper', top: '82%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
       <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
@@ -47,12 +47,12 @@ export default function VoetbalVeld({
   // 6x6 Dobbelsteen Formatie
   const render6x6Dobbelsteen = () => {
     const positions = [
-      { positie: 'Links voor', top: '20%', left: '30%', rol: 'Links Voor' },
-      { positie: 'Rechts voor', top: '20%', left: '70%', rol: 'Rechts Voor' },
-      { positie: 'Midden', top: '50%', left: '50%', rol: 'Midden' },
-      { positie: 'Links achter', top: '70%', left: '30%', rol: 'Links Achter' },
-      { positie: 'Rechts achter', top: '70%', left: '70%', rol: 'Rechts Achter' },
-      { positie: 'Keeper', top: '90%', left: '50%', rol: 'Keeper' },
+      { positie: 'Links voor', top: '18%', left: '30%', rol: 'Links Voor' },
+      { positie: 'Rechts voor', top: '18%', left: '70%', rol: 'Rechts Voor' },
+      { positie: 'Midden', top: '42%', left: '50%', rol: 'Midden' },
+      { positie: 'Links achter', top: '65%', left: '30%', rol: 'Links Achter' },
+      { positie: 'Rechts achter', top: '65%', left: '70%', rol: 'Rechts Achter' },
+      { positie: 'Keeper', top: '82%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
       <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
@@ -62,14 +62,14 @@ export default function VoetbalVeld({
   // 8x8 Formatie
   const render8x8 = () => {
     const positions = [
-      { positie: 'Links voor', top: '18%', left: '28%', rol: 'Links Voor' },
-      { positie: 'Rechts voor', top: '18%', left: '72%', rol: 'Rechts Voor' },
-      { positie: 'Links midden', top: '42%', left: '15%', rol: 'Links Midden' },
-      { positie: 'Midden', top: '42%', left: '50%', rol: 'Midden' },
-      { positie: 'Rechts midden', top: '42%', left: '85%', rol: 'Rechts Midden' },
-      { positie: 'Links achter', top: '68%', left: '30%', rol: 'Links Achter' },
-      { positie: 'Rechts achter', top: '68%', left: '70%', rol: 'Rechts Achter' },
-      { positie: 'Keeper', top: '90%', left: '50%', rol: 'Keeper' },
+      { positie: 'Links voor', top: '16%', left: '28%', rol: 'Links Voor' },
+      { positie: 'Rechts voor', top: '16%', left: '72%', rol: 'Rechts Voor' },
+      { positie: 'Links midden', top: '40%', left: '15%', rol: 'Links Midden' },
+      { positie: 'Midden', top: '40%', left: '50%', rol: 'Midden' },
+      { positie: 'Rechts midden', top: '40%', left: '85%', rol: 'Rechts Midden' },
+      { positie: 'Links achter', top: '65%', left: '30%', rol: 'Links Achter' },
+      { positie: 'Rechts achter', top: '65%', left: '70%', rol: 'Rechts Achter' },
+      { positie: 'Keeper', top: '82%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
       <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
@@ -103,10 +103,10 @@ export default function VoetbalVeld({
                 transition-all duration-200 relative border-2 font-bold
                 w-12 h-12 sm:w-16 sm:h-16 text-xs sm:text-sm
                 ${isKeeper
-                  ? 'bg-yellow-400 border-yellow-600 text-gray-900 hover:shadow-lg hover:scale-110'
-                  : 'bg-blue-500 border-blue-700 text-white hover:shadow-lg hover:scale-110'
+                  ? 'bg-yellow-300 border-yellow-500 text-gray-900 hover:shadow-lg hover:scale-110'
+                  : 'bg-green-200 border-green-600 text-gray-800 hover:shadow-lg hover:scale-110'
                 }
-                ${isEditable ? 'cursor-pointer hover:ring-2 ring-offset-1 ring-yellow-400' : 'cursor-default'}
+                ${isEditable ? 'cursor-pointer hover:ring-2 ring-offset-1 ring-gray-400' : 'cursor-default'}
               `}
               onClick={() => isEditable && onSelectSpeler?.(positie)}
               title={`${rol}: ${spelerNaam}`}
@@ -125,8 +125,8 @@ export default function VoetbalVeld({
                 rounded-full flex flex-col items-center justify-center cursor-pointer
                 transition-all duration-200 relative border-2 font-bold
                 w-12 h-12 sm:w-16 sm:h-16 text-xs sm:text-sm
-                bg-transparent border-gray-300 text-gray-500
-                ${isEditable ? 'hover:border-gray-400 hover:text-gray-700 hover:bg-gray-100' : 'cursor-default'}
+                bg-transparent border-gray-300 text-gray-400
+                ${isEditable ? 'hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50' : 'cursor-default'}
               `}
               onClick={() => isEditable && onSelectSpeler?.(positie)}
               title={`${rol}: Selecteer speler`}
