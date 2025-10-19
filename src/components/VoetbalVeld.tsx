@@ -125,28 +125,25 @@ export default function VoetbalVeld({
         <p className="text-xs text-green-100">Opstelling {formatie}</p>
       </div>
 
-      {/* HALF VELD */}
-      <div className="relative w-full bg-green-400 rounded-lg overflow-hidden" style={{ aspectRatio: '1/0.7' }}>
-        {/* Veldmarkering - HALF VELD */}
+      {/* HALF VELD - Van achterlijn tot middenlijn */}
+      <div className="relative w-full bg-green-400 rounded-lg overflow-hidden" style={{ aspectRatio: '1/0.5' }}>
+        {/* Veldmarkering - HALF VELD (achterlijn tot middenlijn) */}
         <svg
           className="absolute inset-0 w-full h-full"
-          viewBox="0 0 100 70"
+          viewBox="0 0 100 50"
           style={{ pointerEvents: 'none' }}
         >
           {/* Buitenlijnen */}
-          <rect x="5" y="5" width="90" height="60" fill="none" stroke="white" strokeWidth="0.5" />
+          <rect x="5" y="5" width="90" height="40" fill="none" stroke="white" strokeWidth="0.6" />
           
-          {/* Middellijn (horizontaal) */}
-          <line x1="5" y1="35" x2="95" y2="35" stroke="white" strokeWidth="0.5" />
+          {/* Middellijn (bovenkant = doelmidde) */}
+          <line x1="5" y1="45" x2="95" y2="45" stroke="white" strokeWidth="0.6" />
           
-          {/* Middencirkel */}
-          <circle cx="50" cy="35" r="6" fill="none" stroke="white" strokeWidth="0.5" />
-          
-          {/* Strafschopgebied (doelmidde van veld) */}
-          <rect x="30" y="55" width="40" height="10" fill="none" stroke="white" strokeWidth="0.5" />
+          {/* Strafschopgebied */}
+          <rect x="25" y="30" width="50" height="15" fill="none" stroke="white" strokeWidth="0.6" />
           
           {/* Doelgebied */}
-          <rect x="40" y="62" width="20" height="3" fill="none" stroke="white" strokeWidth="0.5" />
+          <rect x="35" y="40" width="30" height="5" fill="none" stroke="white" strokeWidth="0.6" />
         </svg>
 
         {/* Spelers */}
