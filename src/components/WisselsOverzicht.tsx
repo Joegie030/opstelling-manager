@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronUp, ArrowRightLeft } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronUp, ArrowRightLeft } from 'lucide-react';
 import { Speler, Wedstrijd } from '../types';
 
 interface WisselsOverzichtProps {
@@ -7,8 +7,7 @@ interface WisselsOverzichtProps {
   kwart: any;
   wedstrijd: Wedstrijd;
   spelers: Speler[];
-  onVoegWisselToe: (kwartIndex: number) => void;
-  onUpdateWissel: (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => void;
+  onVoegWisselToe: (kwartIndex: number, positie: string, wisselSpelerId: string) => void;
   onVerwijderWissel: (kwartIndex: number, wisselIndex: number) => void;
 }
 
@@ -18,7 +17,6 @@ export function WisselsOverzicht({
   wedstrijd,
   spelers,
   onVoegWisselToe,
-  onUpdateWissel,
   onVerwijderWissel
 }: WisselsOverzichtProps) {
   const [bankOpen, setBankOpen] = useState(false);
@@ -48,14 +46,16 @@ export function WisselsOverzicht({
 
   const minutenTotNu = berekenMinutenTotNu();
 
-  // Spelers die IN HET VELD staan
+  // Spelers die IN HET VELD staan (ORIGINELE opstelling)
   const spelersInVeld = Object.entries(kwart.opstelling)
     .filter(([_, sid]) => sid)
     .map(([pos, sid]) => ({
       spelerId: sid,
       positie: pos,
-      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend'
-    }));
+      naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
+      minutenGespeeld: minutenTotNu[sid] || 0
+    }))
+    .sort((a, b) => b.minutenGespeeld - a.minutenGespeeld); // MEESTE MINUTEN BOVENAAN
 
   // Spelers die al gewisseld zijn (OUT)
   const geswitchteSpelers = new Set(kwart.wissels?.map((w: any) => w.positie) || []);
@@ -68,21 +68,23 @@ export function WisselsOverzicht({
       naam: s.naam,
       minutenGespeeld: minutenTotNu[s.id] || 0
     }))
-    .sort((a, b) => a.minutenGespeeld - b.minutenGespeeld);
+    .sort((a, b) => b.minutenGespeeld - a.minutenGespeeld); // MEESTE MINUTEN BOVENAAN
 
-  // Verkrijgbare veldspelers om uit te wisselen (naar positie)
-  const getVerkrijgbareUitVeld = (bankSpelerId: string) => {
+  // Veldspelers die nog kunnen wisselen (niet al gewisseld uit deze positie)
+  const getBeschikbareVeldspelers = () => {
     return spelersInVeld
       .filter(v => !geswitchteSpelers.has(v.positie))
-      .map(v => ({
-        ...v,
-        bankSpelerId: bankSpelerId
-      }));
+      .sort((a, b) => b.minutenGespeeld - a.minutenGespeeld);
+  };
+
+  const handleWisselConfirm = (veldSpeler: any, bankSpelerId: string) => {
+    onVoegWisselToe(kwartIndex, veldSpeler.positie, bankSpelerId);
+    setWisselModal({ open: false });
   };
 
   return (
     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-4">
-      <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
+      <h4 className="font-semibold text-sm">⏱️ Wissels (6,25 min per wissel)</h4>
 
       {/* OP DE BANK - INKLAPBAAR */}
       <div className="bg-white rounded-lg p-3 border border-orange-100">
@@ -90,7 +92,7 @@ export function WisselsOverzicht({
           onClick={() => setBankOpen(!bankOpen)}
           className="w-full flex items-center justify-between text-xs font-bold text-gray-700 hover:bg-gray-50 p-2 rounded transition-colors"
         >
-          <span>OP DE BANK ({spelersOpBank.length})</span>
+          <span>🪑 OP DE BANK ({spelersOpBank.length})</span>
           {bankOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
 
@@ -100,17 +102,17 @@ export function WisselsOverzicht({
               <p className="text-xs text-gray-500 italic">Geen spelers op de bank</p>
             ) : (
               spelersOpBank.map(speler => (
-                <div key={speler.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{speler.naam}</span>
-                    <span className="text-xs text-gray-500">{speler.minutenGespeeld} min</span>
+                <div key={speler.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-sm font-medium truncate">{speler.naam}</span>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">({speler.minutenGespeeld.toFixed(2)} min)</span>
                   </div>
                   <button
                     onClick={() => setWisselModal({ open: true, bankSpelerId: speler.id.toString() })}
-                    className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors flex items-center gap-1"
+                    className="px-3 py-1.5 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors flex items-center gap-1 whitespace-nowrap"
                   >
                     <ArrowRightLeft className="w-3 h-3" />
-                    Wissel
+                    Erin
                   </button>
                 </div>
               ))
@@ -119,46 +121,41 @@ export function WisselsOverzicht({
         )}
       </div>
 
-      {/* WISSEL MODAL - Kies uit wie uit */}
+      {/* WISSEL MODAL - Kies wie eruit gaat */}
       {wisselModal.open && wisselModal.bankSpelerId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="bg-blue-600 text-white p-4">
               <h3 className="text-lg font-bold">
-                {spelers.find(s => s.id.toString() === wisselModal.bankSpelerId)?.naam} erin
+                ✅ {spelers.find(s => s.id.toString() === wisselModal.bankSpelerId)?.naam} erin
               </h3>
-              <p className="text-sm opacity-90">Kies wie eruit gaat</p>
+              <p className="text-sm opacity-90">Kies wie eruit gaat (sortering: meeste speeltijd)</p>
             </div>
 
-            <div className="p-4 space-y-2">
-              {getVerkrijgbareUitVeld(wisselModal.bankSpelerId).map(veldSpeler => (
-                <button
-                  key={veldSpeler.spelerId}
-                  onClick={() => {
-                    // Voeg wissel toe
-                    onVoegWisselToe(kwartIndex);
-                    
-                    // Get the index van de wissel die net toegevoegd is
-                    const nieuwWisselIndex = (kwart.wissels?.length || 0);
-                    
-                    // Update beide velden van de wissel
-                    onUpdateWissel(kwartIndex, nieuwWisselIndex, 'positie', veldSpeler.positie);
-                    onUpdateWissel(kwartIndex, nieuwWisselIndex, 'wisselSpelerId', wisselModal.bankSpelerId!);
-                    
-                    setWisselModal({ open: false });
-                  }}
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-all text-left"
-                >
-                  <div className="font-medium">{veldSpeler.naam}</div>
-                  <div className="text-xs text-gray-500">Positie: {veldSpeler.positie}</div>
-                </button>
-              ))}
+            <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+              {getBeschikbareVeldspelers().length === 0 ? (
+                <p className="text-xs text-gray-500 italic py-4">Geen spelers kunnen wisselen</p>
+              ) : (
+                getBeschikbareVeldspelers().map(veldSpeler => (
+                  <button
+                    key={`${veldSpeler.positie}-${veldSpeler.spelerId}`}
+                    onClick={() => handleWisselConfirm(veldSpeler, wisselModal.bankSpelerId!)}
+                    className="w-full p-3 border-2 border-gray-300 rounded-lg hover:bg-red-50 hover:border-red-500 transition-all text-left"
+                  >
+                    <div className="font-medium">❌ {veldSpeler.naam}</div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      Positie: <span className="font-semibold">{veldSpeler.positie}</span> • 
+                      Speeltijd: <span className="font-semibold">{veldSpeler.minutenGespeeld.toFixed(2)} min</span>
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
 
             <div className="border-t p-4">
               <button
                 onClick={() => setWisselModal({ open: false })}
-                className="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
+                className="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium text-sm"
               >
                 Annuleren
               </button>
@@ -170,23 +167,28 @@ export function WisselsOverzicht({
       {/* GEPLANDE WISSELS OVERZICHT */}
       {kwart.wissels && kwart.wissels.length > 0 && (
         <div className="bg-white rounded-lg p-3 border-2 border-green-200">
-          <h5 className="text-xs font-bold text-gray-700 mb-2">GEPLANDE WISSELS</h5>
+          <h5 className="text-xs font-bold text-gray-700 mb-3">✅ GEPLANDE WISSELS ({kwart.wissels.length})</h5>
           <div className="space-y-2">
             {kwart.wissels.map((wissel: any, wisselIndex: number) => {
-              const uitSpeler = wissel.positie ? spelersInVeld.find(s => s.positie === wissel.positie) : null;
-              const inSpeler = wissel.wisselSpelerId ? spelers.find(s => s.id.toString() === wissel.wisselSpelerId) : null;
+              const uitSpeler = spelersInVeld.find(s => s.positie === wissel.positie);
+              const inSpeler = spelers.find(s => s.id.toString() === wissel.wisselSpelerId);
 
               return (
-                <div key={wissel.id} className="flex items-center justify-between p-2 bg-green-50 rounded border border-green-200">
+                <div key={wissel.id} className="flex items-center justify-between p-3 bg-green-50 rounded border border-green-300 hover:bg-green-100 transition-colors">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-sm font-medium truncate">{uitSpeler?.naam || '?'}</span>
+                    <span className="text-red-600 font-bold">❌</span>
+                    <span className="text-sm font-medium truncate text-gray-700">{uitSpeler?.naam || 'Onbekend'}</span>
                     <span className="text-gray-400">→</span>
-                    <span className="text-sm font-medium truncate">{inSpeler?.naam || '?'}</span>
+                    <span className="text-green-600 font-bold">✅</span>
+                    <span className="text-sm font-medium truncate text-gray-700">{inSpeler?.naam || 'Onbekend'}</span>
+                    <span className="text-xs text-gray-500 whitespace-nowrap ml-auto">6,25 min</span>
                   </div>
                   <button
                     onClick={() => onVerwijderWissel(kwartIndex, wisselIndex)}
-                    className="px-2 py-1 text-red-500 hover:bg-red-100 rounded text-xs transition-colors"
+                    className="ml-2 px-2 py-1 text-red-500 hover:bg-red-100 rounded text-xs transition-colors flex items-center gap-1 whitespace-nowrap"
+                    title="Verwijder wissel"
                   >
+                    <Trash2 className="w-3 h-3" />
                     Verwijder
                   </button>
                 </div>
