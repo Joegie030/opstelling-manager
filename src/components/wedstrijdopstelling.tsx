@@ -497,7 +497,7 @@ export default function WedstrijdOpstelling({
           const [regelchecksOpen, setRegelchecksOpen] = useState(false);
           
           return (
-            <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-green-50 space-y-4">
+            <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-green-100 space-y-4">
               <h3 className="font-bold mb-0 flex items-center gap-2 text-sm sm:text-base">
                 <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
               </h3>
