@@ -9,7 +9,7 @@ import Instellingen from './components/Instellingen.tsx';
 import AuthScreen from './components/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
-import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden } from './firebaseService';
+import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden } from './firebase/firebaseService';
 
 function App() {
   // Auth state
@@ -382,23 +382,12 @@ function App() {
         <div className="space-y-6">
           <TeamBeheer
             spelers={spelers}
-            onVoegSpelerToe={addSpeler}
-            onVerwijderSpeler={removeSpeler}
+            onAddSpeler={addSpeler}
+            onRemoveSpeler={removeSpeler}
             clubNaam={clubNaam}
             teamNaam={teamNaam}
             onUpdateClubNaam={setClubNaam}
             onUpdateTeamNaam={setTeamNaam}
-            onLaadTestdata={() => {
-              // Testdata laden (optioneel voor nu)
-              console.log('Testdata laden (nog niet implemented)');
-            }}
-            onWisAlles={() => {
-              // Alles wissen
-              if (confirm('Weet je zeker dat je alles wilt wissen?')) {
-                setSpelers([]);
-                setWedstrijden([]);
-              }
-            }}
           />
 
           {/* Invite Coaches */}
