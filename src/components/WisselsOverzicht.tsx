@@ -84,23 +84,24 @@ export function WisselsOverzicht({
 
   return (
     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-4">
-      {/* OP DE BANK - INKLAPBAAR - BOVENAAN */}
-      <div className="bg-white rounded-lg p-3 border border-orange-100">
-        <button
-          onClick={() => setBankOpen(!bankOpen)}
-          className="w-full flex items-center justify-between text-xs font-bold text-gray-700 hover:bg-gray-50 p-2 rounded transition-colors"
-        >
-          <span>🪑 OP DE BANK ({spelersOpBank.length})</span>
-          {bankOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
+      {/* OP DE BANK - INKLAPBAAR HOOFDTITEL */}
+      <button
+        onClick={() => setBankOpen(!bankOpen)}
+        className="w-full flex items-center justify-between text-sm font-bold text-gray-700 hover:bg-orange-100 p-3 rounded transition-colors bg-white border border-orange-100"
+      >
+        <span>🪑 OP DE BANK ({spelersOpBank.length})</span>
+        {bankOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+      </button>
 
-        {bankOpen && (
-          <div className="space-y-2 mt-3 pt-3 border-t border-gray-200">
+      {bankOpen && (
+        <div className="space-y-4">
+          {/* Bankspelers lijst */}
+          <div className="space-y-2">
             {spelersOpBank.length === 0 ? (
-              <p className="text-xs text-gray-500 italic">Geen spelers op de bank</p>
+              <p className="text-xs text-gray-500 italic px-3">Geen spelers op de bank</p>
             ) : (
               spelersOpBank.map(speler => (
-                <div key={speler.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors">
+                <div key={speler.id} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className="text-sm font-medium truncate">{speler.naam}</span>
                     <span className="text-xs text-gray-500 whitespace-nowrap">({speler.minutenGespeeld.toFixed(2)} min)</span>
@@ -116,10 +117,6 @@ export function WisselsOverzicht({
               ))
             )}
           </div>
-        )}
-      </div>
-
-      <h4 className="font-semibold text-sm">⏱️ Wissels (6,25 min per wissel)</h4>
 
       {/* WISSEL MODAL - Kies wie eruit gaat */}
       {wisselModal.open && wisselModal.bankSpelerId && (
