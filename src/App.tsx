@@ -194,15 +194,32 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onVoegWisselToe={(kwartIndex, positie, wisselSpelerId) => {
+          onVoegWisselToe={(kwartIndex) => {
             const updated = {
               ...huidgeWedstrijd,
               kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
                 i === kwartIndex 
                   ? { 
                       ...k, 
-                      wissels: [...(k.wissels || []), { id: Date.now(), positie, wisselSpelerId }] 
+                      wissels: [...(k.wissels || []), { id: Date.now(), positie: '', wisselSpelerId: '' }] 
                     } 
+                  : k
+              )
+            };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateWissel={(kwartIndex, wisselIndex, veld, waarde) => {
+            const updated = {
+              ...huidgeWedstrijd,
+              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
+                i === kwartIndex
+                  ? {
+                      ...k,
+                      wissels: k.wissels?.map((w, j) =>
+                        j === wisselIndex ? { ...w, [veld]: waarde } : w
+                      ) || []
+                    }
                   : k
               )
             };
