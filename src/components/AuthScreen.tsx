@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Mail, Lock, User, AlertCircle, Loader } from 'lucide-react';
-import { registerCoach, loginCoach } from '../firebaseService';
+import { registerCoach, loginCoach } from '../firebase/firebaseService';
 
 interface Props {
   onLoginSuccess: () => void;
