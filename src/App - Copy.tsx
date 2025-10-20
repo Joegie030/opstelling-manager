@@ -1,26 +1,32 @@
 import { useState, useEffect } from 'react';
-import { LogOut, Loader } from 'lucide-react';
+import { Plus, Trash2, Eye, X, Copy } from 'lucide-react';
 import { Speler, Wedstrijd, Doelpunt, formaties } from './types';
 import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
 import WedstrijdOverzicht from './components/WedstrijdOverzicht.tsx';
 import Instellingen from './components/Instellingen.tsx';
-import AuthScreen from './components/AuthScreen.tsx';
-import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
-import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden } from './firebaseService';
 
 function App() {
-  // Auth state
-  const [currentCoach, setCurrentCoach] = useState<Coach | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
-
-  // App state
-  const [spelers, setSpelers] = useState<Speler[]>([]);
-  const [wedstrijden, setWedstrijden] = useState<Wedstrijd[]>([]);
-  const [clubNaam, setClubNaam] = useState('Mijn Club');
-  const [teamNaam, setTeamNaam] = useState('Team A');
+  const [spelers, setSpelers] = useState<Speler[]>(() => {
+    const opgeslagen = localStorage.getItem('voetbal_spelers');
+    return opgeslagen ? JSON.parse(opgeslagen) : [];
+  });
+  
+  const [wedstrijden, setWedstrijden] = useState<Wedstrijd[]>(() => {
+    const opgeslagen = localStorage.getItem('voetbal_wedstrijden');
+    return opgeslagen ? JSON.parse(opgeslagen) : [];
+  });
+  
+  const [clubNaam, setClubNaam] = useState(() => {
+    return localStorage.getItem('voetbal_clubNaam') || 'Mijn Club';
+  });
+  
+  const [teamNaam, setTeamNaam] = useState(() => {
+    return localStorage.getItem('voetbal_teamNaam') || 'Team A';
+  });
+  
   const [huidigScherm, setHuidigScherm] = useState('wedstrijden');
   const [huidgeWedstrijd, setHuidgeWedstrijd] = useState<Wedstrijd | null>(null);
   const [formatieModal, setFormatieModal] = useState(false);
@@ -31,54 +37,7 @@ function App() {
     tegenstander: string;
   }>({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
 
-  // Check auth on mount
-  useEffect(() => {
-    const unsubscribe = getCurrentCoach((coach) => {
-      setCurrentCoach(coach);
-      setAuthLoading(false);
-
-      // Laad team data als coach ingelogd is
-      if (coach) {
-        loadTeamData(coach.teamId);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Laad team data van Firestore
-  const loadTeamData = async (teamId: string) => {
-    try {
-      const data = await getTeamData(teamId);
-      setSpelers(data.spelers);
-      setWedstrijden(data.wedstrijden);
-      setClubNaam(data.clubNaam);
-      setTeamNaam(data.teamNaam);
-    } catch (error) {
-      console.error('Error loading team data:', error);
-    }
-  };
-
-  // Save spelers naar Firestore (auto-sync)
-  useEffect(() => {
-    if (currentCoach && spelers.length > 0) {
-      const saveTimeout = setTimeout(() => {
-        saveSpelers(currentCoach.teamId, spelers).catch(console.error);
-      }, 1000);
-      return () => clearTimeout(saveTimeout);
-    }
-  }, [spelers, currentCoach]);
-
-  // Save wedstrijden naar Firestore (auto-sync)
-  useEffect(() => {
-    if (currentCoach && wedstrijden.length > 0) {
-      const saveTimeout = setTimeout(() => {
-        saveWedstrijden(currentCoach.teamId, wedstrijden).catch(console.error);
-      }, 1000);
-      return () => clearTimeout(saveTimeout);
-    }
-  }, [wedstrijden, currentCoach]);
-
+  // Helper functie om formatie naam mooi weer te geven (met backward compatibility)
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
       '6x6': '✈️ 6x6 Vliegtuig',
@@ -88,6 +47,22 @@ function App() {
     };
     return namen[formatie] || formatie;
   };
+
+  useEffect(() => {
+    localStorage.setItem('voetbal_spelers', JSON.stringify(spelers));
+  }, [spelers]);
+
+  useEffect(() => {
+    localStorage.setItem('voetbal_wedstrijden', JSON.stringify(wedstrijden));
+  }, [wedstrijden]);
+
+  useEffect(() => {
+    localStorage.setItem('voetbal_clubNaam', clubNaam);
+  }, [clubNaam]);
+
+  useEffect(() => {
+    localStorage.setItem('voetbal_teamNaam', teamNaam);
+  }, [teamNaam]);
 
   const kopieerWedstrijd = (wedstrijd: Wedstrijd) => {
     setKopieerModal({
@@ -100,7 +75,8 @@ function App() {
 
   const bevestigKopieerWedstrijd = () => {
     if (!kopieerModal.wedstrijd) return;
-
+    
+    // Kopieert ALLEEN de opstelling, wist alles ander schoon
     const gekopieerd: Wedstrijd = {
       ...kopieerModal.wedstrijd,
       id: Date.now(),
@@ -121,6 +97,7 @@ function App() {
     };
     setWedstrijden([...wedstrijden, gekopieerd]);
     setKopieerModal({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
+    
     setHuidgeWedstrijd(gekopieerd);
     setHuidigScherm('wedstrijden');
   };
@@ -141,35 +118,24 @@ function App() {
     setSpelers(spelers.filter(s => s.id !== id));
   };
 
-  const handleLogout = async () => {
-    try {
-      await logoutCoach();
-      setCurrentCoach(null);
-      setSpelers([]);
-      setWedstrijden([]);
-    } catch (error) {
-      console.error('Logout error:', error);
+  // NIEUW: Functie voor Import/Export
+  const handleImportData = (data: any) => {
+    // Data is al in localStorage gezet via Instellingen component
+    // Dit is voor state update
+    if (data.voetbal_spelers) {
+      setSpelers(JSON.parse(data.voetbal_spelers));
+    }
+    if (data.voetbal_wedstrijden) {
+      setWedstrijden(JSON.parse(data.voetbal_wedstrijden));
+    }
+    if (data.voetbal_clubNaam) {
+      setClubNaam(data.voetbal_clubNaam);
+    }
+    if (data.voetbal_teamNaam) {
+      setTeamNaam(data.voetbal_teamNaam);
     }
   };
 
-  // Loading screen
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg font-semibold">App laden...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Auth screen
-  if (!currentCoach) {
-    return <AuthScreen onLoginSuccess={() => {}} />;
-  }
-
-  // Main app
   return (
     <Navigation
       clubNaam={clubNaam}
@@ -177,23 +143,10 @@ function App() {
       activeScreen={huidigScherm}
       onScreenChange={setHuidigScherm}
       menuItems={DEFAULT_MENU_ITEMS}
-      onLogout={handleLogout}
+      onLogout={() => {
+        console.log('Logout');
+      }}
     >
-      {/* Coach info bar */}
-      <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-600">Ingelogd als:</p>
-          <p className="font-semibold text-gray-800">{currentCoach.naam} ({currentCoach.email})</p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          Uitloggen
-        </button>
-      </div>
-
       {/* WEDSTRIJDEN SCHERM */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
@@ -233,8 +186,8 @@ function App() {
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
           onToggleAfwezig={(spelerId) => {
-            const updated = {
-              ...huidgeWedstrijd,
+            const updated = { 
+              ...huidgeWedstrijd, 
               afwezigeSpelers: (huidgeWedstrijd.afwezigeSpelers || []).includes(spelerId)
                 ? (huidgeWedstrijd.afwezigeSpelers || []).filter(id => id !== spelerId)
                 : [...(huidgeWedstrijd.afwezigeSpelers || []), spelerId]
@@ -256,11 +209,11 @@ function App() {
             const updated = {
               ...huidgeWedstrijd,
               kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
-                i === kwartIndex
-                  ? {
-                      ...k,
-                      wissels: [...(k.wissels || []), { id: Date.now(), positie: '', wisselSpelerId: '' }]
-                    }
+                i === kwartIndex 
+                  ? { 
+                      ...k, 
+                      wissels: [...(k.wissels || []), { id: Date.now(), positie: '', wisselSpelerId: '' }] 
+                    } 
                   : k
               )
             };
@@ -379,33 +332,28 @@ function App() {
 
       {/* TEAM SCHERM */}
       {huidigScherm === 'team' && (
-        <div className="space-y-6">
-          <TeamBeheer
-            spelers={spelers}
-            onAddSpeler={addSpeler}
-            onRemoveSpeler={removeSpeler}
-            clubNaam={clubNaam}
-            teamNaam={teamNaam}
-            onUpdateClubNaam={setClubNaam}
-            onUpdateTeamNaam={setTeamNaam}
-          />
-
-          {/* Invite Coaches */}
-          {currentCoach && (
-            <InviteCoaches teamId={currentCoach.teamId} currentCoach={currentCoach} />
-          )}
-        </div>
+        <TeamBeheer 
+          spelers={spelers} 
+          onAddSpeler={addSpeler} 
+          onRemoveSpeler={removeSpeler}
+          clubNaam={clubNaam}
+          teamNaam={teamNaam}
+          onUpdateClubNaam={setClubNaam}
+          onUpdateTeamNaam={setTeamNaam}
+        />
       )}
 
-      {/* INSTELLINGEN SCHERM */}
+      {/* INSTELLINGEN SCHERM - NIEUW! */}
       {huidigScherm === 'instellingen' && (
         <Instellingen
           clubNaam={clubNaam}
           teamNaam={teamNaam}
           onUpdateClubNaam={setClubNaam}
           onUpdateTeamNaam={setTeamNaam}
-          onExportData={() => {}}
-          onImportData={() => {}}
+          onExportData={() => {
+            // Export functie is in Instellingen component
+          }}
+          onImportData={handleImportData}
         />
       )}
 
@@ -426,19 +374,14 @@ function App() {
                         tegenstander: '',
                         formatie: key,
                         thuisUit: 'thuis',
-                        kwarten: Array(4)
-                          .fill(null)
-                          .map((_, i) => ({
-                            nummer: i + 1,
-                            minuten: 12.5,
-                            opstelling: formatie.reduce(
-                              (acc, pos) => ({
-                                ...acc,
-                                [pos]: ''
-                              }),
-                              {} as Record<string, string>
-                            )
-                          }))
+                        kwarten: Array(4).fill(null).map((_, i) => ({
+                          nummer: i + 1,
+                          minuten: 12.5,
+                          opstelling: formatie.reduce((acc, pos) => ({
+                            ...acc,
+                            [pos]: ''
+                          }), {} as Record<string, string>)
+                        }))
                       };
                       setWedstrijden([...wedstrijden, newWedstrijd]);
                       setFormatieModal(false);
@@ -448,7 +391,9 @@ function App() {
                     className="w-full p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
                   >
                     <h4 className="font-bold">{getFormatieNaam(key)}</h4>
-                    <p className="text-sm text-gray-600">{formatie.length} posities</p>
+                    <p className="text-sm text-gray-600">
+                      {formatie.length} posities
+                    </p>
                   </button>
                 ))}
               </div>
@@ -477,9 +422,7 @@ function App() {
                   <input
                     type="date"
                     value={kopieerModal.datum}
-                    onChange={(e) =>
-                      setKopieerModal({ ...kopieerModal, datum: e.target.value })
-                    }
+                    onChange={(e) => setKopieerModal({ ...kopieerModal, datum: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2"
                   />
                 </div>
@@ -488,9 +431,7 @@ function App() {
                   <input
                     type="text"
                     value={kopieerModal.tegenstander}
-                    onChange={(e) =>
-                      setKopieerModal({ ...kopieerModal, tegenstander: e.target.value })
-                    }
+                    onChange={(e) => setKopieerModal({ ...kopieerModal, tegenstander: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2"
                   />
                 </div>
@@ -504,14 +445,7 @@ function App() {
                 Kopieer
               </button>
               <button
-                onClick={() =>
-                  setKopieerModal({
-                    open: false,
-                    wedstrijd: null,
-                    datum: '',
-                    tegenstander: ''
-                  })
-                }
+                onClick={() => setKopieerModal({ open: false, wedstrijd: null, datum: '', tegenstander: '' })}
                 className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
               >
                 Annuleer
