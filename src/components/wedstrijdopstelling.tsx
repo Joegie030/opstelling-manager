@@ -235,17 +235,34 @@ export default function WedstrijdOpstelling({
     });
     
     if (isKeeperPositie) {
+      // Check wie keeper was in vorig kwart
+      const keeperVorigKwart = kwartIndex > 0 ? wedstrijd.kwarten[kwartIndex - 1].opstelling['Keeper'] : null;
+      
       return spelersMetInfo.sort((a, b) => {
+        // 1. Spelers die nog niet gebruikt zijn (prioriteit bovenaan)
         if (a.isGebruikt !== b.isGebruikt) {
           return a.isGebruikt ? 1 : -1;
         }
+        
+        // 2. Als beide niet gebruikt zijn, keeper van vorig kwart eerst
         if (!a.isGebruikt && !b.isGebruikt) {
+          const aWasKeeperVorigKwart = keeperVorigKwart && a.id.toString() === keeperVorigKwart;
+          const bWasKeeperVorigKwart = keeperVorigKwart && b.id.toString() === keeperVorigKwart;
+          
+          if (aWasKeeperVorigKwart !== bWasKeeperVorigKwart) {
+            return aWasKeeperVorigKwart ? -1 : 1;
+          }
+          
+          // 3. Dan keeper beurten deze wedstrijd
           if (a.keeperBeurtenDezeWedstrijd !== b.keeperBeurtenDezeWedstrijd) {
             return a.keeperBeurtenDezeWedstrijd - b.keeperBeurtenDezeWedstrijd;
           }
+          
+          // 4. Dan totaal keeper beurten
           if (a.keeperBeurten !== b.keeperBeurten) {
             return a.keeperBeurten - b.keeperBeurten;
           }
+          
           return a.naam.localeCompare(b.naam);
         }
         return 0;
