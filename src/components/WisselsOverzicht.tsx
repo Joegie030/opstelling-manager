@@ -135,15 +135,15 @@ export function WisselsOverzicht({
                 <button
                   key={veldSpeler.spelerId}
                   onClick={() => {
-                    // Voeg wissel toe en zet positie + speler in één keer
+                    // Voeg wissel toe
                     onVoegWisselToe(kwartIndex);
                     
-                    // Delay om de wissel eerst toe te voegen
-                    setTimeout(() => {
-                      const wisselIndex = kwart.wissels ? kwart.wissels.length : 0;
-                      onUpdateWissel(kwartIndex, wisselIndex, 'positie', veldSpeler.positie);
-                      onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', wisselModal.bankSpelerId!);
-                    }, 0);
+                    // Get the index van de wissel die net toegevoegd is
+                    const nieuwWisselIndex = (kwart.wissels?.length || 0);
+                    
+                    // Update beide velden van de wissel
+                    onUpdateWissel(kwartIndex, nieuwWisselIndex, 'positie', veldSpeler.positie);
+                    onUpdateWissel(kwartIndex, nieuwWisselIndex, 'wisselSpelerId', wisselModal.bankSpelerId!);
                     
                     setWisselModal({ open: false });
                   }}
