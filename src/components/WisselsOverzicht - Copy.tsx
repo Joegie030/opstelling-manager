@@ -84,7 +84,9 @@ export function WisselsOverzicht({
 
   return (
     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-4">
-      {/* OP DE BANK - INKLAPBAAR - BOVENAAN */}
+      <h4 className="font-semibold text-sm">⏱️ Wissels (6,25 min per wissel)</h4>
+
+      {/* OP DE BANK - INKLAPBAAR */}
       <div className="bg-white rounded-lg p-3 border border-orange-100">
         <button
           onClick={() => setBankOpen(!bankOpen)}
@@ -118,8 +120,6 @@ export function WisselsOverzicht({
           </div>
         )}
       </div>
-
-      <h4 className="font-semibold text-sm">⏱️ Wissels (6,25 min per wissel)</h4>
 
       {/* WISSEL MODAL - Kies wie eruit gaat */}
       {wisselModal.open && wisselModal.bankSpelerId && (
