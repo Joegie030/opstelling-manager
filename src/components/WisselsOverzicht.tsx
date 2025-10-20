@@ -84,24 +84,6 @@ export function WisselsOverzicht({
     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-4">
       <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
 
-      {/* IN HET VELD */}
-      <div className="bg-white rounded-lg p-3 border border-orange-100">
-        <h5 className="text-xs font-bold text-gray-700 mb-2">IN HET VELD ({spelersInVeld.length})</h5>
-        <div className="space-y-2">
-          {spelersInVeld.map(speler => (
-            <div key={speler.spelerId} className="flex items-center justify-between p-2 bg-green-50 rounded border border-green-200">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{speler.naam}</span>
-                <span className="text-xs text-gray-500">({speler.positie})</span>
-              </div>
-              {geswitchteSpelers.has(speler.positie) && (
-                <span className="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">Wisseluitgang</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* OP DE BANK - INKLAPBAAR */}
       <div className="bg-white rounded-lg p-3 border border-orange-100">
         <button
