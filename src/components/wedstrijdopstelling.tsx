@@ -6,6 +6,7 @@ import { WedstrijdProvider } from './WedstrijdContext';
 import { WedstrijdHeader } from './WedstrijdHeader';
 import { WedstrijdSamenvatting } from './WedstrijdSamenvatting';
 import VoetbalVeld from './VoetbalVeld';
+import { WisselsOverzicht } from './WisselsOverzicht';
 
 interface Props {
   wedstrijd: Wedstrijd;
@@ -497,7 +498,7 @@ export default function WedstrijdOpstelling({
           const [regelchecksOpen, setRegelchecksOpen] = useState(false);
           
           return (
-            <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-green-100 space-y-4">
+            <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white space-y-4">
               <h3 className="font-bold mb-0 flex items-center gap-2 text-sm sm:text-base">
                 <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
               </h3>
@@ -512,151 +513,15 @@ export default function WedstrijdOpstelling({
                 onSelectSpeler={(positie) => openSelectieModal(kwartIndex, positie)}
               />
               
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
-                  <button 
-                    onClick={() => onVoegWisselToe(kwartIndex)} 
-                    className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
-                  >
-                    <Plus className="w-3 h-3" />Wissel toevoegen
-                  </button>
-                </div>
-                {kwart.wissels && kwart.wissels.length > 0 ? (
-                  <div className="space-y-3">
-                    {kwart.wissels.map((wissel, wisselIndex) => {
-                      const keepersDezeWedstrijd = new Set<string>();
-                      wedstrijd.kwarten.forEach((k, ki) => {
-                        if (ki > kwartIndex) return;
-                        const keeperId = k.opstelling['Keeper'];
-                        if (keeperId) keepersDezeWedstrijd.add(keeperId);
-                        k.wissels?.forEach(w => {
-                          if (w.positie === 'Keeper' && w.wisselSpelerId) {
-                            keepersDezeWedstrijd.add(w.wisselSpelerId);
-                          }
-                        });
-                      });
-                      
-                      const reedsGewisseldePosities = kwart.wissels
-                        .filter((w, i) => i !== wisselIndex && w.positie)
-                        .map(w => w.positie);
-                      
-                      const berekenMinutenTotNu = () => {
-                        const minuten: Record<string, number> = {};
-                        wedstrijd.kwarten.forEach((k, ki) => {
-                          if (ki > kwartIndex) return;
-                          
-                          Object.entries(k.opstelling).forEach(([pos, sid]) => {
-                            if (!sid) return;
-                            const kwartWissel = k.wissels?.find(w => w.positie === pos);
-                            const min = kwartWissel && kwartWissel.wisselSpelerId ? 6.25 : k.minuten;
-                            minuten[sid] = (minuten[sid] || 0) + min;
-                          });
-                          
-                          k.wissels?.forEach(w => {
-                            if (w.wisselSpelerId) {
-                              minuten[w.wisselSpelerId] = (minuten[w.wisselSpelerId] || 0) + 6.25;
-                            }
-                          });
-                        });
-                        return minuten;
-                      };
-                      
-                      const minutenTotNu = berekenMinutenTotNu();
-                      
-                      const spelersInVeld = Object.entries(kwart.opstelling)
-                        .filter(([_, sid]) => sid)
-                        .filter(([pos, _]) => !reedsGewisseldePosities.includes(pos))
-                        .map(([pos, sid]) => ({
-                          spelerId: sid,
-                          positie: pos,
-                          naam: spelers.find(s => s.id.toString() === sid)?.naam || 'Onbekend',
-                          isKeeperGeweest: keepersDezeWedstrijd.has(sid),
-                          minutenGespeeld: minutenTotNu[sid] || 0
-                        }))
-                        .sort((a, b) => {
-                          if (a.isKeeperGeweest !== b.isKeeperGeweest) return a.isKeeperGeweest ? 1 : -1;
-                          return a.minutenGespeeld - b.minutenGespeeld;
-                        });
-                      
-                      const geselecteerdeSpeler = wissel.positie ? spelersInVeld.find(s => s.positie === wissel.positie) : null;
-                      
-                      const afwezigeSpelerIds = wedstrijd.afwezigeSpelers || [];
-                      const beschikbareWisselSpelers = spelers
-                        .filter(s => 
-                          !Object.values(kwart.opstelling).includes(s.id.toString()) &&
-                          !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString()) &&
-                          !afwezigeSpelerIds.includes(s.id)
-                        )
-                        .map(s => ({ ...s, minutenGespeeld: minutenTotNu[s.id.toString()] || 0 }))
-                        .sort((a, b) => a.minutenGespeeld - b.minutenGespeeld);
-                      
-                      return (
-                        <div key={wissel.id} className="bg-white rounded p-3 border-2 border-orange-200">
-                          <div className="flex gap-2 items-start">
-                            <div className="flex-1 grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-xs font-bold text-gray-700 block mb-1">🔴 Speler UIT (na 6,25 min)</label>
-                                <select 
-                                  value={wissel.positie} 
-                                  onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'positie', e.target.value)} 
-                                  className="w-full px-2 py-2 border-2 border-red-300 rounded-lg text-sm font-medium bg-red-50"
-                                >
-                                  <option value="">-- Kies speler --</option>
-                                  {spelersInVeld.map(s => (
-                                    <option key={s.spelerId} value={s.positie}>
-                                      {s.naam} ({s.minutenGespeeld} min • {s.positie}){s.isKeeperGeweest ? ' 🧤' : ''}
-                                    </option>
-                                  ))}
-                                </select>
-                                {geselecteerdeSpeler && (
-                                  <div className="text-xs mt-1 space-y-0.5">
-                                    <p className="text-gray-600 font-medium">⏱️ {geselecteerdeSpeler.minutenGespeeld} min gespeeld</p>
-                                    {geselecteerdeSpeler.isKeeperGeweest && (
-                                      <p className="text-blue-600 font-medium">🧤 Was/is keeper deze wedstrijd</p>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              
-                              <div>
-                                <label className="text-xs font-bold text-gray-700 block mb-1">🟢 Speler IN (na 6,25 min)</label>
-                                <select 
-                                  value={wissel.wisselSpelerId} 
-                                  onChange={(e) => onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', e.target.value)} 
-                                  className="w-full px-2 py-2 border-2 border-green-300 rounded-lg text-sm font-medium bg-green-50" 
-                                  disabled={!wissel.positie}
-                                >
-                                  <option value="">-- Kies speler --</option>
-                                  {beschikbareWisselSpelers.map(s => (
-                                    <option key={s.id} value={s.id}>
-                                      {s.naam} ({s.minutenGespeeld} min)
-                                    </option>
-                                  ))}
-                                </select>
-                                {!wissel.positie && <p className="text-xs text-orange-600 mt-1">⚠️ Kies eerst uit-speler</p>}
-                                {wissel.positie && beschikbareWisselSpelers.length === 0 && (
-                                  <p className="text-xs text-orange-600 mt-1">⚠️ Geen spelers beschikbaar</p>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <button 
-                              onClick={() => onVerwijderWissel(kwartIndex, wisselIndex)} 
-                              className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded transition-colors mt-5"
-                              title="Verwijder wissel"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
-                )}
-              </div>
+              <WisselsOverzicht
+                kwartIndex={kwartIndex}
+                kwart={kwart}
+                wedstrijd={wedstrijd}
+                spelers={spelers}
+                onVoegWisselToe={onVoegWisselToe}
+                onUpdateWissel={onUpdateWissel}
+                onVerwijderWissel={onVerwijderWissel}
+              />
               
               <div className="bg-blue-50 border-2 border-blue-200 rounded-lg overflow-hidden">
                 <button
