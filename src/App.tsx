@@ -11,7 +11,6 @@ import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
 import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden } from './firebaseService';
 
-
 function App() {
   // Auth state
   const [currentCoach, setCurrentCoach] = useState<Coach | null>(null);
