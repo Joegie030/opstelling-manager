@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Mail, Users, CheckCircle, Loader, AlertCircle, X } from 'lucide-react';
-import { inviteCoach, getTeam, Coach } from '../firebaseService';
+import { inviteCoach, getTeam, Coach } from '../firebase/firebaseService';
 
 interface Props {
   teamId: string;
