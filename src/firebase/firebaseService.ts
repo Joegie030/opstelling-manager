@@ -79,12 +79,16 @@ export const registerCoach = async (email: string, password: string, naam: strin
       formatie: '8x8',
       createdBy: user.uid,
       createdAt: new Date().toISOString(),
-      coaches: [user.uid]
+      coaches: [user.uid],
+      spelers: [],
+      wedstrijden: []
     };
 
+    // Sla team op EERST
     await setDoc(doc(db, 'teams', teamId), team);
+    console.log('✅ Team aangemaakt:', teamId);
 
-    // Maak coach profiel
+    // Maak coach profiel DAARNA
     const coach: Coach = {
       uid: user.uid,
       email,
@@ -95,9 +99,11 @@ export const registerCoach = async (email: string, password: string, naam: strin
     };
 
     await setDoc(doc(db, 'coaches', user.uid), coach);
+    console.log('✅ Coach profiel aangemaakt:', user.uid);
 
     return coach;
   } catch (error: any) {
+    console.error('❌ Registratie error:', error);
     throw new Error(error.message);
   }
 };
