@@ -502,7 +502,7 @@ export default function WedstrijdOpstelling({
               <div
                 key={idx}
                 className={`w-2 h-2 rounded-full transition-all ${
-                  idx < Math.floor((new Date().getMinutes() / 12.5) % 4) + 1)
+                  idx < Math.floor((new Date().getMinutes() / 12.5) % 4) + 1
                     ? 'bg-green-300'
                     : 'bg-blue-300 opacity-50'
                 }`}
