@@ -486,31 +486,6 @@ export default function WedstrijdOpstelling({
   return (
     <WedstrijdProvider value={contextValue}>
       <div className="space-y-6">
-        {/* STICKY KWART INDICATOR */}
-        <div className="sticky top-0 z-30 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-lg p-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Clock className="w-5 h-5" />
-            <div>
-              <p className="text-xs opacity-90">Huidge Kwart</p>
-              <p className="text-lg font-bold">Kwart {Math.floor((new Date().getMinutes() / 12.5) % 4) + 1} van 4</p>
-            </div>
-          </div>
-          
-          {/* Progressie indicator */}
-          <div className="flex gap-1">
-            {wedstrijd.kwarten.map((_, idx) => (
-              <div
-                key={idx}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  idx < Math.floor((new Date().getMinutes() / 12.5) % 4) + 1)
-                    ? 'bg-green-300'
-                    : 'bg-blue-300 opacity-50'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-
         <WedstrijdHeader 
           afwezigeInOpstelling={afwezigeInOpstelling}
           verwijderAfwezigeUitOpstelling={verwijderAfwezigeUitOpstelling}
@@ -521,36 +496,11 @@ export default function WedstrijdOpstelling({
           const [evaluatieOpen, setEvaluatieOpen] = useState(false);
           const [regelchecksOpen, setRegelchecksOpen] = useState(false);
           
-          const kwartColors = [
-            'from-blue-600 to-blue-700',
-            'from-green-600 to-green-700',
-            'from-orange-600 to-orange-700',
-            'from-red-600 to-red-700'
-          ];
-
           return (
-            <div key={kwartIndex} className="rounded-lg overflow-hidden shadow-lg">
-              {/* Kwart Header met kleur en contrast */}
-              <div className={`bg-gradient-to-r ${kwartColors[kwartIndex]} text-white p-4 sm:p-5`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-white bg-opacity-30 rounded-full p-2.5">
-                      <Clock className="w-6 h-6 sm:w-7 sm:h-7" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm opacity-90">Kwart {kwart.nummer}</p>
-                      <p className="text-2xl sm:text-3xl font-bold">Q{kwart.nummer}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs sm:text-sm opacity-90">Speeltijd</p>
-                    <p className="text-xl sm:text-2xl font-bold">{kwart.minuten} min</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Kwart Content */}
-              <div className="bg-white p-3 sm:p-4 space-y-4">
+            <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-white space-y-4">
+              <h3 className="font-bold mb-0 flex items-center gap-2 text-sm sm:text-base">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
+              </h3>
               
               {/* 🎮 VOETBALVELD - Visuele opstelling */}
               <VoetbalVeld
