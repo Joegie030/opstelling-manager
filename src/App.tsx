@@ -5,6 +5,7 @@ import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
 import WedstrijdOverzicht from './components/WedstrijdOverzicht.tsx';
+import Instellingen from './components/Instellingen.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
 
 function App() {
@@ -63,11 +64,6 @@ function App() {
     localStorage.setItem('voetbal_teamNaam', teamNaam);
   }, [teamNaam]);
 
-  // ... (alle je bestaande functies blijven hetzelfde: 
-  // kopieerWedstrijd, bevestigKopieerWedstrijd, verwijderWedstrijd, 
-  // addSpeler, removeSpeler, etc.)
-  // Ik heb ze hier weggelaten voor beknoptheid, maar die moeten allemaal blijven!
-
   const kopieerWedstrijd = (wedstrijd: Wedstrijd) => {
     setKopieerModal({
       open: true,
@@ -122,7 +118,23 @@ function App() {
     setSpelers(spelers.filter(s => s.id !== id));
   };
 
-  // ... (rest van je functies hier)
+  // NIEUW: Functie voor Import/Export
+  const handleImportData = (data: any) => {
+    // Data is al in localStorage gezet via Instellingen component
+    // Dit is voor state update
+    if (data.voetbal_spelers) {
+      setSpelers(JSON.parse(data.voetbal_spelers));
+    }
+    if (data.voetbal_wedstrijden) {
+      setWedstrijden(JSON.parse(data.voetbal_wedstrijden));
+    }
+    if (data.voetbal_clubNaam) {
+      setClubNaam(data.voetbal_clubNaam);
+    }
+    if (data.voetbal_teamNaam) {
+      setTeamNaam(data.voetbal_teamNaam);
+    }
+  };
 
   return (
     <Navigation
@@ -132,7 +144,6 @@ function App() {
       onScreenChange={setHuidigScherm}
       menuItems={DEFAULT_MENU_ITEMS}
       onLogout={() => {
-        // Logout logica hier (bijv. localStorage wissen)
         console.log('Logout');
       }}
     >
@@ -329,6 +340,20 @@ function App() {
           teamNaam={teamNaam}
           onUpdateClubNaam={setClubNaam}
           onUpdateTeamNaam={setTeamNaam}
+        />
+      )}
+
+      {/* INSTELLINGEN SCHERM - NIEUW! */}
+      {huidigScherm === 'instellingen' && (
+        <Instellingen
+          clubNaam={clubNaam}
+          teamNaam={teamNaam}
+          onUpdateClubNaam={setClubNaam}
+          onUpdateTeamNaam={setTeamNaam}
+          onExportData={() => {
+            // Export functie is in Instellingen component
+          }}
+          onImportData={handleImportData}
         />
       )}
 
