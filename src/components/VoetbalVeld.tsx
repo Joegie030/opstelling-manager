@@ -196,7 +196,7 @@ export default function VoetbalVeld({
 
       {/* Legend */}
       {isEditable && (
-        <div className="mt-2 sm:mt-3 p-2 bg-yellow-50 rounded text-xs text-gray-600 text-center">
+        <div className="mt-2 sm:mt-3 p-2 bg-green-50 rounded text-xs text-gray-600 text-center">
           💡 Klik op een speler om te wijzigen
         </div>
       )}
