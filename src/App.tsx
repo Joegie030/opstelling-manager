@@ -443,12 +443,17 @@ function App() {
                   <button
                     key={key}
                     onClick={() => {
-                      const newWedstrijd: Wedstrijd = {
+                      const gastspelerIds = spelers
+                        .filter(s => s.type === 'gast')
+                        .map(s => s.id);
+                      
+                        const newWedstrijd: Wedstrijd = {
                         id: Date.now(),
                         datum: new Date().toISOString().split('T')[0],
                         tegenstander: '',
                         formatie: key,
                         thuisUit: 'thuis',
+                        afwezigeSpelers: gastspelerIds,
                         kwarten: Array(4)
                           .fill(null)
                           .map((_, i) => ({
