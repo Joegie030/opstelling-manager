@@ -41,7 +41,6 @@ export default function TeamBeheer({
   const [creatingTeamMessage, setCreatingTeamMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
-  // PERMANENT FIX: Behandel lege/undefined type als 'vast'
   const vasteSpelers = spelers.filter(s => !s.type || s.type === 'vast');
   const gastSpelers = spelers.filter(s => s.type === 'gast');
 
@@ -65,12 +64,17 @@ export default function TeamBeheer({
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('=== FORM SUBMIT ===');
+    console.log('State values:', { newTeamClub, newTeamName });
+    console.log('Trimmed values:', { club: newTeamClub.trim(), team: newTeamName.trim() });
+    
     if (!currentCoach) {
       setCreatingTeamMessage({ type: 'error', text: 'Je moet ingelogd zijn' });
       return;
     }
 
     if (!newTeamClub.trim() || !newTeamName.trim()) {
+      console.log('❌ Validation failed - empty values');
       setCreatingTeamMessage({ type: 'error', text: 'Voer club en team naam in' });
       return;
     }
@@ -84,9 +88,14 @@ export default function TeamBeheer({
     setCreatingTeamMessage(null);
 
     try {
-      console.log('📋 TeamBeheer: Creating team with:', { club: newTeamClub, team: newTeamName });
+      console.log('📋 About to call createNewTeam with:');
+      console.log('  - coachUid:', currentCoach.uid);
+      console.log('  - clubNaam:', newTeamClub);
+      console.log('  - teamNaam:', newTeamName);
       
       const teamId = await createNewTeam(currentCoach.uid, newTeamClub, newTeamName);
+      
+      console.log('✅ Team created:', teamId);
       
       setCreatingTeamMessage({
         type: 'success',
@@ -98,11 +107,11 @@ export default function TeamBeheer({
       
       onNewTeamCreated?.();
       
-      // Refresh pagina zodat nieuwe team data wordt geladen
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     } catch (error: any) {
+      console.error('❌ Error:', error);
       setCreatingTeamMessage({
         type: 'error',
         text: error.message || 'Fout bij aanmaken team'
@@ -311,23 +320,35 @@ export default function TeamBeheer({
             </button>
           ) : (
             <form onSubmit={handleCreateTeam} className="space-y-3">
-              <input
-                type="text"
-                value={newTeamClub}
-                onChange={(e) => setNewTeamClub(e.target.value)}
-                placeholder="Club naam"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                disabled={creatingTeamLoading}
-                autoFocus
-              />
-              <input
-                type="text"
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                placeholder="Team naam"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                disabled={creatingTeamLoading}
-              />
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Club naam (state: "{newTeamClub}")</label>
+                <input
+                  type="text"
+                  value={newTeamClub}
+                  onChange={(e) => {
+                    console.log('Club input changed to:', e.target.value);
+                    setNewTeamClub(e.target.value);
+                  }}
+                  placeholder="Club naam"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  disabled={creatingTeamLoading}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Team naam (state: "{newTeamName}")</label>
+                <input
+                  type="text"
+                  value={newTeamName}
+                  onChange={(e) => {
+                    console.log('Team input changed to:', e.target.value);
+                    setNewTeamName(e.target.value);
+                  }}
+                  placeholder="Team naam"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  disabled={creatingTeamLoading}
+                />
+              </div>
               <div className="flex gap-2">
                 <button
                   type="submit"
