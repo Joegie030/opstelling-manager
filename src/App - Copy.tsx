@@ -9,6 +9,7 @@ import Instellingen from './components/Instellingen.tsx';
 import Help from './components/Help.tsx';
 import AuthScreen from './components/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
+import TeamSelector from './components/TeamSelector.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
 import { 
   getCurrentCoach, 
@@ -28,7 +29,7 @@ function App() {
   const [currentCoach, setCurrentCoach] = useState<Coach | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Multi-Tenant states
+  // STAP 4 NIEUW: Multi-Tenant states
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [coachTeams, setCoachTeams] = useState<Team[]>([]);
 
@@ -47,17 +48,19 @@ function App() {
     tegenstander: string;
   }>({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
 
-  // Check auth on mount
+  // STAP 4: Check auth on mount - UPDATED
   useEffect(() => {
     const unsubscribe = getCurrentCoach(async (coach) => {
       setCurrentCoach(coach);
       setAuthLoading(false);
 
+      // STAP 4: Laad alle teams voor deze coach
       if (coach) {
         try {
           const teams = await getCoachTeams(coach.uid);
           setCoachTeams(teams);
           
+          // Zet actieve team (prefer currentTeamId, fallback to teamId)
           const activeTeamId = coach.currentTeamId || coach.teamId || teams[0]?.teamId;
           if (activeTeamId) {
             setSelectedTeamId(activeTeamId);
@@ -72,7 +75,7 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // Load team data
+  // Laad team data van Firestore - UPDATED STAP 4
   const loadTeamData = async (teamId: string, coachUid: string) => {
     try {
       const data = await getTeamData(teamId, coachUid);
@@ -85,7 +88,7 @@ function App() {
     }
   };
 
-  // Handle team switch
+  // STAP 4 NIEUW: Handler voor team wisselen
   const handleTeamSwitch = async (teamId: string) => {
     if (!currentCoach) return;
     
@@ -98,24 +101,19 @@ function App() {
     }
   };
 
-  // Handle new team created
+  // STAP 4 NIEUW: Handler voor nieuw team aanmaken
   const handleNewTeam = async () => {
     if (!currentCoach) return;
     
     try {
       const teams = await getCoachTeams(currentCoach.uid);
       setCoachTeams(teams);
-      // Switch to the newly created team (last one)
-      if (teams.length > 0) {
-        const newestTeam = teams[teams.length - 1];
-        handleTeamSwitch(newestTeam.teamId);
-      }
     } catch (error) {
       console.error('Error refreshing teams:', error);
     }
   };
 
-  // Save spelers (auto-sync)
+  // Save spelers naar Firestore (auto-sync) - UPDATED STAP 4: voeg coachUid toe
   useEffect(() => {
     if (currentCoach && selectedTeamId && spelers.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -125,7 +123,7 @@ function App() {
     }
   }, [spelers, currentCoach, selectedTeamId]);
 
-  // Save wedstrijden (auto-sync)
+  // Save wedstrijden naar Firestore (auto-sync) - UPDATED STAP 4: voeg coachUid toe
   useEffect(() => {
     if (currentCoach && selectedTeamId && wedstrijden.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -135,7 +133,7 @@ function App() {
     }
   }, [wedstrijden, currentCoach, selectedTeamId]);
 
-  // Save team info (auto-sync)
+  // Save club en team naam naar Firestore (auto-sync) - UPDATED STAP 4: voeg coachUid toe
   useEffect(() => {
     if (currentCoach && selectedTeamId) {
       const saveTimeout = setTimeout(() => {
@@ -249,10 +247,20 @@ function App() {
       menuItems={DEFAULT_MENU_ITEMS}
       onLogout={handleLogout}
       currentCoach={currentCoach}
-      selectedTeamId={selectedTeamId}
-      coachTeams={coachTeams}
-      onTeamChange={handleTeamSwitch}
     >
+      {/* STAP 4 NIEUW: Team Selector - Voeg bovenaan toe */}
+      {currentCoach && coachTeams.length > 0 && (
+        <div className="mb-6">
+          <TeamSelector
+            currentCoach={currentCoach}
+            teams={coachTeams}
+            selectedTeamId={selectedTeamId}
+            onTeamChange={handleTeamSwitch}
+            onNewTeam={handleNewTeam}
+          />
+        </div>
+      )}
+
       {/* WEDSTRIJDEN SCHERM */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
@@ -487,10 +495,9 @@ function App() {
                 setWedstrijden([]);
               }
             }}
-            currentCoach={currentCoach}
-            onNewTeamCreated={handleNewTeam}
           />
 
+          {/* Invite Coaches - UPDATED STAP 4: gebruik selectedTeamId */}
           {currentCoach && selectedTeamId && (
             <InviteCoaches teamId={selectedTeamId} currentCoach={currentCoach} />
           )}

@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { Speler } from '../types';
-import { createNewTeam } from '../firebase/firebaseService';
-import { Coach } from '../firebase/firebaseService';
 
 interface Props {
   spelers: Speler[];
@@ -14,8 +12,6 @@ interface Props {
   onUpdateTeamNaam: (naam: string) => void;
   onLaadTestdata: () => void;
   onWisAlles: () => void;
-  currentCoach?: Coach | null;
-  onNewTeamCreated?: () => void;
 }
 
 export default function TeamBeheer({
@@ -27,21 +23,14 @@ export default function TeamBeheer({
   onUpdateClubNaam,
   onUpdateTeamNaam,
   onLaadTestdata,
-  onWisAlles,
-  currentCoach,
-  onNewTeamCreated
+  onWisAlles
 }: Props) {
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
   const [nieuwGastTeam, setNieuwGastTeam] = useState('');
-  const [isCreatingTeam, setIsCreatingTeam] = useState(false);
-  const [newTeamClub, setNewTeamClub] = useState('');
-  const [newTeamName, setNewTeamName] = useState('');
-  const [creatingTeamLoading, setCreatingTeamLoading] = useState(false);
-  const [creatingTeamMessage, setCreatingTeamMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Filter spelers
-  const vasteSpelers = spelers.filter(s => s.type !== 'vast');
+  const vasteSpelers = spelers.filter(s => s.type !== 'gast');
   const gastSpelers = spelers.filter(s => s.type === 'gast');
 
   const handleVoegSpelerToe = () => {
@@ -51,7 +40,7 @@ export default function TeamBeheer({
       onVoegSpelerToe(nieuwSpelerNaam, 'vast');
     } else {
       if (!nieuwGastTeam.trim()) {
-        alert('Voer team naam in voor gastspeaker');
+        alert('Voer team naam in voor gastspeeler');
         return;
       }
       onVoegSpelerToe(nieuwSpelerNaam, 'gast', nieuwGastTeam);
@@ -61,56 +50,11 @@ export default function TeamBeheer({
     setNieuwGastTeam('');
   };
 
-  const handleCreateTeam = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentCoach) {
-      setCreatingTeamMessage({ type: 'error', text: 'Je moet ingelogd zijn' });
-      return;
-    }
-
-    if (!newTeamClub.trim() || !newTeamName.trim()) {
-      setCreatingTeamMessage({ type: 'error', text: 'Voer club en team naam in' });
-      return;
-    }
-
-    if (currentCoach.rol !== 'admin') {
-      setCreatingTeamMessage({ type: 'error', text: 'Alleen admins kunnen teams aanmaken' });
-      return;
-    }
-
-    setCreatingTeamLoading(true);
-    setCreatingTeamMessage(null);
-
-    try {
-      const teamId = await createNewTeam(currentCoach.uid, newTeamClub, newTeamName);
-      setCreatingTeamMessage({
-        type: 'success',
-        text: `✅ Team "${newTeamClub} - ${newTeamName}" aangemaakt!`
-      });
-      setNewTeamClub('');
-      setNewTeamName('');
-      setIsCreatingTeam(false);
-      
-      // Callback voor parent om teams te herladen
-      onNewTeamCreated?.();
-      
-      setTimeout(() => setCreatingTeamMessage(null), 3000);
-    } catch (error: any) {
-      setCreatingTeamMessage({
-        type: 'error',
-        text: error.message || 'Fout bij aanmaken team'
-      });
-    } finally {
-      setCreatingTeamLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* ========== TEAM INFO ========== */}
       <div className="border-2 border-blue-400 rounded-lg p-4 bg-blue-50">
-        <h2 className="text-2xl font-bold mb-4">🏢 Team Instellingen</h2>
+        <h2 className="text-2xl font-bold mb-4">🏠 Team Instellingen</h2>
         
         <div className="space-y-4">
           {/* Club Naam */}
@@ -155,86 +99,6 @@ export default function TeamBeheer({
         </div>
       </div>
 
-      {/* ========== NIEUW TEAM AANMAKEN (ADMIN ONLY) ========== */}
-      {currentCoach?.rol === 'admin' && (
-        <div className="border-2 border-purple-400 rounded-lg p-4 bg-purple-50">
-          <h2 className="text-2xl font-bold mb-4">➕ Nieuw Team Aanmaken</h2>
-
-          {creatingTeamMessage && (
-            <div className={`p-3 rounded-lg mb-4 text-sm ${
-              creatingTeamMessage.type === 'success'
-                ? 'bg-green-100 text-green-800 border-2 border-green-300'
-                : 'bg-red-100 text-red-800 border-2 border-red-300'
-            }`}>
-              {creatingTeamMessage.text}
-            </div>
-          )}
-
-          {!isCreatingTeam ? (
-            <button
-              onClick={() => setIsCreatingTeam(true)}
-              className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 font-semibold flex items-center justify-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Maak Nieuw Team
-            </button>
-          ) : (
-            <form onSubmit={handleCreateTeam} className="space-y-3">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Club Naam</label>
-                <input
-                  type="text"
-                  value={newTeamClub}
-                  onChange={(e) => setNewTeamClub(e.target.value)}
-                  placeholder="Bijv: VV Ajax"
-                  className="w-full px-3 py-2 border-2 border-purple-300 rounded-lg text-sm"
-                  disabled={creatingTeamLoading}
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Team Naam</label>
-                <input
-                  type="text"
-                  value={newTeamName}
-                  onChange={(e) => setNewTeamName(e.target.value)}
-                  placeholder="Bijv: F1 - Oranje"
-                  className="w-full px-3 py-2 border-2 border-purple-300 rounded-lg text-sm"
-                  disabled={creatingTeamLoading}
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="submit"
-                  disabled={creatingTeamLoading || !newTeamClub.trim() || !newTeamName.trim()}
-                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                >
-                  {creatingTeamLoading ? '⏳ Bezig...' : '✅ Maak aan'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCreatingTeam(false);
-                    setNewTeamClub('');
-                    setNewTeamName('');
-                    setCreatingTeamMessage(null);
-                  }}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium text-sm transition-colors"
-                >
-                  Annuleer
-                </button>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-800">
-                💡 Je kan later coaches uitnodigen via het Instellingen menu.
-              </div>
-            </form>
-          )}
-        </div>
-      )}
-
       {/* ========== SPELAERSLIJST MET TABS ========== */}
       <div className="border-2 border-green-400 rounded-lg p-4 bg-green-50">
         <h2 className="text-2xl font-bold mb-4">👥 Spelaerslijst</h2>
@@ -259,7 +123,7 @@ export default function TeamBeheer({
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            🤝 Gastspeelers ({gastSpelers.length})
+            👤 Gastspeelers ({gastSpelers.length})
           </button>
         </div>
 
@@ -268,7 +132,7 @@ export default function TeamBeheer({
           {activeTab === 'vast' ? (
             <>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Speler Naam</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Spelaer Naam</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -344,7 +208,7 @@ export default function TeamBeheer({
                     <button
                       onClick={() => onVerwijderSpeler(speler.id)}
                       className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                      title="Verwijder speler"
+                      title="Verwijder spelaer"
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </button>
@@ -363,7 +227,7 @@ export default function TeamBeheer({
                     className="flex items-center justify-between p-3 bg-orange-100 border-2 border-orange-400 rounded-lg hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">🤝</span>
+                      <span className="text-xl">👤</span>
                       <div>
                         <div className="font-medium">{speler.naam}</div>
                         <div className="text-xs text-gray-600">Gast uit: {speler.team || 'Onbekend'}</div>
