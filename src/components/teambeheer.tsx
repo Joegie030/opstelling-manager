@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2, Loader, MoreVertical } from 'lucide-react';
 import { Speler } from '../types';
 import { createNewTeam } from '../firebase/firebaseService';
@@ -31,6 +31,16 @@ export default function TeamBeheer({
   currentCoach,
   onNewTeamCreated
 }: Props) {
+  // DEBUG
+  useEffect(() => {
+    console.log('=== TEAM BEHEER DEBUG ===');
+    console.log('Totaal spelers:', spelers.length);
+    console.log('Alle spelers:', spelers);
+    spelers.forEach((s, i) => {
+      console.log(`Speler ${i}: naam="${s.naam}", type="${s.type}", id=${s.id}`);
+    });
+  }, [spelers]);
+
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
   const [nieuwGastTeam, setNieuwGastTeam] = useState('');
@@ -43,6 +53,9 @@ export default function TeamBeheer({
 
   const vasteSpelers = spelers.filter(s => s.type === 'vast');
   const gastSpelers = spelers.filter(s => s.type === 'gast');
+
+  console.log('Gefilterde vaste spelers:', vasteSpelers);
+  console.log('Gefilterde gast spelers:', gastSpelers);
 
   const handleVoegSpelerToe = () => {
     if (!nieuwSpelerNaam.trim()) return;
@@ -136,6 +149,25 @@ export default function TeamBeheer({
         </div>
       </div>
 
+      {/* ========== DEBUG INFO ========== */}
+      <div className="border-2 border-red-400 rounded-lg p-4 bg-red-50">
+        <h4 className="font-bold text-red-900 mb-2">DEBUG INFO</h4>
+        <div className="text-xs space-y-1 text-red-800 font-mono">
+          <p>Totaal spelers: {spelers.length}</p>
+          <p>Vaste: {vasteSpelers.length}</p>
+          <p>Gast: {gastSpelers.length}</p>
+          <p>Actieve tab: {activeTab}</p>
+          {spelers.length > 0 && (
+            <>
+              <p className="mt-2">Eerste speler:</p>
+              <p>- type: "{spelers[0].type}"</p>
+              <p>- naam: "{spelers[0].naam}"</p>
+              <p>- type === 'vast': {spelers[0].type === 'vast' ? 'JA' : 'NEE'}</p>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* ========== VASTE SPELERS ========== */}
       <div className="border-2 border-green-400 rounded-lg p-6 bg-green-50">
         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">⚽ Vaste Spelers ({vasteSpelers.length})</h3>
@@ -145,7 +177,7 @@ export default function TeamBeheer({
           <div className="flex gap-2">
             <input
               type="text"
-              value={nieuwSpelerNaam}
+              value={activeTab === 'vast' ? nieuwSpelerNaam : ''}
               onChange={(e) => {
                 setNieuwSpelerNaam(e.target.value);
                 setActiveTab('vast');
