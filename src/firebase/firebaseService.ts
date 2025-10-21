@@ -325,9 +325,39 @@ export const getTeamData = async (teamId: string) => {
   }
 };
 
-// ============================================
-// CREATE NEW TEAM
-// ============================================
+// Get all teams for a coach
+export const getCoachTeams = async (coachUid: string): Promise<Team[]> => {
+  try {
+    const q = query(
+      collection(db, 'teams'),
+      where('coaches', 'array-contains', coachUid)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as Team);
+  } catch (error) {
+    console.error('Error getting coach teams:', error);
+    return [];
+  }
+};
+
+// Switch to different team
+export const switchTeam = async (coachUid: string, newTeamId: string): Promise<void> => {
+  try {
+    // Verify coach has access to this team
+    const team = await getTeam(newTeamId);
+    if (!team || !team.coaches.includes(coachUid)) {
+      throw new Error('Access denied to this team');
+    }
+    
+    // Update coach's current team
+    await updateDoc(doc(db, 'coaches', coachUid), {
+      teamId: newTeamId
+    });
+  } catch (error) {
+    console.error('Error switching team:', error);
+    throw error;
+  }
+};
 
 export const createNewTeam = async (coachUid: string, clubNaam: string, teamNaam: string): Promise<string> => {
   try {
