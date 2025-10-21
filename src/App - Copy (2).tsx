@@ -191,25 +191,18 @@ function App() {
       menuItems={DEFAULT_MENU_ITEMS}
       onLogout={handleLogout}
     >
-      {/* Coach info bar - MODERN & COMPACT */}
-      <div className="mb-6 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">
-            {currentCoach.naam.charAt(0).toUpperCase()}
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs text-gray-600">Ingelogd</p>
-            <p className="text-xs sm:text-sm font-semibold text-gray-800 truncate">{currentCoach.naam}</p>
-            <p className="text-xs text-gray-500 truncate">{currentCoach.email}</p>
-          </div>
+      {/* Coach info bar */}
+      <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-600">Ingelogd als:</p>
+          <p className="font-semibold text-gray-800">{currentCoach.naam} ({currentCoach.email})</p>
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-xs sm:text-sm transition-colors flex-shrink-0"
+          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold transition-colors"
         >
-          <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span className="hidden sm:inline">Uitloggen</span>
-          <span className="sm:hidden">Uit</span>
+          <LogOut className="w-4 h-4" />
+          Uitloggen
         </button>
       </div>
 
