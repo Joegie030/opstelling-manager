@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Menu, X, LogOut, ChevronDown } from 'lucide-react';
-import { Coach, Team } from '../types';
+import { Coach } from '../firebase/firebaseService';
+import { Team } from '../types';
 
 export const DEFAULT_MENU_ITEMS = [
   { id: 'wedstrijden', label: '📋 Wedstrijden', icon: '📋' },
