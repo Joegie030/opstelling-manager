@@ -495,56 +495,35 @@ export default function WedstrijdOpstelling({
           const [doelpuntenOpen, setDoelpuntenOpen] = useState(false);
           const [evaluatieOpen, setEvaluatieOpen] = useState(false);
           const [regelchecksOpen, setRegelchecksOpen] = useState(false);
-          const [wisselsOpen, setWisselsOpen] = useState(false);
           
           return (
-            <div key={kwartIndex} className="border-2 border-green-400 rounded-lg overflow-hidden bg-green-50">
-              {/* HEADER */}
-              <div className="bg-green-100 border-b-2 border-green-400 p-4">
-                <h3 className="font-bold flex items-center gap-2 text-sm sm:text-base text-green-900">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
-                </h3>
-              </div>
-              
-              {/* CONTENT */}
-              <div className="p-4 space-y-4 bg-white">
+            <div key={kwartIndex} className="border rounded-lg p-3 sm:p-4 bg-green-100 space-y-4">
+              <h3 className="font-bold mb-0 flex items-center gap-2 text-sm sm:text-base">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
+              </h3>
               
               {/* 🎮 VOETBALVELD - Visuele opstelling */}
-              <div className="border-2 border-green-300 rounded-lg p-4 bg-green-50">
-                <h4 className="font-semibold text-sm mb-3">🎮 Opstelling</h4>
-                <VoetbalVeld
-                  formatie={wedstrijd.formatie}
-                  opstelling={kwart.opstelling}
-                  spelers={spelers}
-                  teamNaam={teamNaam}
-                  isEditable={true}
-                  onSelectSpeler={(positie) => openSelectieModal(kwartIndex, positie)}
-                />
-              </div>
+              <VoetbalVeld
+                formatie={wedstrijd.formatie}
+                opstelling={kwart.opstelling}
+                spelers={spelers}
+                teamNaam={teamNaam}
+                isEditable={true}
+                onSelectSpeler={(positie) => openSelectieModal(kwartIndex, positie)}
+              />
               
-              <div className="border-2 border-orange-300 rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setWisselsOpen(!wisselsOpen)}
-                  className="w-full px-4 py-2 flex items-center justify-between hover:bg-orange-100 transition-colors bg-orange-50 font-semibold text-sm border-b-2 border-orange-300"
-                >
-                  <div className="flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    Wissels na 6,25 min
-                  </div>
-                  {wisselsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-                
-                {wisselsOpen && (
-                  <div className="p-3 bg-orange-50 space-y-3 border-t-2 border-orange-300">
-                    <button 
-                      onClick={() => onVoegWisselToe(kwartIndex)} 
-                      className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium flex items-center justify-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Wissel toevoegen
-                    </button>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold text-sm">Wissels na 6,25 min</h4>
+                  <button 
+                    onClick={() => onVoegWisselToe(kwartIndex)} 
+                    className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 text-sm"
+                  >
+                    <Plus className="w-3 h-3" />Wissel toevoegen
+                  </button>
+                </div>
                 {kwart.wissels && kwart.wissels.length > 0 ? (
-                      <div className="space-y-3">
+                  <div className="space-y-3">
                     {kwart.wissels.map((wissel, wisselIndex) => {
                       const keepersDezeWedstrijd = new Set<string>();
                       wedstrijd.kwarten.forEach((k, ki) => {
@@ -675,20 +654,18 @@ export default function WedstrijdOpstelling({
                     })}
                   </div>
                 ) : (
-                      <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
-                    )}
-                    </div>
-                  )}
-                </div>
+                  <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
+                )}
+              </div>
               
-              <div className="border-2 border-blue-300 rounded-lg overflow-hidden">
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setDoelpuntenOpen(!doelpuntenOpen)}
-                  className="w-full px-4 py-2 flex items-center justify-between hover:bg-blue-100 transition-colors bg-blue-50 font-semibold text-sm border-b-2 border-blue-300"
+                  className="w-full px-3 py-2 flex items-center justify-between hover:bg-blue-100 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">⚽</span>
-                    <span>
+                    <span className="text-sm font-semibold text-gray-700">
                       Doelpunten Kwart {kwart.nummer}
                     </span>
                     {kwart.doelpunten && kwart.doelpunten.length > 0 && (
@@ -705,7 +682,7 @@ export default function WedstrijdOpstelling({
                 </button>
                 
                 {doelpuntenOpen && (
-                  <div className="p-3 bg-blue-50 border-t-2 border-blue-300">
+                  <div className="px-3 py-3 border-t border-blue-200 bg-white">
                     <ScoreTracking
                       kwartIndex={kwartIndex}
                       wedstrijd={wedstrijd}
@@ -908,7 +885,7 @@ export default function WedstrijdOpstelling({
                   )}
                 </div>
               )}
-            </div>
+                
             </div>
           );
         })}
