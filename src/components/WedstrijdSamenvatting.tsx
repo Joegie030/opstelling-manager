@@ -129,26 +129,50 @@ export function WedstrijdSamenvatting() {
             <div className="p-4 space-y-3 bg-gray-50">
               <div className="bg-white border-l-4 border-purple-500 p-3 rounded">
                 <p className="text-sm text-gray-700">
-                  <strong>{teamNaam}</strong> speelde tegen <strong>{wedstrijd.tegenstander || 'Tegenstander'}</strong> op {wedstrijd.datum}.
+                  {wedstrijd.thuisUit === 'uit' ? (
+                    <>
+                      <strong>{wedstrijd.tegenstander || 'Tegenstander'}</strong> (thuis) tegen <strong>{teamNaam}</strong> (uit) op {wedstrijd.datum}.
+                    </>
+                  ) : (
+                    <>
+                      <strong>{teamNaam}</strong> (thuis) tegen <strong>{wedstrijd.tegenstander || 'Tegenstander'}</strong> (uit) op {wedstrijd.datum}.
+                    </>
+                  )}
                 </p>
                 <p className="text-sm text-gray-700 mt-2">
                   De wedstrijd eindigde in een <strong>{eindstand.resultaat === 'gewonnen' ? 'overwinning ✅' : eindstand.resultaat === 'verloren' ? 'verlies ❌' : 'gelijkspel 🤝'}</strong>.
                 </p>
               </div>
               
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3 text-center">
-                  <div className="text-3xl font-bold text-blue-600">{eindstand.eigenDoelpunten}</div>
-                  <div className="text-xs text-gray-600 mt-1">{teamNaam}</div>
+              {wedstrijd.thuisUit === 'uit' ? (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-3 text-center">
+                    <div className="text-3xl font-bold text-gray-600">{eindstand.tegenstanderDoelpunten}</div>
+                    <div className="text-xs text-gray-600 mt-1">{wedstrijd.tegenstander || 'Tegenstander'} 🏠</div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-2xl font-bold text-gray-500">-</div>
+                  </div>
+                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3 text-center">
+                    <div className="text-3xl font-bold text-blue-600">{eindstand.eigenDoelpunten}</div>
+                    <div className="text-xs text-gray-600 mt-1">{teamNaam} ✈️</div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center">
-                  <div className="text-2xl font-bold text-gray-500">-</div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3 text-center">
+                    <div className="text-3xl font-bold text-blue-600">{eindstand.eigenDoelpunten}</div>
+                    <div className="text-xs text-gray-600 mt-1">{teamNaam} 🏠</div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-2xl font-bold text-gray-500">-</div>
+                  </div>
+                  <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-3 text-center">
+                    <div className="text-3xl font-bold text-gray-600">{eindstand.tegenstanderDoelpunten}</div>
+                    <div className="text-xs text-gray-600 mt-1">{wedstrijd.tegenstander || 'Tegenstander'}</div>
+                  </div>
                 </div>
-                <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3 text-center">
-                  <div className="text-3xl font-bold text-red-600">{eindstand.tegenstanderDoelpunten}</div>
-                  <div className="text-xs text-gray-600 mt-1">{wedstrijd.tegenstander || 'Tegenstander'}</div>
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
