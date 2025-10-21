@@ -9,7 +9,7 @@ import Instellingen from './components/Instellingen.tsx';
 import Help from './components/Help.tsx';
 import AuthScreen from './components/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
-import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
+import Navigation, { DEFAULT_MENU_ITEMS } from './components/Navigation';
 import { 
   getCurrentCoach, 
   logoutCoach, 
