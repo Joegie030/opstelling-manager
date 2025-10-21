@@ -43,6 +43,9 @@ export default function TeamBeheer({
 
   const vasteSpelers = spelers.filter(s => !s.type || s.type === 'vast');
   const gastSpelers = spelers.filter(s => s.type === 'gast');
+  
+  // Check of we een geldig team hebben (niet default waarden)
+  const hasValidTeam = clubNaam !== 'Mijn Club' && teamNaam !== 'Team A';
 
   const handleVoegSpelerToe = () => {
     if (!nieuwSpelerNaam.trim()) return;
@@ -64,17 +67,12 @@ export default function TeamBeheer({
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('=== FORM SUBMIT ===');
-    console.log('State values:', { newTeamClub, newTeamName });
-    console.log('Trimmed values:', { club: newTeamClub.trim(), team: newTeamName.trim() });
-    
     if (!currentCoach) {
       setCreatingTeamMessage({ type: 'error', text: 'Je moet ingelogd zijn' });
       return;
     }
 
     if (!newTeamClub.trim() || !newTeamName.trim()) {
-      console.log('❌ Validation failed - empty values');
       setCreatingTeamMessage({ type: 'error', text: 'Voer club en team naam in' });
       return;
     }
@@ -88,14 +86,7 @@ export default function TeamBeheer({
     setCreatingTeamMessage(null);
 
     try {
-      console.log('📋 About to call createNewTeam with:');
-      console.log('  - coachUid:', currentCoach.uid);
-      console.log('  - clubNaam:', newTeamClub);
-      console.log('  - teamNaam:', newTeamName);
-      
       const teamId = await createNewTeam(currentCoach.uid, newTeamClub, newTeamName);
-      
-      console.log('✅ Team created:', teamId);
       
       setCreatingTeamMessage({
         type: 'success',
@@ -111,7 +102,6 @@ export default function TeamBeheer({
         window.location.reload();
       }, 2000);
     } catch (error: any) {
-      console.error('❌ Error:', error);
       setCreatingTeamMessage({
         type: 'error',
         text: error.message || 'Fout bij aanmaken team'
@@ -121,6 +111,87 @@ export default function TeamBeheer({
     }
   };
 
+  // Als er geen geldig team is, toon ALLEEN "Nieuw Team Aanmaken"
+  if (!hasValidTeam) {
+    return (
+      <div className="space-y-6">
+        <div className="border-2 border-purple-400 rounded-lg p-8 bg-purple-50">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">➕ Welkom!</h2>
+          <p className="text-gray-700 mb-6">Je hebt nog geen team aangemaakt. Maak er nu een!</p>
+
+          {creatingTeamMessage && (
+            <div className={`p-3 rounded-lg mb-4 text-sm font-medium ${
+              creatingTeamMessage.type === 'success'
+                ? 'bg-green-100 text-green-800 border border-green-300'
+                : 'bg-red-100 text-red-800 border border-red-300'
+            }`}>
+              {creatingTeamMessage.text}
+            </div>
+          )}
+
+          {!isCreatingTeam ? (
+            <button
+              onClick={() => setIsCreatingTeam(true)}
+              className="w-full px-6 py-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-lg flex items-center justify-center gap-2"
+            >
+              <Plus className="w-6 h-6" />
+              Maak Nieuw Team
+            </button>
+          ) : (
+            <form onSubmit={handleCreateTeam} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Club naam</label>
+                <input
+                  type="text"
+                  value={newTeamClub}
+                  onChange={(e) => setNewTeamClub(e.target.value)}
+                  placeholder="Bijv: PVCV"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  disabled={creatingTeamLoading}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Team naam</label>
+                <input
+                  type="text"
+                  value={newTeamName}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  placeholder="Bijv: JO10-2"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  disabled={creatingTeamLoading}
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={creatingTeamLoading || !newTeamClub.trim() || !newTeamName.trim()}
+                  className="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {creatingTeamLoading && <Loader className="w-5 h-5 animate-spin" />}
+                  {creatingTeamLoading ? 'Bezig...' : 'Team Aanmaken'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreatingTeam(false);
+                    setNewTeamClub('');
+                    setNewTeamName('');
+                    setCreatingTeamMessage(null);
+                  }}
+                  className="flex-1 px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-semibold"
+                >
+                  Annuleer
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Als er wel een geldig team is, toon alles normaal
   return (
     <div className="space-y-6">
       {/* ========== TEAM INFO ========== */}
@@ -294,87 +365,6 @@ export default function TeamBeheer({
           </div>
         )}
       </div>
-
-      {/* ========== NIEUW TEAM (ADMIN ONLY) ========== */}
-      {currentCoach?.rol === 'admin' && (
-        <div className="border-2 border-purple-400 rounded-lg p-6 bg-purple-50">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">➕ Nieuw Team Aanmaken</h3>
-
-          {creatingTeamMessage && (
-            <div className={`p-3 rounded-lg mb-4 text-sm font-medium ${
-              creatingTeamMessage.type === 'success'
-                ? 'bg-green-100 text-green-800 border border-green-300'
-                : 'bg-red-100 text-red-800 border border-red-300'
-            }`}>
-              {creatingTeamMessage.text}
-            </div>
-          )}
-
-          {!isCreatingTeam ? (
-            <button
-              onClick={() => setIsCreatingTeam(true)}
-              className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-medium text-sm flex items-center justify-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Maak Nieuw Team
-            </button>
-          ) : (
-            <form onSubmit={handleCreateTeam} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Club naam (state: "{newTeamClub}")</label>
-                <input
-                  type="text"
-                  value={newTeamClub}
-                  onChange={(e) => {
-                    console.log('Club input changed to:', e.target.value);
-                    setNewTeamClub(e.target.value);
-                  }}
-                  placeholder="Club naam"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  disabled={creatingTeamLoading}
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Team naam (state: "{newTeamName}")</label>
-                <input
-                  type="text"
-                  value={newTeamName}
-                  onChange={(e) => {
-                    console.log('Team input changed to:', e.target.value);
-                    setNewTeamName(e.target.value);
-                  }}
-                  placeholder="Team naam"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  disabled={creatingTeamLoading}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={creatingTeamLoading || !newTeamClub.trim() || !newTeamName.trim()}
-                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {creatingTeamLoading && <Loader className="w-4 h-4 animate-spin" />}
-                  {creatingTeamLoading ? 'Bezig...' : 'Maak aan'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCreatingTeam(false);
-                    setNewTeamClub('');
-                    setNewTeamName('');
-                    setCreatingTeamMessage(null);
-                  }}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium text-sm"
-                >
-                  Annuleer
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      )}
 
       {/* ========== MEER OPTIES (Testdata + Wissen) ========== */}
       <div className="relative">
