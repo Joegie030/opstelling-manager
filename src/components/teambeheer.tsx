@@ -64,7 +64,7 @@ export default function TeamBeheer({
               value={clubNaam}
               onChange={(e) => onUpdateClubNaam(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              placeholder="Bijv: VV Amsterdam"
+              placeholder="Bijv: VV Clubnaam"
             />
           </div>
 
@@ -143,7 +143,7 @@ export default function TeamBeheer({
 
       {/* ========== GASTSPEAKERS ========== */}
       <div className="border-2 border-orange-400 rounded-lg p-6 bg-orange-50">
-        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">🤝 Gastspeakers ({gastSpelers.length})</h3>
+        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">🤝 Gastspelers ({gastSpelers.length})</h3>
 
         <div className="mb-4 space-y-2">
           <input
@@ -159,7 +159,7 @@ export default function TeamBeheer({
                 handleVoegSpelerToe();
               }
             }}
-            placeholder="Gastspeaker naam"
+            placeholder="Gastspeler naam"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
           />
           <div className="flex gap-2">
@@ -193,7 +193,7 @@ export default function TeamBeheer({
         </div>
 
         {gastSpelers.length === 0 ? (
-          <p className="text-center py-6 text-gray-600 text-sm">Nog geen gastspeakers</p>
+          <p className="text-center py-6 text-gray-600 text-sm">Nog geen gastspelers</p>
         ) : (
           <div className="space-y-2">
             {gastSpelers.map(speler => (
