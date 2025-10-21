@@ -34,7 +34,7 @@ export interface Wedstrijd {
   datum: string;
   tegenstander: string;
   thuisUit: 'thuis' | 'uit';
-  type?: 'competitie' | 'oefenwedstrijd' | 'vriendschappelijk';
+  type?: 'competitie' | 'oefenwedstrijd';
   formatie: '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8';
   kwarten: Kwart[];
   afwezigeSpelers?: number[];

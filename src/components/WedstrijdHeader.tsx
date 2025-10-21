@@ -104,13 +104,12 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
             </div>
             <select
               value={wedstrijd.type || ''}
-              onChange={(e) => onUpdateWedstrijdType(e.target.value as 'competitie' | 'oefenwedstrijd' | 'vriendschappelijk' | '')}
-              className="px-3 py-2 border-2 border-green-500 rounded-lg font-medium text-sm bg-white"
+              onChange={(e) => onUpdateWedstrijdType(e.target.value as any)}
+              className="px-3 py-2 border-2 border-green-500 rounded-lg font-medium text-sm bg-white cursor-pointer"
             >
               <option value="">-- Type --</option>
               <option value="competitie">🏆 Competitie</option>
               <option value="oefenwedstrijd">🎯 Oefenwedstrijd</option>
-              <option value="vriendschappelijk">🤝 Vriendschappelijk</option>
             </select>
           </div>
           
