@@ -960,6 +960,9 @@ export default function WedstrijdOpstelling({
           );
         })()}
 
+        {/* 📊 WEDSTRIJD SAMENVATTING - Automatisch gegenereerd overzicht van de hele wedstrijd */}
+        <WedstrijdSamenvatting />
+
         <div className="border rounded-lg p-3 sm:p-4 bg-green-50">
           <h3 className="font-bold mb-3 flex items-center gap-2 text-sm sm:text-base">📋 Regelcheck Samenvatting</h3>
           {(() => {
