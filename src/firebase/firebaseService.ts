@@ -79,16 +79,12 @@ export const registerCoach = async (email: string, password: string, naam: strin
       formatie: '8x8',
       createdBy: user.uid,
       createdAt: new Date().toISOString(),
-      coaches: [user.uid],
-      spelers: [],
-      wedstrijden: []
+      coaches: [user.uid]
     };
 
-    // Sla team op EERST
     await setDoc(doc(db, 'teams', teamId), team);
-    console.log('✅ Team aangemaakt:', teamId);
 
-    // Maak coach profiel DAARNA
+    // Maak coach profiel
     const coach: Coach = {
       uid: user.uid,
       email,
@@ -99,11 +95,9 @@ export const registerCoach = async (email: string, password: string, naam: strin
     };
 
     await setDoc(doc(db, 'coaches', user.uid), coach);
-    console.log('✅ Coach profiel aangemaakt:', user.uid);
 
     return coach;
   } catch (error: any) {
-    console.error('❌ Registratie error:', error);
     throw new Error(error.message);
   }
 };
@@ -274,6 +268,20 @@ export const saveWedstrijden = async (teamId: string, wedstrijden: any[]): Promi
     });
   } catch (error) {
     console.error('Error saving wedstrijden:', error);
+    throw error;
+  }
+};
+
+// Save club en team naam
+export const saveTeamInfo = async (teamId: string, clubNaam: string, teamNaam: string): Promise<void> => {
+  try {
+    await updateDoc(doc(db, 'teams', teamId), {
+      clubNaam: clubNaam,
+      teamNaam: teamNaam
+    });
+    console.log('✅ Team info opgeslagen:', clubNaam, teamNaam);
+  } catch (error) {
+    console.error('Error saving team info:', error);
     throw error;
   }
 };
