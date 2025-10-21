@@ -143,9 +143,58 @@ export default function WedstrijdOverzicht({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Wedstrijden</h2>
+      {/* FILTER SECTION - COLLAPSIBLE */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold">Wedstrijden</h2>
+        </div>
+        {/* Filter toggle button - compact */}
+        <button
+          onClick={() => setFilterOpen(!filterOpen)}
+          className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded border border-gray-300 transition-colors flex items-center gap-1"
+        >
+          <span>🔍</span>
+          <span className="hidden sm:inline">Filter</span>
+          <span className="text-xs">{filterOpen ? '▼' : '▶'}</span>
+        </button>
       </div>
+
+      {/* Filter options - expandable */}
+      {filterOpen && (
+        <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-semibold text-gray-600">Type:</span>
+          <button
+            onClick={() => setTypeFilter('all')}
+            className={`text-xs px-2 py-1 rounded transition-colors ${
+              typeFilter === 'all'
+                ? 'bg-gray-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Alle
+          </button>
+          <button
+            onClick={() => setTypeFilter('competitie')}
+            className={`text-xs px-2 py-1 rounded transition-colors ${
+              typeFilter === 'competitie'
+                ? 'bg-gray-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            🏆 Competitie
+          </button>
+          <button
+            onClick={() => setTypeFilter('oefenwedstrijd')}
+            className={`text-xs px-2 py-1 rounded transition-colors ${
+              typeFilter === 'oefenwedstrijd'
+                ? 'bg-gray-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            🎯 Oefenwedstrijd
+          </button>
+        </div>
+      )}
 
       {/* Nieuwe Wedstrijd Knop */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -157,59 +206,6 @@ export default function WedstrijdOverzicht({
           Nieuwe Wedstrijd
         </button>
       </div>
-
-      {/* FILTER SECTION - COLLAPSIBLE */}
-      <div className="space-y-2">
-        {/* Filter toggle button */}
-        <button
-          onClick={() => setFilterOpen(!filterOpen)}
-          className="w-full md:w-auto px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded border border-gray-300 transition-colors flex items-center justify-center md:justify-start gap-2"
-        >
-          <span>🔍</span>
-          <span>Filter</span>
-          <span className="text-xs">{filterOpen ? '▼' : '▶'}</span>
-        </button>
-
-        {/* Filter options - expandable */}
-        {filterOpen && (
-          <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => setTypeFilter('all')}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
-                  typeFilter === 'all'
-                    ? 'bg-gray-600 text-white'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Alle
-              </button>
-              <button
-                onClick={() => setTypeFilter('competitie')}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
-                  typeFilter === 'competitie'
-                    ? 'bg-gray-600 text-white'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                🏆 Competitie
-              </button>
-              <button
-                onClick={() => setTypeFilter('oefenwedstrijd')}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
-                  typeFilter === 'oefenwedstrijd'
-                    ? 'bg-gray-600 text-white'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                🎯 Oefenwedstrijd
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* KOMENDE WEDSTRIJDEN */}
       {komendWedstrijden.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-4">
