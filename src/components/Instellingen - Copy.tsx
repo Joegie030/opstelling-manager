@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Download, Upload, AlertCircle, CheckCircle, Trash2, Loader } from 'lucide-react';
-import { fixEmptySpelerTypes } from '../firebase/migration_fixSpelerTypes';
+import { Download, Upload, AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
 
 interface Props {
   clubNaam: string;
@@ -29,8 +28,6 @@ export default function Instellingen({
     type: 'import' | 'reset';
     data?: any;
   }>({ open: false, type: 'import' });
-
-  const [migrationLoading, setMigrationLoading] = useState(false);
 
   // Export: Download JSON bestand
   const handleExport = () => {
@@ -157,35 +154,6 @@ export default function Instellingen({
     }, 2000);
   };
 
-  // Migration: Fix empty speler types
-  const handleMigration = async () => {
-    setMigrationLoading(true);
-    try {
-      const result = await fixEmptySpelerTypes();
-      if (result.success) {
-        setImportStatus({
-          type: 'success',
-          message: `✅ ${result.fixed} spelers gefixed! Page wordt vernieuwd...`
-        });
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        setImportStatus({
-          type: 'error',
-          message: '❌ Migration failed'
-        });
-      }
-    } catch (error) {
-      setImportStatus({
-        type: 'error',
-        message: '❌ Fout bij migration'
-      });
-    } finally {
-      setMigrationLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Instellingen</h2>
@@ -285,32 +253,6 @@ export default function Instellingen({
         </div>
       </div>
 
-      {/* MIGRATION: Fix empty speler types */}
-      <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 sm:p-6 space-y-4">
-        <h3 className="text-xl font-bold flex items-center gap-2">
-          🔧 Database Fix
-        </h3>
-
-        <p className="text-sm text-gray-700">
-          Dit corrigeert spelers in de database die geen type hebben ingesteld. Dit hoef je maar eenmalig uit te voeren.
-        </p>
-
-        <button
-          onClick={handleMigration}
-          disabled={migrationLoading}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {migrationLoading && <Loader className="w-5 h-5 animate-spin" />}
-          <span>{migrationLoading ? 'Bezig...' : '🔧 Fix Speler Types'}</span>
-        </button>
-
-        <div className="bg-white rounded-lg p-3 border border-purple-200 text-sm">
-          <p className="text-purple-800">
-            ℹ️ Dit zal spelers zonder type automatisch als "vast" instellen en opslaan in Firebase.
-          </p>
-        </div>
-      </div>
-
       {/* Gevaarlijke acties */}
       <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 sm:p-6 space-y-4">
         <h3 className="text-xl font-bold flex items-center gap-2">
@@ -343,7 +285,7 @@ export default function Instellingen({
             <strong>Versie:</strong> 1.0
           </p>
           <p>
-            <strong>Opslag:</strong> Firebase (met cloud sync)
+            <strong>Opslag:</strong> Lokale browser storage (geen internet nodig)
           </p>
           <p>
             <strong>Backup:</strong> Download regelmatig een backup!
