@@ -208,9 +208,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       };
     });
 
-    // Count posities en wins
     wedstrijden.forEach((wed, wedIdx) => {
-      // Bereken of team deze wedstrijd won
       let eigenDoelpunten = 0;
       let tegenstanderDoelpunten = 0;
       wed.kwarten.forEach(kwart => {
@@ -249,7 +247,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       });
     });
 
-    // Bereken percentages en best positie
     Object.values(stats).forEach(stat => {
       const totaal = Object.values(stat.posities).reduce((sum, p) => sum + p.count, 0);
       let bestPositie = '';
@@ -259,7 +256,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         data.percentage = totaal > 0 ? Math.round((data.count / totaal) * 100) : 0;
         data.successRate = data.count > 0 ? Math.round((data.wins / data.count) * 100) : 0;
         
-        if (data.successRate > bestSuccessRate && data.count >= 2) { // Minimaal 2x gespeeld
+        if (data.successRate > bestSuccessRate && data.count >= 2) {
           bestSuccessRate = data.successRate;
           bestPositie = pos;
         }
@@ -284,7 +281,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       beter: number;
       totaal: number;
       percentage: number;
-      trend: 'improving' | 'stable' | 'declining' | 'new';
     }
 
     const themaStats: Record<string, ThemaSucces> = {};
@@ -297,8 +293,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         goed: 0,
         beter: 0,
         totaal: 0,
-        percentage: 0,
-        trend: 'new'
+        percentage: 0
       };
     });
 
@@ -325,70 +320,57 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       }
     });
 
-    Object.values(themaStats).forEach(stat => {
-      if (stat.totaal < 2) {
-        stat.trend = 'new';
-      } else {
-        const firstHalf = wedstrijden.slice(0, Math.ceil(wedstrijden.length / 2));
-        const secondHalf = wedstrijden.slice(Math.ceil(wedstrijden.length / 2));
-
-        let firstHalfGoed = 0;
-        let firstHalfTotal = 0;
-        let secondHalfGoed = 0;
-        let secondHalfTotal = 0;
-
-        firstHalf.forEach(wed => {
-          wed.kwarten.forEach(k => {
-            if (k.themaBeoordelingen?.[stat.id]) {
-              if (k.themaBeoordelingen[stat.id] === 'goed') firstHalfGoed++;
-              firstHalfTotal++;
-            }
-          });
-        });
-
-        secondHalf.forEach(wed => {
-          wed.kwarten.forEach(k => {
-            if (k.themaBeoordelingen?.[stat.id]) {
-              if (k.themaBeoordelingen[stat.id] === 'goed') secondHalfGoed++;
-              secondHalfTotal++;
-            }
-          });
-        });
-
-        const firstHalfPercent = firstHalfTotal > 0 ? firstHalfGoed / firstHalfTotal : 0;
-        const secondHalfPercent = secondHalfTotal > 0 ? secondHalfGoed / secondHalfTotal : 0;
-
-        if (secondHalfPercent > firstHalfPercent + 0.1) {
-          stat.trend = 'improving';
-        } else if (secondHalfPercent < firstHalfPercent - 0.1) {
-          stat.trend = 'declining';
-        } else {
-          stat.trend = 'stable';
-        }
-      }
-    });
-
     return Object.values(themaStats);
   };
 
   // ============================================
-  // PRIORITY 2: TRENDS
+  // PRIORITY 2: NIEUWE TRENDS
   // ============================================
-  const berekenTrends = () => {
-    interface Trend {
-      doelpunten: { voor: number[]; tegen: number[] };
-      doelsaldo: number[];
-      winPercentage: number[];
+  
+  // TREND 1: DOELPUNTEN PER KWART
+  const berekenDoelpuntenPerKwart = () => {
+    interface KwartStats {
+      kwartNummer: number;
+      eigenDoelpunten: number;
+      tegenstanderDoelpunten: number;
+      gemiddeldEigen: number;
+      gemiddeldTegenstander: number;
     }
 
-    const trends: Trend = {
-      doelpunten: { voor: [], tegen: [] },
-      doelsaldo: [],
-      winPercentage: []
-    };
+    const kwartStats: KwartStats[] = [
+      { kwartNummer: 1, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
+      { kwartNummer: 2, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
+      { kwartNummer: 3, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
+      { kwartNummer: 4, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 }
+    ];
 
-    let cumulativeWonnen = 0;
-    let cumulativeTotaal = 0;
+    wedstrijden.forEach(wed => {
+      wed.kwarten.forEach(kwart => {
+        if (kwart.doelpunten) {
+          kwart.doelpunten.forEach(doelpunt => {
+            if (doelpunt.type === 'eigen') {
+              kwartStats[kwart.nummer - 1].eigenDoelpunten++;
+            } else {
+              kwartStats[kwart.nummer - 1].tegenstanderDoelpunten++;
+            }
+          });
+        }
+      });
+    });
+
+    const aantalWedstrijden = wedstrijden.length || 1;
+    kwartStats.forEach(stat => {
+      stat.gemiddeldEigen = Math.round((stat.eigenDoelpunten / aantalWedstrijden) * 10) / 10;
+      stat.gemiddeldTegenstander = Math.round((stat.tegenstanderDoelpunten / aantalWedstrijden) * 10) / 10;
+    });
+
+    return kwartStats;
+  };
+
+  // TREND 2: THUIS VS UIT
+  const berekenThuisUitTrend = () => {
+    let thuisGewonnen = 0, thuisVerloren = 0, thuisGelijk = 0;
+    let uitGewonnen = 0, uitVerloren = 0, uitGelijk = 0;
 
     wedstrijden.forEach(wed => {
       let eigenDoelpunten = 0;
@@ -403,17 +385,106 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         }
       });
 
-      trends.doelpunten.voor.push(eigenDoelpunten);
-      trends.doelpunten.tegen.push(tegenstanderDoelpunten);
-      trends.doelsaldo.push(eigenDoelpunten - tegenstanderDoelpunten);
-
-      if (eigenDoelpunten > tegenstanderDoelpunten) cumulativeWonnen++;
-      if (eigenDoelpunten > 0 || tegenstanderDoelpunten > 0) cumulativeTotaal++;
-
-      trends.winPercentage.push(cumulativeTotaal > 0 ? Math.round((cumulativeWonnen / cumulativeTotaal) * 100) : 0);
+      const isThuis = wed.thuisUit !== 'uit';
+      
+      if (eigenDoelpunten > tegenstanderDoelpunten) {
+        if (isThuis) thuisGewonnen++;
+        else uitGewonnen++;
+      } else if (eigenDoelpunten < tegenstanderDoelpunten) {
+        if (isThuis) thuisVerloren++;
+        else uitVerloren++;
+      } else if (eigenDoelpunten > 0 || tegenstanderDoelpunten > 0) {
+        if (isThuis) thuisGelijk++;
+        else uitGelijk++;
+      }
     });
 
-    return trends;
+    const thuisTotal = thuisGewonnen + thuisVerloren + thuisGelijk;
+    const uitTotal = uitGewonnen + uitVerloren + uitGelijk;
+
+    return {
+      thuis: {
+        gewonnen: thuisGewonnen,
+        verloren: thuisVerloren,
+        gelijk: thuisGelijk,
+        totaal: thuisTotal,
+        winPercentage: thuisTotal > 0 ? Math.round((thuisGewonnen / thuisTotal) * 100) : 0
+      },
+      uit: {
+        gewonnen: uitGewonnen,
+        verloren: uitVerloren,
+        gelijk: uitGelijk,
+        totaal: uitTotal,
+        winPercentage: uitTotal > 0 ? Math.round((uitGewonnen / uitTotal) * 100) : 0
+      }
+    };
+  };
+
+  // TREND 3: LAATSTE 3 WEDSTRIJDEN
+  const berekenLaatste3 = () => {
+    const laatste3 = wedstrijden.slice(-3);
+    
+    interface Laatste3Stat {
+      datum: string;
+      tegenstander: string;
+      thuisUit: string;
+      eigenDoelpunten: number;
+      tegenstanderDoelpunten: number;
+      resultaat: string;
+    }
+    
+    const stats: Laatste3Stat[] = [];
+
+    laatste3.forEach(wed => {
+      let eigenDoelpunten = 0;
+      let tegenstanderDoelpunten = 0;
+
+      wed.kwarten.forEach(kwart => {
+        if (kwart.doelpunten) {
+          kwart.doelpunten.forEach(doelpunt => {
+            if (doelpunt.type === 'eigen') eigenDoelpunten++;
+            else tegenstanderDoelpunten++;
+          });
+        }
+      });
+
+      let resultaat = 'gelijkspel';
+      if (eigenDoelpunten > tegenstanderDoelpunten) resultaat = 'gewonnen';
+      else if (eigenDoelpunten < tegenstanderDoelpunten) resultaat = 'verloren';
+
+      stats.push({
+        datum: wed.datum,
+        tegenstander: wed.tegenstander || 'Tegenstander',
+        thuisUit: wed.thuisUit === 'uit' ? '✈️ Uit' : '🏠 Thuis',
+        eigenDoelpunten,
+        tegenstanderDoelpunten,
+        resultaat
+      });
+    });
+
+    // Bereken trend
+    let trend = 'stable';
+    if (stats.length >= 2) {
+      const recentWins = stats.filter(s => s.resultaat === 'gewonnen').length;
+      const olderWins = wedstrijden.slice(-6, -3).filter(w => {
+        let eigen = 0, tegen = 0;
+        w.kwarten.forEach(k => {
+          k.doelpunten?.forEach(d => {
+            if (d.type === 'eigen') eigen++;
+            else tegen++;
+          });
+        });
+        return eigen > tegen;
+      }).length;
+
+      if (recentWins > olderWins) trend = 'improving';
+      else if (recentWins < olderWins) trend = 'declining';
+    }
+
+    return {
+      wedstrijden: stats,
+      trend
+    };
   };
 
   // ============================================
@@ -466,7 +537,9 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   const speelminutenDetail = berekenSpeelminutenDetail();
   const positieSuccessRate = berekenPositieSuccessRate();
   const themaSucces = berekenThemaSucces();
-  const trends = berekenTrends();
+  const doelpuntenPerKwart = berekenDoelpuntenPerKwart();
+  const thuisUitTrend = berekenThuisUitTrend();
+  const laatste3 = berekenLaatste3();
   const waarschuwingen = berekenWaarschuwingen();
   const teamPrestaties = berekenTeamPrestaties();
   const topscorers = berekenTopscorers();
@@ -696,7 +769,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                   .filter(t => t.totaal > 0)
                   .sort((a, b) => b.percentage - a.percentage)
                   .map(tema => {
-                    const trendEmoji = tema.trend === 'improving' ? '📈' : tema.trend === 'declining' ? '📉' : '➡️';
                     return (
                       <div key={tema.id} className="bg-white rounded-lg p-3 border border-purple-200">
                         <div className="flex items-center justify-between mb-2">
@@ -709,7 +781,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-purple-600">{tema.percentage}%</div>
-                            <div className="text-sm">{trendEmoji} {tema.trend}</div>
                           </div>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -725,55 +796,120 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
             )}
           </div>
 
-          {/* ========== TRENDS ========== */}
-          {wedstrijden.length >= 2 && (
-            <div className="border-2 border-orange-400 rounded-lg p-4 bg-orange-50">
-              <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 flex items-center gap-2">📈 Trends</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg p-3 border border-orange-200">
-                  <h4 className="font-bold text-sm mb-2">Doelpunten</h4>
-                  <div className="space-y-1 text-xs max-h-40 overflow-y-auto">
-                    {trends.doelpunten.voor.map((voor, idx) => (
-                      <div key={idx} className="flex justify-between">
-                        <span>Wed {idx + 1}:</span>
-                        <span className="font-semibold">
-                          {voor} <span className="text-gray-500">- {trends.doelpunten.tegen[idx]}</span>
-                        </span>
-                      </div>
-                    ))}
+          {/* ========== NIEUWE TRENDS ========== */}
+          
+          {/* TREND 1: DOELPUNTEN PER KWART */}
+          <div className="border-2 border-indigo-400 rounded-lg p-4 bg-indigo-50">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 flex items-center gap-2">📊 Doelpunten per Kwart</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-4">Gemiddeld per kwart over alle wedstrijden</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {doelpuntenPerKwart.map(kwart => (
+                <div key={kwart.kwartNummer} className="bg-white rounded-lg p-3 border-2 border-indigo-300">
+                  <h4 className="font-bold text-center mb-2">Kwart {kwart.kwartNummer}</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Wij:</span>
+                      <span className="font-bold text-green-600">{kwart.gemiddeldEigen}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Zij:</span>
+                      <span className="font-bold text-red-600">{kwart.gemiddeldTegenstander}</span>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
 
-                <div className="bg-white rounded-lg p-3 border border-orange-200">
-                  <h4 className="font-bold text-sm mb-2">Doelsaldo</h4>
-                  <div className="space-y-1 text-xs max-h-40 overflow-y-auto">
-                    {trends.doelsaldo.map((saldo, idx) => (
-                      <div key={idx} className="flex justify-between">
-                        <span>Wed {idx + 1}:</span>
-                        <span className={`font-semibold ${
-                          saldo > 0 ? 'text-green-600' : saldo < 0 ? 'text-red-600' : 'text-gray-600'
-                        }`}>
-                          {saldo > 0 ? '+' : ''}{saldo}
-                        </span>
-                      </div>
-                    ))}
+          {/* TREND 2: THUIS VS UIT */}
+          <div className="border-2 border-orange-400 rounded-lg p-4 bg-orange-50">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 flex items-center gap-2">🏠✈️ Thuis vs Uit</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Thuis */}
+              <div className="bg-white rounded-lg p-4 border-2 border-green-300">
+                <h4 className="font-bold text-lg mb-3 text-green-700">🏠 Thuis ({thuisUitTrend.thuis.totaal})</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span>Gewonnen:</span>
+                    <span className="font-bold text-green-600 text-lg">{thuisUitTrend.thuis.gewonnen}x</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Gelijk:</span>
+                    <span className="font-bold text-gray-600 text-lg">{thuisUitTrend.thuis.gelijk}x</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Verloren:</span>
+                    <span className="font-bold text-red-600 text-lg">{thuisUitTrend.thuis.verloren}x</span>
+                  </div>
+                  <div className="border-t pt-2 mt-2 flex justify-between items-center bg-green-50 p-2 rounded">
+                    <span className="font-semibold">Winpercentage:</span>
+                    <span className="font-bold text-2xl text-green-600">{thuisUitTrend.thuis.winPercentage}%</span>
                   </div>
                 </div>
+              </div>
 
-                <div className="bg-white rounded-lg p-3 border border-orange-200">
-                  <h4 className="font-bold text-sm mb-2">Winpercentage</h4>
-                  <div className="space-y-1 text-xs max-h-40 overflow-y-auto">
-                    {trends.winPercentage.map((percentage, idx) => (
-                      <div key={idx} className="flex justify-between">
-                        <span>Na Wed {idx + 1}:</span>
-                        <span className="font-semibold text-blue-600">{percentage}%</span>
-                      </div>
-                    ))}
+              {/* Uit */}
+              <div className="bg-white rounded-lg p-4 border-2 border-orange-300">
+                <h4 className="font-bold text-lg mb-3 text-orange-700">✈️ Uit ({thuisUitTrend.uit.totaal})</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span>Gewonnen:</span>
+                    <span className="font-bold text-green-600 text-lg">{thuisUitTrend.uit.gewonnen}x</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Gelijk:</span>
+                    <span className="font-bold text-gray-600 text-lg">{thuisUitTrend.uit.gelijk}x</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Verloren:</span>
+                    <span className="font-bold text-red-600 text-lg">{thuisUitTrend.uit.verloren}x</span>
+                  </div>
+                  <div className="border-t pt-2 mt-2 flex justify-between items-center bg-orange-50 p-2 rounded">
+                    <span className="font-semibold">Winpercentage:</span>
+                    <span className="font-bold text-2xl text-orange-600">{thuisUitTrend.uit.winPercentage}%</span>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* TREND 3: LAATSTE 3 WEDSTRIJDEN */}
+          <div className="border-2 border-cyan-400 rounded-lg p-4 bg-cyan-50">
+            <h3 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2 flex items-center gap-2">📋 Laatste {Math.min(3, wedstrijden.length)} Wedstrijden</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm text-gray-600">Trend:</span>
+              <span className={`font-bold text-lg ${
+                laatste3.trend === 'improving' ? 'text-green-600' : 
+                laatste3.trend === 'declining' ? 'text-red-600' : 'text-gray-600'
+              }`}>
+                {laatste3.trend === 'improving' ? '📈 Verbetert!' : 
+                 laatste3.trend === 'declining' ? '📉 Verslechtert' : '➡️ Stabiel'}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {laatste3.wedstrijden.map((wed, idx) => {
+                const resultaatColor = wed.resultaat === 'gewonnen' ? 'bg-green-100 border-green-400' : 
+                                       wed.resultaat === 'verloren' ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-400';
+                const resultaatEmoji = wed.resultaat === 'gewonnen' ? '✅' : 
+                                       wed.resultaat === 'verloren' ? '❌' : '🤝';
+                
+                return (
+                  <div key={idx} className={`border-2 rounded-lg p-3 ${resultaatColor}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="font-bold">{wed.tegenstander}</div>
+                        <div className="text-xs text-gray-600">{wed.datum} • {wed.thuisUit}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">{wed.eigenDoelpunten} - {wed.tegenstanderDoelpunten}</div>
+                        <div className="text-lg">{resultaatEmoji} {wed.resultaat}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </>
       )}
     </div>
