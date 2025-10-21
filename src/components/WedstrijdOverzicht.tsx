@@ -207,6 +207,7 @@ export default function WedstrijdOverzicht({
             </div>
           </div>
         )}
+      </div>
 
       {/* KOMENDE WEDSTRIJDEN */}
       {komendWedstrijden.length > 0 && (
