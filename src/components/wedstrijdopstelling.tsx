@@ -960,38 +960,6 @@ export default function WedstrijdOpstelling({
           );
         })()}
 
-        {/* 📊 WEDSTRIJD SAMENVATTING - Automatisch gegenereerd overzicht van de hele wedstrijd */}
-        <WedstrijdSamenvatting />
-
-
-        <div className="border rounded-lg p-3 sm:p-4 bg-blue-50">
-          <h3 className="font-bold mb-3 text-sm sm:text-base">Wedstrijd Statistieken</h3>
-          <div className="overflow-x-auto -mx-3 sm:mx-0">
-            <div className="inline-block min-w-full px-3 sm:px-0">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 text-xs sm:text-sm">Speler</th>
-                    <th className="text-right py-2 text-xs sm:text-sm">Gespeeld</th>
-                    <th className="text-right py-2 text-xs sm:text-sm">Wissel</th>
-                    <th className="text-right py-2 text-xs sm:text-sm">Keeper</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.map(stat => (
-                    <tr key={stat.naam} className="border-b">
-                      <td className="py-2 text-xs sm:text-sm">{stat.naam}</td>
-                      <td className="text-right py-2 text-xs sm:text-sm">{stat.minuten} min</td>
-                      <td className="text-right py-2 text-xs sm:text-sm">{stat.wisselMinuten} min</td>
-                      <td className="text-right py-2 text-xs sm:text-sm">{stat.keeperBeurten}x</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
         <div className="border rounded-lg p-3 sm:p-4 bg-green-50">
           <h3 className="font-bold mb-3 flex items-center gap-2 text-sm sm:text-base">📋 Regelcheck Samenvatting</h3>
           {(() => {
