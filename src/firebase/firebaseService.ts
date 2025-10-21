@@ -286,21 +286,17 @@ export const acceptInvite = async (inviteId: string, userUid: string, teamId: st
 // DATA SYNC FUNCTIES (Spelers, Wedstrijden)
 // ============================================
 
-// Save spelers naar Firestore - MET GARANTIE DAT TYPE WORDT INGESTELD
+// Save spelers naar Firestore
 export const saveSpelers = async (teamId: string, spelers: any[]): Promise<void> => {
   try {
-    // Zorg ervoor dat elke speler een type heeft (default 'vast' als leeg)
     const cleanedSpelers = spelers.map(s => ({
       ...s,
       type: s.type || 'vast'
     }));
     
-    console.log(`💾 Saving ${cleanedSpelers.length} spelers`);
-    
     await updateDoc(doc(db, 'teams', teamId), {
       spelers: cleanedSpelers
     });
-    console.log(`✅ Spelers opgeslagen`);
   } catch (error) {
     console.error('Error saving spelers:', error);
     throw error;
@@ -326,31 +322,36 @@ export const saveTeamInfo = async (teamId: string, clubNaam: string, teamNaam: s
       clubNaam: clubNaam,
       teamNaam: teamNaam
     });
-    console.log('✅ Team info opgeslagen:', clubNaam, teamNaam);
   } catch (error) {
     console.error('Error saving team info:', error);
     throw error;
   }
 };
 
-// Get team data - MET GARANTIE DAT TYPE WORDT INGESTELD
-export const getTeamData = async (teamId: string) => {
+// Get team data - FIXED: accepts optional coachUid parameter to match App.tsx signature
+export const getTeamData = async (teamId: string, coachUid?: string) => {
   try {
     const team = await getTeam(teamId);
     
-    // Zorg ervoor dat alle spelers een type hebben
-    const spelers = (team?.spelers || []).map((s: any) => ({
+    if (!team) {
+      return {
+        spelers: [],
+        wedstrijden: [],
+        clubNaam: 'Mijn Club',
+        teamNaam: 'Team A'
+      };
+    }
+    
+    const spelers = (team.spelers || []).map((s: any) => ({
       ...s,
       type: s.type || 'vast'
     }));
     
-    console.log(`📥 Loaded ${spelers.length} spelers from team`);
-    
     return {
       spelers,
-      wedstrijden: team?.wedstrijden || [],
-      clubNaam: team?.clubNaam || 'Mijn Club',
-      teamNaam: team?.teamNaam || 'Team A'
+      wedstrijden: team.wedstrijden || [],
+      clubNaam: team.clubNaam || 'Mijn Club',
+      teamNaam: team.teamNaam || 'Team A'
     };
   } catch (error) {
     console.error('Error getting team data:', error);
@@ -369,8 +370,6 @@ export const getTeamData = async (teamId: string) => {
 
 export const createNewTeam = async (coachUid: string, clubNaam: string, teamNaam: string): Promise<string> => {
   try {
-    console.log('🔧 createNewTeam called with:', { coachUid, clubNaam, teamNaam });
-    
     const teamId = `team_${Date.now()}`;
     const team: Team = {
       teamId,
@@ -384,22 +383,16 @@ export const createNewTeam = async (coachUid: string, clubNaam: string, teamNaam
       wedstrijden: []
     };
 
-    console.log('💾 Saving team to Firebase:', JSON.stringify(team, null, 2));
-
-    // Maak team document aan
     await setDoc(doc(db, 'teams', teamId), team);
-    
-    console.log('✅ Team document created');
     
     // Update coach om naar dit nieuwe team te wijzen
     await updateDoc(doc(db, 'coaches', coachUid), {
       teamId: teamId
     });
     
-    console.log(`✅ Team aangemaakt: ${clubNaam} - ${teamNaam} (ID: ${teamId})`);
     return teamId;
   } catch (error) {
-    console.error('❌ Error creating team:', error);
+    console.error('Error creating team:', error);
     throw error;
   }
 };
