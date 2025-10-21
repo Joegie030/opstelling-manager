@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, FileText, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronRight, FileText, X } from 'lucide-react';
 import { ALLE_THEMAS } from '../types';
 import { useWedstrijd } from './WedstrijdContext';
 import { useState } from 'react';
@@ -28,6 +28,11 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
 
   const [notitiesOpen, setNotitiesOpen] = useState(false);
   const [afwezigheidOpen, setAfwezigheidOpen] = useState(false);
+  const [gastspelersOpen, setGastspelersOpen] = useState(false);
+
+  // Split spelers
+  const vasteSpelers = spelers.filter(s => s.type !== 'gast');
+  const gastSpelers = spelers.filter(s => s.type === 'gast');
 
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
@@ -231,37 +236,93 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
           </button>
           
           {afwezigheidOpen && (
-            <div className="px-3 py-3 border-t border-orange-200 bg-white">
-              <p className="text-xs text-gray-600 mb-3">
+            <div className="px-3 py-3 border-t border-orange-200 bg-white space-y-3">
+              <p className="text-xs text-gray-600">
                 Vink aan wie er NIET is bij deze wedstrijd. Ze worden automatisch uitgefilterd bij het maken van de opstelling.
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {spelers.map(speler => {
-                  const isAfwezig = wedstrijd.afwezigeSpelers?.includes(speler.id) || false;
-                  return (
-                    <label
-                      key={speler.id}
-                      className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
-                        isAfwezig
-                          ? 'bg-red-50 border-red-300 text-red-700'
-                          : 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isAfwezig}
-                        onChange={() => onToggleAfwezig(speler.id)}
-                        className="w-4 h-4 rounded"
-                      />
-                      <span className={`text-sm font-medium ${isAfwezig ? 'line-through' : ''}`}>
-                        {speler.naam}
-                      </span>
-                    </label>
-                  );
-                })}
+
+              {/* VASTE SPELERS */}
+              <div>
+                <h4 className="font-bold text-sm text-gray-800 mb-2">⚽ Vaste Spelers</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {vasteSpelers.map(speler => {
+                    const isAfwezig = wedstrijd.afwezigeSpelers?.includes(speler.id) || false;
+                    return (
+                      <label
+                        key={speler.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
+                          isAfwezig
+                            ? 'bg-red-50 border-red-300 text-red-700'
+                            : 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isAfwezig}
+                          onChange={() => onToggleAfwezig(speler.id)}
+                          className="w-4 h-4 rounded"
+                        />
+                        <span className={`text-sm font-medium ${isAfwezig ? 'line-through' : ''}`}>
+                          {speler.naam}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* GASTSPETERS (INKLAPBAAR) */}
+              {gastSpelers.length > 0 && (
+                <div className="border-t pt-3 mt-3">
+                  <button
+                    onClick={() => setGastspelersOpen(!gastspelersOpen)}
+                    className="w-full bg-orange-100 border-2 border-orange-400 hover:bg-orange-200 rounded-lg p-2 transition-colors flex items-center justify-between text-sm font-bold text-orange-700"
+                  >
+                    <span>👤 Gastspeters ({gastSpelers.length})</span>
+                    {gastspelersOpen ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {gastspelersOpen && (
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {gastSpelers.map(speler => {
+                        const isAfwezig = wedstrijd.afwezigeSpelers?.includes(speler.id) || false;
+                        return (
+                          <div
+                            key={speler.id}
+                            className={`flex flex-col gap-1 p-2 rounded-lg border-2 ${
+                              isAfwezig
+                                ? 'bg-red-50 border-red-300'
+                                : 'bg-orange-50 border-orange-300'
+                            }`}
+                          >
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isAfwezig}
+                                onChange={() => onToggleAfwezig(speler.id)}
+                                className="w-4 h-4 rounded"
+                              />
+                              <span className={`text-sm font-medium ${isAfwezig ? 'line-through text-red-700' : 'text-orange-700'}`}>
+                                {speler.naam}
+                              </span>
+                            </label>
+                            <span className="text-xs text-gray-600 pl-6">
+                              {speler.team}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {wedstrijd.afwezigeSpelers && wedstrijd.afwezigeSpelers.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-orange-200">
+                <div className="pt-3 border-t border-orange-200">
                   <p className="text-xs text-gray-600">
                     💡 <strong>Tip:</strong> Afwezige spelers verschijnen niet in de speler selectie bij het maken van de opstelling.
                   </p>
