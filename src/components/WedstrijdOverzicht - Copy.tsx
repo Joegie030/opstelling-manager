@@ -24,9 +24,6 @@ export default function WedstrijdOverzicht({
     wedstrijd: null
   });
 
-  // Filter state
-  const [typeFilter, setTypeFilter] = useState<'all' | 'competitie' | 'oefenwedstrijd'>('all');
-
   // Helper functie om formatie naam mooi weer te geven
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
@@ -38,26 +35,11 @@ export default function WedstrijdOverzicht({
     return namen[formatie] || formatie;
   };
 
-  // Helper functie voor wedstrijdtype
-  const getTypeNaam = (type?: string): string => {
-    const namen: Record<string, string> = {
-      'competitie': '🏆 Competitie',
-      'oefenwedstrijd': '🎯 Oefenwedstrijd'
-    };
-    return type ? namen[type] : '📋 Overig';
-  };
-
-  // Filter wedstrijden op type
-  const gefilterdWedstrijden = wedstrijden.filter(w => {
-    if (typeFilter === 'all') return true;
-    return w.type === typeFilter;
-  });
-
-  const komendWedstrijden = gefilterdWedstrijden
+  const komendWedstrijden = wedstrijden
     .filter(w => new Date(w.datum) >= new Date())
     .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime());
 
-  const gespeeldeWedstrijden = gefilterdWedstrijden
+  const gespeeldeWedstrijden = wedstrijden
     .filter(w => new Date(w.datum) < new Date())
     .sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime());
 
@@ -93,13 +75,6 @@ export default function WedstrijdOverzicht({
           </div>
           <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeBg}`}>
             {badge}
-          </span>
-        </div>
-
-        {/* Type Badge */}
-        <div className="mb-3">
-          <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700">
-            {getTypeNaam(wedstrijd.type)}
           </span>
         </div>
 
@@ -168,43 +143,6 @@ export default function WedstrijdOverzicht({
         </button>
       </div>
 
-      {/* FILTER SECTION */}
-      <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
-        <h3 className="text-sm font-bold text-gray-800 mb-3">🔍 Filter op type</h3>
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setTypeFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-              typeFilter === 'all'
-                ? 'bg-purple-500 text-white'
-                : 'bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-100'
-            }`}
-          >
-            Alle
-          </button>
-          <button
-            onClick={() => setTypeFilter('competitie')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-              typeFilter === 'competitie'
-                ? 'bg-purple-500 text-white'
-                : 'bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-100'
-            }`}
-          >
-            🏆 Competitie
-          </button>
-          <button
-            onClick={() => setTypeFilter('oefenwedstrijd')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-              typeFilter === 'oefenwedstrijd'
-                ? 'bg-purple-500 text-white'
-                : 'bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-100'
-            }`}
-          >
-            🎯 Oefenwedstrijd
-          </button>
-        </div>
-      </div>
-
       {/* KOMENDE WEDSTRIJDEN */}
       {komendWedstrijden.length > 0 && (
         <div>
@@ -241,15 +179,11 @@ export default function WedstrijdOverzicht({
         </div>
       )}
 
-      {/* Geen wedstrijden na filter */}
-      {gefilterdWedstrijden.length === 0 && (
+      {/* Geen wedstrijden */}
+      {wedstrijden.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg mb-4">Geen wedstrijden gevonden</p>
-          <p className="text-gray-400 text-sm">
-            {typeFilter === 'all' 
-              ? 'Maak je eerste wedstrijd aan om te beginnen!' 
-              : 'Geen wedstrijden met dit type. Probeer een ander filter.'}
-          </p>
+          <p className="text-gray-500 text-lg mb-4">Geen wedstrijden gepland</p>
+          <p className="text-gray-400 text-sm">Maak je eerste wedstrijd aan om te beginnen!</p>
         </div>
       )}
 
@@ -272,9 +206,6 @@ export default function WedstrijdOverzicht({
                 </div>
                 <div className="text-sm text-gray-600 mb-2">
                   <span className="font-semibold">Datum:</span> {verwijderModal.wedstrijd.datum}
-                </div>
-                <div className="text-sm text-gray-600 mb-2">
-                  <span className="font-semibold">Type:</span> {getTypeNaam(verwijderModal.wedstrijd.type)}
                 </div>
                 <div className="text-sm text-gray-600">
                   <span className="font-semibold">Tegenstander:</span> {verwijderModal.wedstrijd.tegenstander || '(Geen naam)'}
