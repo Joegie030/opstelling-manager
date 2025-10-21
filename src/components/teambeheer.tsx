@@ -42,7 +42,6 @@ export default function TeamBeheer({
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // PERMANENT FIX: Behandel lege/undefined type als 'vast'
-  // Dit zorgt ervoor dat bestaande spelers zonder type ook worden getoond
   const vasteSpelers = spelers.filter(s => !s.type || s.type === 'vast');
   const gastSpelers = spelers.filter(s => s.type === 'gast');
 
@@ -85,10 +84,13 @@ export default function TeamBeheer({
     setCreatingTeamMessage(null);
 
     try {
+      console.log('📋 TeamBeheer: Creating team with:', { club: newTeamClub, team: newTeamName });
+      
       const teamId = await createNewTeam(currentCoach.uid, newTeamClub, newTeamName);
+      
       setCreatingTeamMessage({
         type: 'success',
-        text: `Team "${newTeamClub} - ${newTeamName}" aangemaakt!`
+        text: `✅ Team "${newTeamClub} - ${newTeamName}" aangemaakt! Page wordt vernieuwd...`
       });
       setNewTeamClub('');
       setNewTeamName('');
@@ -96,7 +98,10 @@ export default function TeamBeheer({
       
       onNewTeamCreated?.();
       
-      setTimeout(() => setCreatingTeamMessage(null), 3000);
+      // Refresh pagina zodat nieuwe team data wordt geladen
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (error: any) {
       setCreatingTeamMessage({
         type: 'error',
