@@ -8,12 +8,6 @@ interface MenuItem {
   badge?: number;
 }
 
-interface Coach {
-  naam: string;
-  email: string;
-  teamId: string;
-}
-
 interface NavigationProps {
   clubNaam: string;
   teamNaam: string;
@@ -22,7 +16,6 @@ interface NavigationProps {
   children: ReactNode;
   menuItems?: MenuItem[];
   onLogout?: () => void;
-  currentCoach?: Coach | null;
 }
 
 export const DEFAULT_MENU_ITEMS: MenuItem[] = [
@@ -55,13 +48,11 @@ export function Navigation({
   onScreenChange,
   children,
   menuItems = DEFAULT_MENU_ITEMS,
-  onLogout,
-  currentCoach
+  onLogout
 }: NavigationProps) {
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleMenuSelect = (id: string) => {
     onScreenChange(id);
@@ -92,65 +83,12 @@ export function Navigation({
               </div>
               
               {/* Desktop: User button */}
-              {currentCoach && (
-                <div className="relative hidden md:block">
-                  <button 
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="p-2 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
-                    title="Profiel"
-                  >
-                    <div className="w-6 h-6 bg-blue-400 rounded-full flex items-center justify-center text-xs font-bold">
-                      {currentCoach.naam.charAt(0).toUpperCase()}
-                    </div>
-                  </button>
-
-                  {/* User dropdown menu */}
-                  {userMenuOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-64 bg-white text-gray-800 rounded-lg shadow-xl z-50">
-                      {/* Coach info */}
-                      <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                            {currentCoach.naam.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-gray-800 text-sm truncate">{currentCoach.naam}</p>
-                            <p className="text-xs text-gray-600 truncate">{currentCoach.email}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Menu items */}
-                      <div className="py-2">
-                        <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors text-left">
-                          <Settings className="w-5 h-5" />
-                          <span className="font-medium">Profiel instellingen</span>
-                        </button>
-
-                        <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors text-left">
-                          <HelpCircle className="w-5 h-5" />
-                          <span className="font-medium">Help</span>
-                        </button>
-
-                        <div className="border-t border-gray-200 my-2"></div>
-
-                        {onLogout && (
-                          <button
-                            onClick={() => {
-                              onLogout();
-                              setUserMenuOpen(false);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-left"
-                          >
-                            <LogOut className="w-5 h-5" />
-                            <span className="font-medium">Uitloggen</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              <button 
+                className="p-2 hover:bg-blue-700 rounded-lg transition-colors hidden md:block"
+                title="Profiel"
+              >
+                <User className="w-5 h-5" />
+              </button>
 
               {/* Mobile: Hamburger button */}
               <button
@@ -260,23 +198,6 @@ export function Navigation({
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-b border-gray-200 shadow-lg">
           <div className="max-w-7xl mx-auto py-2">
-            {/* Mobile: Coach info */}
-            {currentCoach && (
-              <>
-                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                      {currentCoach.naam.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-gray-800 text-sm truncate">{currentCoach.naam}</p>
-                      <p className="text-xs text-gray-600 truncate">{currentCoach.email}</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
             {menuItems.map((item) => (
               <button
                 key={item.id}
@@ -308,14 +229,11 @@ export function Navigation({
 
             {onLogout && (
               <button
-                onClick={() => {
-                  onLogout();
-                  setMobileMenuOpen(false);
-                }}
+                onClick={onLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-left border-t border-gray-200"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="font-medium">Uitloggen</span>
+                <span className="font-medium">Log uit</span>
               </button>
             )}
           </div>
