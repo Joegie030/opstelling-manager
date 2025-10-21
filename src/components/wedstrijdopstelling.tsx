@@ -7,7 +7,6 @@ import { WedstrijdHeader } from './WedstrijdHeader';
 import { WedstrijdSamenvatting } from './WedstrijdSamenvatting';
 import VoetbalVeld from './VoetbalVeld';
 
-
 interface Props {
   wedstrijd: Wedstrijd;
   wedstrijden: Wedstrijd[];
