@@ -16,6 +16,7 @@ interface Props {
   onUpdateDatum: (datum: string) => void;
   onUpdateTegenstander: (tegenstander: string) => void;
   onUpdateThuisUit: (thuisUit: 'thuis' | 'uit') => void;
+  onUpdateWedstrijdType: (type: 'competitie' | 'oefenwedstrijd' | '') => void;
   onToggleAfwezig: (spelerId: number) => void;
   onUpdateOpstelling: (kwartIndex: number, positie: string, spelerId: string) => void;
   onVoegWisselToe: (kwartIndex: number) => void;
@@ -40,6 +41,7 @@ export default function WedstrijdOpstelling({
   onUpdateDatum,
   onUpdateTegenstander,
   onUpdateThuisUit,
+  onUpdateWedstrijdType,
   onToggleAfwezig,
   onUpdateOpstelling,
   onVoegWisselToe,
@@ -468,6 +470,7 @@ export default function WedstrijdOpstelling({
     onUpdateDatum,
     onUpdateTegenstander,
     onUpdateThuisUit,
+    onUpdateWedstrijdType,
     onToggleAfwezig,
     onUpdateOpstelling,
     onVoegWisselToe,

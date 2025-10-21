@@ -244,14 +244,6 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onUpdateWedstrijdType={(type) => {
-            const updated = { 
-              ...huidgeWedstrijd, 
-              type: type === '' ? undefined : (type as 'competitie' | 'oefenwedstrijd')
-            };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
           onToggleAfwezig={(spelerId) => {
             const updated = {
               ...huidgeWedstrijd,
