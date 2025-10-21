@@ -131,11 +131,11 @@ export function WedstrijdSamenvatting() {
                 <p className="text-sm text-gray-700">
                   {wedstrijd.thuisUit === 'uit' ? (
                     <>
-                      <strong>{wedstrijd.tegenstander || 'Tegenstander'}</strong> (thuis) tegen <strong>{teamNaam}</strong> (uit) op {wedstrijd.datum}.
+                      <strong>{teamNaam}</strong> speelde uit tegen <strong>{wedstrijd.tegenstander || 'Tegenstander'}</strong> op {wedstrijd.datum}.
                     </>
                   ) : (
                     <>
-                      <strong>{teamNaam}</strong> (thuis) tegen <strong>{wedstrijd.tegenstander || 'Tegenstander'}</strong> (uit) op {wedstrijd.datum}.
+                      <strong>{teamNaam}</strong> speelde thuis tegen <strong>{wedstrijd.tegenstander || 'Tegenstander'}</strong> op {wedstrijd.datum}.
                     </>
                   )}
                 </p>
