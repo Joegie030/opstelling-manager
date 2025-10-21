@@ -9,7 +9,7 @@ import Instellingen from './components/Instellingen.tsx';
 import AuthScreen from './components/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
-import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden, saveTeamInfo } from './firebase/firebaseService';
+import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden } from './firebase/firebaseService';
 
 function App() {
   // Auth state
@@ -78,16 +78,6 @@ function App() {
       return () => clearTimeout(saveTimeout);
     }
   }, [wedstrijden, currentCoach]);
-
-  // NIEUW: Save club en team naam naar Firestore (auto-sync)
-  useEffect(() => {
-    if (currentCoach) {
-      const saveTimeout = setTimeout(() => {
-        saveTeamInfo(currentCoach.teamId, clubNaam, teamNaam).catch(console.error);
-      }, 1000);
-      return () => clearTimeout(saveTimeout);
-    }
-  }, [clubNaam, teamNaam, currentCoach]);
 
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
