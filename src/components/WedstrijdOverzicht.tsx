@@ -26,6 +26,7 @@ export default function WedstrijdOverzicht({
 
   // Filter state
   const [typeFilter, setTypeFilter] = useState<'all' | 'competitie' | 'oefenwedstrijd'>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // Helper functie om formatie naam mooi weer te geven
   const getFormatieNaam = (formatie: string): string => {
@@ -157,42 +158,55 @@ export default function WedstrijdOverzicht({
         </button>
       </div>
 
-      {/* FILTER SECTION - COMPACT */}
-      <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 sm:p-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-semibold text-gray-600">Filter:</span>
-          <button
-            onClick={() => setTypeFilter('all')}
-            className={`text-xs px-2 py-1 rounded transition-colors ${
-              typeFilter === 'all'
-                ? 'bg-gray-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            Alle
-          </button>
-          <button
-            onClick={() => setTypeFilter('competitie')}
-            className={`text-xs px-2 py-1 rounded transition-colors ${
-              typeFilter === 'competitie'
-                ? 'bg-gray-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            🏆 Competitie
-          </button>
-          <button
-            onClick={() => setTypeFilter('oefenwedstrijd')}
-            className={`text-xs px-2 py-1 rounded transition-colors ${
-              typeFilter === 'oefenwedstrijd'
-                ? 'bg-gray-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            🎯 Oefenwedstrijd
-          </button>
-        </div>
-      </div>
+      {/* FILTER SECTION - COLLAPSIBLE */}
+      <div className="space-y-2">
+        {/* Filter toggle button */}
+        <button
+          onClick={() => setFilterOpen(!filterOpen)}
+          className="w-full md:w-auto px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded border border-gray-300 transition-colors flex items-center justify-center md:justify-start gap-2"
+        >
+          <span>🔍</span>
+          <span>Filter</span>
+          <span className="text-xs">{filterOpen ? '▼' : '▶'}</span>
+        </button>
+
+        {/* Filter options - expandable */}
+        {filterOpen && (
+          <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setTypeFilter('all')}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  typeFilter === 'all'
+                    ? 'bg-gray-600 text-white'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Alle
+              </button>
+              <button
+                onClick={() => setTypeFilter('competitie')}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  typeFilter === 'competitie'
+                    ? 'bg-gray-600 text-white'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                🏆 Competitie
+              </button>
+              <button
+                onClick={() => setTypeFilter('oefenwedstrijd')}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  typeFilter === 'oefenwedstrijd'
+                    ? 'bg-gray-600 text-white'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                🎯 Oefenwedstrijd
+              </button>
+            </div>
+          </div>
+        )}
 
       {/* KOMENDE WEDSTRIJDEN */}
       {komendWedstrijden.length > 0 && (
