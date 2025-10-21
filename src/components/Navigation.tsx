@@ -60,42 +60,48 @@ export default function Navigation({
 
             {/* TEAM SELECTOR - HEADER (Desktop) */}
             {selectedTeam && coachTeams.length > 0 && onTeamChange && (
-              <div className="hidden md:flex items-center gap-4">
-                <div className="text-right">
-                  <p className="text-xs text-blue-100">Huidig team:</p>
-                  <p className="font-semibold">{selectedTeam.clubNaam}</p>
-                  <p className="text-xs text-blue-100">{selectedTeam.teamNaam}</p>
-                </div>
-
-                {/* Dropdown */}
+              <div className="hidden md:block">
+                {/* Team naam als clickable dropdown */}
                 <div className="relative">
                   <button
                     onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-15 hover:bg-opacity-25 rounded-lg transition-colors text-left"
                   >
-                    <span className="text-sm font-medium">Switch</span>
-                    <ChevronDown className="w-4 h-4" />
+                    <div>
+                      <p className="text-xs text-blue-100">Huidig team</p>
+                      <p className="font-semibold text-white">{selectedTeam.clubNaam}</p>
+                      <p className="text-xs text-blue-100">{selectedTeam.teamNaam}</p>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${teamDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {/* Dropdown Menu */}
                   {teamDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50">
-                      <div className="p-3 max-h-64 overflow-y-auto space-y-2">
-                        {coachTeams.map(team => (
+                    <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-xl z-50">
+                      <div className="max-h-72 overflow-y-auto">
+                        {coachTeams.map((team, index) => (
                           <button
                             key={team.teamId}
                             onClick={() => {
                               onTeamChange(team.teamId);
                               setTeamDropdownOpen(false);
                             }}
-                            className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                            className={`w-full text-left px-4 py-3 transition-colors ${
+                              index > 0 ? 'border-t border-gray-100' : ''
+                            } ${
                               selectedTeamId === team.teamId
-                                ? 'bg-blue-100 text-blue-900 font-semibold'
-                                : 'text-gray-800 hover:bg-gray-100'
+                                ? 'bg-blue-50'
+                                : 'hover:bg-gray-50'
                             }`}
                           >
-                            <div className="font-medium">{team.clubNaam}</div>
-                            <div className="text-xs text-gray-600">{team.teamNaam}</div>
+                            <div className="font-semibold text-gray-900">{team.clubNaam}</div>
+                            <div className="text-sm text-gray-600">{team.teamNaam}</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              👥 {team.coaches.length} coach{team.coaches.length !== 1 ? 'es' : ''}
+                            </div>
+                            {selectedTeamId === team.teamId && (
+                              <div className="text-xs text-green-600 font-semibold mt-1">✓ Actief</div>
+                            )}
                           </button>
                         ))}
                       </div>
@@ -129,8 +135,8 @@ export default function Navigation({
           {/* MOBILE TEAM SELECTOR */}
           {mobileMenuOpen && selectedTeam && coachTeams.length > 0 && onTeamChange && (
             <div className="md:hidden pb-4 border-t border-blue-500">
-              <p className="text-xs text-blue-100 mt-3 mb-2">Huidig team: {selectedTeam.clubNaam}</p>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <p className="text-xs text-blue-100 mt-3 mb-3 font-semibold">Teams:</p>
+              <div className="space-y-1 max-h-48 overflow-y-auto">
                 {coachTeams.map(team => (
                   <button
                     key={team.teamId}
@@ -138,13 +144,13 @@ export default function Navigation({
                       onTeamChange(team.teamId);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-sm ${
                       selectedTeamId === team.teamId
                         ? 'bg-white bg-opacity-20 font-semibold'
                         : 'bg-white bg-opacity-10 hover:bg-opacity-20'
                     }`}
                   >
-                    <div className="font-medium text-sm">{team.clubNaam}</div>
+                    <div className="font-medium">{team.clubNaam}</div>
                     <div className="text-xs text-blue-100">{team.teamNaam}</div>
                   </button>
                 ))}
