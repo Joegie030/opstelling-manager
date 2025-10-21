@@ -157,36 +157,36 @@ export default function WedstrijdOverzicht({
         </button>
       </div>
 
-      {/* FILTER SECTION */}
-      <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
-        <h3 className="text-sm font-bold text-gray-800 mb-3">🔍 Filter op type</h3>
-        <div className="flex gap-2 flex-wrap">
+      {/* FILTER SECTION - COMPACT */}
+      <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 sm:p-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-semibold text-gray-600">Filter:</span>
           <button
             onClick={() => setTypeFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+            className={`text-xs px-2 py-1 rounded transition-colors ${
               typeFilter === 'all'
-                ? 'bg-purple-500 text-white'
-                : 'bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-100'
+                ? 'bg-gray-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
             Alle
           </button>
           <button
             onClick={() => setTypeFilter('competitie')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+            className={`text-xs px-2 py-1 rounded transition-colors ${
               typeFilter === 'competitie'
-                ? 'bg-purple-500 text-white'
-                : 'bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-100'
+                ? 'bg-gray-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
             🏆 Competitie
           </button>
           <button
             onClick={() => setTypeFilter('oefenwedstrijd')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+            className={`text-xs px-2 py-1 rounded transition-colors ${
               typeFilter === 'oefenwedstrijd'
-                ? 'bg-purple-500 text-white'
-                : 'bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-100'
+                ? 'bg-gray-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
             🎯 Oefenwedstrijd
