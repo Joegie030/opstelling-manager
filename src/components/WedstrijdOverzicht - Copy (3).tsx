@@ -83,57 +83,55 @@ export default function WedstrijdOverzicht({
     const cardBg = isKomend ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-300';
 
     return (
-      <div className={`${cardBg} border-2 rounded-lg p-2 sm:p-3 hover:shadow-md transition-shadow`}>
+      <div className={`${cardBg} border-2 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow`}>
         {/* Rij 1: Datum - Thuis/Uit (klein) */}
-        <div className="flex justify-between items-center mb-1.5">
-          <span className="text-xs sm:text-sm font-semibold text-gray-700">{wedstrijd.datum}</span>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badgeBg}`}>
-            {badge}
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-semibold text-gray-700">{wedstrijd.datum}</span>
+          <span className={`text-xs font-bold px-2 py-1 rounded-full ${badgeBg}`}>
+            {badge} {isThuis ? 'Thuis' : 'Uit'}
           </span>
         </div>
 
         {/* Rij 2: Wie tegen wie - Type */}
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <div className="flex items-center gap-1 flex-wrap flex-1 min-w-0">
-            <span className="font-bold text-blue-600 text-xs sm:text-sm truncate">{teamNaam}</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="font-bold text-blue-600 text-sm">{teamNaam}</span>
             <span className="text-gray-400 text-xs font-medium">vs</span>
-            <span className="font-bold text-gray-700 text-xs sm:text-sm truncate">
+            <span className="font-bold text-gray-700 text-sm">
               {wedstrijd.tegenstander || '(Tegenstander)'}
             </span>
           </div>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 whitespace-nowrap flex-shrink-0">
+          <span className="inline-block text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 w-fit">
             {getTypeNaam(wedstrijd.type)}
           </span>
         </div>
 
         {/* Rij 3: Formatie (klein) */}
-        <div className="text-xs text-gray-600 mb-2">
+        <div className="text-xs text-gray-600 mb-3">
           {getFormatieNaam(wedstrijd.formatie)}
         </div>
 
         {/* Rij 4: Buttons */}
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           <button
             onClick={() => onBekijk(wedstrijd)}
-            className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-xs transition-colors flex items-center justify-center gap-1"
+            className="flex-1 px-2 sm:px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-1"
           >
-            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Bekijk</span>
-            <span className="sm:hidden">Bekijk</span>
+            <Eye className="w-4 h-4" />
+            <span>Bekijk</span>
           </button>
           <button
             onClick={() => onKopieer(wedstrijd)}
-            className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-xs transition-colors flex items-center justify-center gap-1"
+            className="flex-1 px-2 sm:px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-1"
           >
-            <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Kopieer</span>
-            <span className="sm:hidden">Kopieer</span>
+            <Copy className="w-4 h-4" />
+            <span>Kopieer</span>
           </button>
           <button
             onClick={() => openVerwijderModal(wedstrijd)}
-            className="px-1.5 sm:px-3 py-1.5 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-xs transition-colors"
+            className="px-2 sm:px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-xs sm:text-sm transition-colors"
           >
-            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
