@@ -9,7 +9,7 @@ import Instellingen from './components/Instellingen.tsx';
 import AuthScreen from './components/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
-import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden } from './firebaseService';
+import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden } from './firebase/firebaseService';
 
 
 function App() {
