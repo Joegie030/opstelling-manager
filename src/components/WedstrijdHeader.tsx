@@ -44,6 +44,11 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
     return namen[formatie] || formatie;
   };
 
+  // NIEUW: Bereken aantal afwezig - ALLEEN vaste spelers!
+  const afwezigeVasteSpelers = (wedstrijd.afwezigeSpelers || []).filter(id =>
+    vasteSpelers.some(s => s.id === id)
+  );
+
   return (
     <div className="flex items-start justify-between gap-4 flex-wrap">
       <div className="flex-1 space-y-3 min-w-0">
@@ -222,9 +227,9 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
               <span className="text-sm font-semibold text-gray-700">
                 Afwezige Spelers
               </span>
-              {wedstrijd.afwezigeSpelers && wedstrijd.afwezigeSpelers.length > 0 && (
+              {afwezigeVasteSpelers.length > 0 && (
                 <span className="px-2 py-0.5 bg-orange-500 text-white rounded-full text-xs font-bold">
-                  {wedstrijd.afwezigeSpelers.length}
+                  {afwezigeVasteSpelers.length}
                 </span>
               )}
             </div>
@@ -271,14 +276,14 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
                 </div>
               </div>
 
-              {/* GASTSPETERS (INKLAPBAAR) */}
+              {/* GASTSPELERS (INKLAPBAAR) */}
               {gastSpelers.length > 0 && (
                 <div className="border-t pt-3 mt-3">
                   <button
                     onClick={() => setGastspelersOpen(!gastspelersOpen)}
                     className="w-full bg-orange-100 border-2 border-orange-400 hover:bg-orange-200 rounded-lg p-2 transition-colors flex items-center justify-between text-sm font-bold text-orange-700"
                   >
-                    <span>👤 Gastspeters ({gastSpelers.length})</span>
+                    <span>👤 Gastspelers ({gastSpelers.length})</span>
                     {gastspelersOpen ? (
                       <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -321,7 +326,7 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
                 </div>
               )}
 
-              {wedstrijd.afwezigeSpelers && wedstrijd.afwezigeSpelers.length > 0 && (
+              {wedstrijd.afwezigeSpelers && afwezigeVasteSpelers.length > 0 && (
                 <div className="pt-3 border-t border-orange-200">
                   <p className="text-xs text-gray-600">
                     💡 <strong>Tip:</strong> Afwezige spelers verschijnen niet in de speler selectie bij het maken van de opstelling.
