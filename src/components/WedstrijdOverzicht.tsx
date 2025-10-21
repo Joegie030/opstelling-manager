@@ -1,4 +1,5 @@
-import { Plus, Trash2, Eye, Copy } from 'lucide-react';
+import { Plus, Trash2, Eye, Copy, X } from 'lucide-react';
+import { useState } from 'react';
 import { Wedstrijd } from './types';
 
 interface WedstrijdOverzichtProps {
@@ -18,6 +19,11 @@ export default function WedstrijdOverzicht({
   onKopieer,
   onVerwijder,
 }: WedstrijdOverzichtProps) {
+  const [verwijderModal, setVerwijderModal] = useState<{ open: boolean; wedstrijd: Wedstrijd | null }>({
+    open: false,
+    wedstrijd: null
+  });
+
   // Helper functie om formatie naam mooi weer te geven
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
@@ -36,6 +42,21 @@ export default function WedstrijdOverzicht({
   const gespeeldeWedstrijden = wedstrijden
     .filter(w => new Date(w.datum) < new Date())
     .sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime());
+
+  const openVerwijderModal = (wedstrijd: Wedstrijd) => {
+    setVerwijderModal({ open: true, wedstrijd });
+  };
+
+  const closeVerwijderModal = () => {
+    setVerwijderModal({ open: false, wedstrijd: null });
+  };
+
+  const bevestigVerwijderen = () => {
+    if (verwijderModal.wedstrijd) {
+      onVerwijder(verwijderModal.wedstrijd.id);
+      closeVerwijderModal();
+    }
+  };
 
   const WedstrijdCard = ({ wedstrijd, isKomend }: { wedstrijd: Wedstrijd; isKomend: boolean }) => {
     const isThuis = wedstrijd.thuisUit !== 'uit';
@@ -95,7 +116,7 @@ export default function WedstrijdOverzicht({
             <span className="hidden sm:inline">Kopieer</span>
           </button>
           <button
-            onClick={() => onVerwijder(wedstrijd.id)}
+            onClick={() => openVerwijderModal(wedstrijd)}
             className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-sm transition-colors"
           >
             <Trash2 className="w-4 h-4" />
@@ -163,6 +184,54 @@ export default function WedstrijdOverzicht({
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg mb-4">Geen wedstrijden gepland</p>
           <p className="text-gray-400 text-sm">Maak je eerste wedstrijd aan om te beginnen!</p>
+        </div>
+      )}
+
+      {/* BEVESTIGING MODAL - VERWIJDER WEDSTRIJD */}
+      {verwijderModal.open && verwijderModal.wedstrijd && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+            <div className="bg-red-50 border-b-2 border-red-300 p-4 flex items-start gap-3">
+              <span className="text-3xl">⚠️</span>
+              <div>
+                <h3 className="text-lg font-bold text-red-800">Wedstrijd verwijderen?</h3>
+                <p className="text-sm text-red-700 mt-1">Dit kan niet ongedaan gemaakt worden!</p>
+              </div>
+            </div>
+
+            <div className="p-4">
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <div className="text-sm text-gray-600 mb-2">
+                  <span className="font-semibold">Formatie:</span> {getFormatieNaam(verwijderModal.wedstrijd.formatie)}
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  <span className="font-semibold">Datum:</span> {verwijderModal.wedstrijd.datum}
+                </div>
+                <div className="text-sm text-gray-600">
+                  <span className="font-semibold">Tegenstander:</span> {verwijderModal.wedstrijd.tegenstander || '(Geen naam)'}
+                </div>
+              </div>
+              <p className="text-sm text-gray-700 mb-4">
+                Weet je zeker dat je deze wedstrijd wilt verwijderen?
+              </p>
+            </div>
+
+            <div className="p-4 bg-gray-50 border-t-2 border-gray-200 flex gap-2">
+              <button
+                onClick={closeVerwijderModal}
+                className="flex-1 px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 font-medium transition-colors"
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={bevestigVerwijderen}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Verwijder
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
