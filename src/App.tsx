@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LogOut, Loader } from 'lucide-react';
-import { Speler, Wedstrijd, Doelpunt, formaties } from './types';
+import { Speler, Wedstrijd, Doelpunt, formaties, Team } from './types';
 import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
@@ -9,13 +9,29 @@ import Instellingen from './components/Instellingen.tsx';
 import Help from './components/Help.tsx';
 import AuthScreen from './components/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
+import TeamSelector from './components/TeamSelector.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
-import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden, saveTeamInfo } from './firebase/firebaseService';
+import { 
+  getCurrentCoach, 
+  logoutCoach, 
+  getTeamData, 
+  Coach, 
+  saveSpelers, 
+  saveWedstrijden, 
+  saveTeamInfo,
+  getCoachTeams,
+  switchTeam,
+  createNewTeam
+} from './firebase/firebaseService';
 
 function App() {
   // Auth state
   const [currentCoach, setCurrentCoach] = useState<Coach | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  // STAP 4 NIEUW: Multi-Tenant states
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [coachTeams, setCoachTeams] = useState<Team[]>([]);
 
   // App state
   const [spelers, setSpelers] = useState<Speler[]>([]);
@@ -32,25 +48,37 @@ function App() {
     tegenstander: string;
   }>({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
 
-  // Check auth on mount
+  // STAP 4: Check auth on mount - UPDATED
   useEffect(() => {
-    const unsubscribe = getCurrentCoach((coach) => {
+    const unsubscribe = getCurrentCoach(async (coach) => {
       setCurrentCoach(coach);
       setAuthLoading(false);
 
-      // Laad team data als coach ingelogd is
+      // STAP 4: Laad alle teams voor deze coach
       if (coach) {
-        loadTeamData(coach.teamId);
+        try {
+          const teams = await getCoachTeams(coach.uid);
+          setCoachTeams(teams);
+          
+          // Zet actieve team (prefer currentTeamId, fallback to teamId)
+          const activeTeamId = coach.currentTeamId || coach.teamId || teams[0]?.teamId;
+          if (activeTeamId) {
+            setSelectedTeamId(activeTeamId);
+            await loadTeamData(activeTeamId, coach.uid);
+          }
+        } catch (error) {
+          console.error('Error loading teams:', error);
+        }
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Laad team data van Firestore
-  const loadTeamData = async (teamId: string) => {
+  // Laad team data van Firestore - UPDATED STAP 4
+  const loadTeamData = async (teamId: string, coachUid: string) => {
     try {
-      const data = await getTeamData(teamId);
+      const data = await getTeamData(teamId, coachUid);
       setSpelers(data.spelers);
       setWedstrijden(data.wedstrijden);
       setClubNaam(data.clubNaam);
@@ -60,35 +88,60 @@ function App() {
     }
   };
 
-  // Save spelers naar Firestore (auto-sync)
-  useEffect(() => {
-    if (currentCoach && spelers.length > 0) {
-      const saveTimeout = setTimeout(() => {
-        saveSpelers(currentCoach.teamId, spelers).catch(console.error);
-      }, 1000);
-      return () => clearTimeout(saveTimeout);
+  // STAP 4 NIEUW: Handler voor team wisselen
+  const handleTeamSwitch = async (teamId: string) => {
+    if (!currentCoach) return;
+    
+    try {
+      setSelectedTeamId(teamId);
+      await switchTeam(currentCoach.uid, teamId);
+      await loadTeamData(teamId, currentCoach.uid);
+    } catch (error) {
+      console.error('Error switching team:', error);
     }
-  }, [spelers, currentCoach]);
+  };
 
-  // Save wedstrijden naar Firestore (auto-sync)
-  useEffect(() => {
-    if (currentCoach && wedstrijden.length > 0) {
-      const saveTimeout = setTimeout(() => {
-        saveWedstrijden(currentCoach.teamId, wedstrijden).catch(console.error);
-      }, 1000);
-      return () => clearTimeout(saveTimeout);
+  // STAP 4 NIEUW: Handler voor nieuw team aanmaken
+  const handleNewTeam = async () => {
+    if (!currentCoach) return;
+    
+    try {
+      const teams = await getCoachTeams(currentCoach.uid);
+      setCoachTeams(teams);
+    } catch (error) {
+      console.error('Error refreshing teams:', error);
     }
-  }, [wedstrijden, currentCoach]);
+  };
 
-  // NIEUW: Save club en team naam naar Firestore (auto-sync)
+  // Save spelers naar Firestore (auto-sync) - UPDATED STAP 4: voeg coachUid toe
   useEffect(() => {
-    if (currentCoach) {
+    if (currentCoach && selectedTeamId && spelers.length > 0) {
       const saveTimeout = setTimeout(() => {
-        saveTeamInfo(currentCoach.teamId, clubNaam, teamNaam).catch(console.error);
+        saveSpelers(selectedTeamId, currentCoach.uid, spelers).catch(console.error);
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [clubNaam, teamNaam, currentCoach]);
+  }, [spelers, currentCoach, selectedTeamId]);
+
+  // Save wedstrijden naar Firestore (auto-sync) - UPDATED STAP 4: voeg coachUid toe
+  useEffect(() => {
+    if (currentCoach && selectedTeamId && wedstrijden.length > 0) {
+      const saveTimeout = setTimeout(() => {
+        saveWedstrijden(selectedTeamId, currentCoach.uid, wedstrijden).catch(console.error);
+      }, 1000);
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [wedstrijden, currentCoach, selectedTeamId]);
+
+  // Save club en team naam naar Firestore (auto-sync) - UPDATED STAP 4: voeg coachUid toe
+  useEffect(() => {
+    if (currentCoach && selectedTeamId) {
+      const saveTimeout = setTimeout(() => {
+        saveTeamInfo(selectedTeamId, currentCoach.uid, clubNaam, teamNaam).catch(console.error);
+      }, 1000);
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [clubNaam, teamNaam, currentCoach, selectedTeamId]);
 
   const getFormatieNaam = (formatie: string): string => {
     const namen: Record<string, string> = {
@@ -133,7 +186,7 @@ function App() {
     setWedstrijden([...wedstrijden, gekopieerd]);
     setKopieerModal({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
     setHuidgeWedstrijd(gekopieerd);
-    setHuidigScherm('wedstrijden');
+    setHuidigScherm('wedstrijd');
   };
 
   const verwijderWedstrijd = (id: number) => {
@@ -160,6 +213,8 @@ function App() {
       setCurrentCoach(null);
       setSpelers([]);
       setWedstrijden([]);
+      setSelectedTeamId(null);
+      setCoachTeams([]);
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -193,6 +248,19 @@ function App() {
       onLogout={handleLogout}
       currentCoach={currentCoach}
     >
+      {/* STAP 4 NIEUW: Team Selector - Voeg bovenaan toe */}
+      {currentCoach && coachTeams.length > 0 && (
+        <div className="mb-6">
+          <TeamSelector
+            currentCoach={currentCoach}
+            teams={coachTeams}
+            selectedTeamId={selectedTeamId}
+            onTeamChange={handleTeamSwitch}
+            onNewTeam={handleNewTeam}
+          />
+        </div>
+      )}
+
       {/* WEDSTRIJDEN SCHERM */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
@@ -231,20 +299,13 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onUpdateWedstrijdType={(type) => {
-            const updated = { 
-              ...huidgeWedstrijd, 
-              type: type === '' ? undefined : (type as 'competitie' | 'oefenwedstrijd')
-            };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
           onToggleAfwezig={(spelerId) => {
+            const afwezigeSpelers = huidgeWedstrijd.afwezigeSpelers || [];
             const updated = {
               ...huidgeWedstrijd,
-              afwezigeSpelers: (huidgeWedstrijd.afwezigeSpelers || []).includes(spelerId)
-                ? (huidgeWedstrijd.afwezigeSpelers || []).filter(id => id !== spelerId)
-                : [...(huidgeWedstrijd.afwezigeSpelers || []), spelerId]
+              afwezigeSpelers: afwezigeSpelers.includes(spelerId)
+                ? afwezigeSpelers.filter(id => id !== spelerId)
+                : [...afwezigeSpelers, spelerId]
             };
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
@@ -253,7 +314,15 @@ function App() {
             const updated = {
               ...huidgeWedstrijd,
               kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
-                i === kwartIndex ? { ...k, opstelling: { ...k.opstelling, [positie]: spelerId } } : k
+                i === kwartIndex
+                  ? {
+                      ...k,
+                      opstelling: {
+                        ...k.opstelling,
+                        [positie]: spelerId
+                      }
+                    }
+                  : k
               )
             };
             setHuidgeWedstrijd(updated);
@@ -266,7 +335,14 @@ function App() {
                 i === kwartIndex
                   ? {
                       ...k,
-                      wissels: [...(k.wissels || []), { id: Date.now(), positie: '', wisselSpelerId: '' }]
+                      wissels: [
+                        ...k.wissels,
+                        {
+                          id: Date.now(),
+                          positie: '',
+                          wisselSpelerId: ''
+                        }
+                      ]
                     }
                   : k
               )
@@ -281,9 +357,9 @@ function App() {
                 i === kwartIndex
                   ? {
                       ...k,
-                      wissels: k.wissels?.map((w, j) =>
+                      wissels: k.wissels.map((w, j) =>
                         j === wisselIndex ? { ...w, [veld]: waarde } : w
-                      ) || []
+                      )
                     }
                   : k
               )
@@ -296,7 +372,10 @@ function App() {
               ...huidgeWedstrijd,
               kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
                 i === kwartIndex
-                  ? { ...k, wissels: k.wissels?.filter((_, j) => j !== wisselIndex) || [] }
+                  ? {
+                      ...k,
+                      wissels: k.wissels.filter((_, j) => j !== wisselIndex)
+                    }
                   : k
               )
             };
@@ -308,7 +387,16 @@ function App() {
               ...huidgeWedstrijd,
               kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
                 i === kwartIndex
-                  ? { ...k, doelpunten: [...(k.doelpunten || []), { ...doelpunt, id: Date.now() }] }
+                  ? {
+                      ...k,
+                      doelpunten: [
+                        ...(k.doelpunten || []),
+                        {
+                          ...doelpunt,
+                          id: Date.now()
+                        }
+                      ]
+                    }
                   : k
               )
             };
@@ -320,7 +408,10 @@ function App() {
               ...huidgeWedstrijd,
               kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
                 i === kwartIndex
-                  ? { ...k, doelpunten: k.doelpunten?.filter(d => d.id !== doelpuntId) || [] }
+                  ? {
+                      ...k,
+                      doelpunten: (k.doelpunten || []).filter(d => d.id !== doelpuntId)
+                    }
                   : k
               )
             };
@@ -396,11 +487,9 @@ function App() {
             onUpdateClubNaam={setClubNaam}
             onUpdateTeamNaam={setTeamNaam}
             onLaadTestdata={() => {
-              // Testdata laden (optioneel voor nu)
               console.log('Testdata laden (nog niet implemented)');
             }}
             onWisAlles={() => {
-              // Alles wissen
               if (confirm('Weet je zeker dat je alles wilt wissen?')) {
                 setSpelers([]);
                 setWedstrijden([]);
@@ -408,9 +497,9 @@ function App() {
             }}
           />
 
-          {/* Invite Coaches */}
-          {currentCoach && (
-            <InviteCoaches teamId={currentCoach.teamId} currentCoach={currentCoach} />
+          {/* Invite Coaches - UPDATED STAP 4: gebruik selectedTeamId */}
+          {currentCoach && selectedTeamId && (
+            <InviteCoaches teamId={selectedTeamId} currentCoach={currentCoach} />
           )}
         </div>
       )}
@@ -465,7 +554,9 @@ function App() {
                                 [pos]: ''
                               }),
                               {} as Record<string, string>
-                            )
+                            ),
+                            wissels: [],
+                            doelpunten: []
                           }))
                       };
                       setWedstrijden([...wedstrijden, newWedstrijd]);
