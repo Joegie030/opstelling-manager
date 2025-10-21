@@ -289,10 +289,15 @@ export const acceptInvite = async (inviteId: string, userUid: string, teamId: st
 // Save spelers naar Firestore
 export const saveSpelers = async (teamId: string, spelers: any[]): Promise<void> => {
   try {
+    // Filter uit undefined velden
     const cleanedSpelers = spelers.map(s => ({
-      ...s,
-      type: s.type || 'vast'
+      id: s.id,
+      naam: s.naam,
+      type: s.type || 'vast',
+      ...(s.team && { team: s.team })  // Only include team if it exists
     }));
+    
+    console.log('Saving spelers:', cleanedSpelers);
     
     await updateDoc(doc(db, 'teams', teamId), {
       spelers: cleanedSpelers
