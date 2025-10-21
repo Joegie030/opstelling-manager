@@ -1,212 +1,259 @@
 import { useState } from 'react';
-import { Plus, Trash2, TestTube, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import { Speler } from '../types';
 
 interface Props {
+  spelers: Speler[];
+  onVoegSpelerToe: (naam: string, type?: 'vast' | 'gast', team?: string) => void;
+  onVerwijderSpeler: (id: number) => void;
   clubNaam: string;
   teamNaam: string;
-  spelers: Speler[];
   onUpdateClubNaam: (naam: string) => void;
   onUpdateTeamNaam: (naam: string) => void;
-  onVoegSpelerToe: (naam: string) => void;
-  onVerwijderSpeler: (id: number) => void;
   onLaadTestdata: () => void;
   onWisAlles: () => void;
 }
 
 export default function TeamBeheer({
-  clubNaam,
-  teamNaam,
   spelers,
-  onUpdateClubNaam,
-  onUpdateTeamNaam,
   onVoegSpelerToe,
   onVerwijderSpeler,
+  clubNaam,
+  teamNaam,
+  onUpdateClubNaam,
+  onUpdateTeamNaam,
   onLaadTestdata,
   onWisAlles
 }: Props) {
-  const [nieuweSpeler, setNieuweSpeler] = useState('');
-  const [toonBevestiging, setToonBevestiging] = useState(false);
+  const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
+  const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
+  const [nieuwGastTeam, setNieuwGastTeam] = useState('');
 
-  const handleVoegToe = () => {
-    if (nieuweSpeler.trim()) {
-      onVoegSpelerToe(nieuweSpeler.trim());
-      setNieuweSpeler('');
-    }
-  };
+  // Filter spelers
+  const vasteSpelers = spelers.filter(s => s.type !== 'gast');
+  const gastSpelers = spelers.filter(s => s.type === 'gast');
 
-  const handleTestdata = () => {
-    if (spelers.length > 0) {
-      setToonBevestiging(true);
+  const handleVoegSpelerToe = () => {
+    if (!nieuwSpelerNaam.trim()) return;
+
+    if (activeTab === 'vast') {
+      onVoegSpelerToe(nieuwSpelerNaam, 'vast');
     } else {
-      onLaadTestdata();
+      if (!nieuwGastTeam.trim()) {
+        alert('Voer team naam in voor gastspeeler');
+        return;
+      }
+      onVoegSpelerToe(nieuwSpelerNaam, 'gast', nieuwGastTeam);
     }
-  };
 
-  const bevestigTestdata = () => {
-    onLaadTestdata();
-    setToonBevestiging(false);
+    setNieuwSpelerNaam('');
+    setNieuwGastTeam('');
   };
 
   return (
     <div className="space-y-6">
-      {/* Club en Team info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold mb-4 text-lg">Club & Team Info</h3>
-        <div className="space-y-3">
+      {/* ========== TEAM INFO ========== */}
+      <div className="border-2 border-blue-400 rounded-lg p-4 bg-blue-50">
+        <h2 className="text-2xl font-bold mb-4">🏠 Team Instellingen</h2>
+        
+        <div className="space-y-4">
+          {/* Club Naam */}
           <div>
-            <label className="block text-sm font-medium mb-1">Club Naam</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Club Naam</label>
             <input
               type="text"
               value={clubNaam}
               onChange={(e) => onUpdateClubNaam(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-              placeholder="Bijv. VV Amsterdam"
+              className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg font-medium"
+              placeholder="Bijv: VV Amsterdam"
             />
           </div>
+
+          {/* Team Naam */}
           <div>
-            <label className="block text-sm font-medium mb-1">Team Naam</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Team Naam</label>
             <input
               type="text"
               value={teamNaam}
               onChange={(e) => onUpdateTeamNaam(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-              placeholder="Bijv. F1 - Blauw"
+              className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg font-medium"
+              placeholder="Bijv: Team A"
             />
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={onLaadTestdata}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm"
+            >
+              📋 Testdata Laden
+            </button>
+            <button
+              onClick={onWisAlles}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-sm"
+            >
+              🗑️ Alles Wissen
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Testdata sectie */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex items-start gap-3 mb-3">
-          <TestTube className="w-5 h-5 text-yellow-600 mt-0.5" />
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg mb-1">Testdata</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Laad snel een testteam met 12 spelers om de app uit te proberen.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={handleTestdata}
-                className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center gap-2"
-              >
-                <TestTube className="w-4 h-4" />
-                Testdata laden
-              </button>
-              {spelers.length > 0 && (
-                <button
-                  onClick={() => {
-                    if (confirm('Weet je zeker dat je alle spelers wilt verwijderen?')) {
-                      onWisAlles();
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Alles wissen
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* ========== SPELAERSLIJST MET TABS ========== */}
+      <div className="border-2 border-green-400 rounded-lg p-4 bg-green-50">
+        <h2 className="text-2xl font-bold mb-4">👥 Spelaerslijst</h2>
 
-        {/* Bevestigingsmelding */}
-        {toonBevestiging && (
-          <div className="mt-3 p-3 bg-white border border-yellow-300 rounded-lg">
-            <div className="flex items-start gap-2 mb-3">
-              <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium text-sm">
-                  Je hebt al {spelers.length} speler(s). Testdata laden vervangt deze spelers.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={bevestigTestdata}
-                className="px-3 py-1.5 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600"
-              >
-                Ja, vervang spelers
-              </button>
-              <button
-                onClick={() => setToonBevestiging(false)}
-                className="px-3 py-1.5 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
-              >
-                Annuleren
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Spelers beheer */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <h3 className="font-semibold mb-4 text-lg">
-          Spelers ({spelers.length})
-        </h3>
-        
-        {/* Speler toevoegen */}
-        <div className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={nieuweSpeler}
-            onChange={(e) => setNieuweSpeler(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleVoegToe()}
-            placeholder="Naam nieuwe speler"
-            className="flex-1 px-3 py-2 border rounded-lg"
-          />
+        {/* TABS */}
+        <div className="flex gap-2 mb-4 border-b-2 border-green-300">
           <button
-            onClick={handleVoegToe}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+            onClick={() => setActiveTab('vast')}
+            className={`px-4 py-2 font-bold transition-colors ${
+              activeTab === 'vast'
+                ? 'border-b-4 border-green-600 text-green-700'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            Toevoegen
+            ⚽ Vaste Spelers ({vasteSpelers.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('gast')}
+            className={`px-4 py-2 font-bold transition-colors ${
+              activeTab === 'gast'
+                ? 'border-b-4 border-orange-600 text-orange-700'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            👤 Gastspeelers ({gastSpelers.length})
           </button>
         </div>
 
-        {/* Spelers lijst */}
-        {spelers.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p className="mb-2">Nog geen spelers toegevoegd</p>
-            <p className="text-sm">Voeg spelers toe of laad testdata</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {spelers.map((speler) => (
-              <div
-                key={speler.id}
-                className="flex items-center justify-between p-3 bg-white border rounded-lg hover:bg-gray-50"
-              >
-                <span className="font-medium">{speler.naam}</span>
-                <button
-                  onClick={() => {
-                    if (confirm(`Weet je zeker dat je ${speler.naam} wilt verwijderen?`)) {
-                      onVerwijderSpeler(speler.id);
-                    }
-                  }}
-                  className="text-red-500 hover:text-red-700 p-1"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+        {/* INPUT FORM */}
+        <div className="mb-4 space-y-3">
+          {activeTab === 'vast' ? (
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Spelaer Naam</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nieuwSpelerNaam}
+                    onChange={(e) => setNieuwSpelerNaam(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleVoegSpelerToe()}
+                    placeholder="Bijv: Jan de Vries"
+                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                  />
+                  <button
+                    onClick={handleVoegSpelerToe}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Toevoegen
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Info sectie */}
-      {spelers.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold mb-2 text-sm">💡 Tips</h4>
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>• Je hebt {spelers.length} spelers in je team</li>
-            <li>• Voor 6x6: minimaal 6 spelers nodig</li>
-            <li>• Voor 8x8: minimaal 8 spelers nodig</li>
-            <li>• Meer spelers = meer wisselmogelijkheden</li>
-          </ul>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Gastspeaker Naam</label>
+                <input
+                  type="text"
+                  value={nieuwSpelerNaam}
+                  onChange={(e) => setNieuwSpelerNaam(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleVoegSpelerToe()}
+                  placeholder="Bijv: Jeroen van Berg"
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Team/Club</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nieuwGastTeam}
+                    onChange={(e) => setNieuwGastTeam(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleVoegSpelerToe()}
+                    placeholder="Bijv: VV Ajax"
+                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                  />
+                  <button
+                    onClick={handleVoegSpelerToe}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium text-sm flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Toevoegen
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-      )}
+
+        {/* SPELAERSLIJST */}
+        <div className="space-y-2">
+          {activeTab === 'vast' ? (
+            <>
+              {vasteSpelers.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">Nog geen vaste spelers</p>
+              ) : (
+                vasteSpelers.map(speler => (
+                  <div
+                    key={speler.id}
+                    className="flex items-center justify-between p-3 bg-white border-2 border-green-300 rounded-lg hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">⚽</span>
+                      <span className="font-medium">{speler.naam}</span>
+                    </div>
+                    <button
+                      onClick={() => onVerwijderSpeler(speler.id)}
+                      className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                      title="Verwijder spelaer"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </>
+          ) : (
+            <>
+              {gastSpelers.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">Nog geen gastspeelers</p>
+              ) : (
+                gastSpelers.map(speler => (
+                  <div
+                    key={speler.id}
+                    className="flex items-center justify-between p-3 bg-orange-100 border-2 border-orange-400 rounded-lg hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">👤</span>
+                      <div>
+                        <div className="font-medium">{speler.naam}</div>
+                        <div className="text-xs text-gray-600">Gast uit: {speler.team || 'Onbekend'}</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => onVerwijderSpeler(speler.id)}
+                      className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                      title="Verwijder gastspeaker"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </>
+          )}
+        </div>
+
+        {/* SAMENVATTING */}
+        <div className="mt-4 p-3 bg-blue-100 border-2 border-blue-300 rounded-lg">
+          <p className="text-sm text-gray-800">
+            <strong>Totaal:</strong> {spelers.length} spelaers ({vasteSpelers.length} vast, {gastSpelers.length} gast)
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

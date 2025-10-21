@@ -139,10 +139,12 @@ function App() {
     setWedstrijden(wedstrijden.filter(w => w.id !== id));
   };
 
-  const addSpeler = (naam: string) => {
+  const addSpeler = (naam: string, type?: 'vast' | 'gast', team?: string) => {
     const newSpeler: Speler = {
       id: Date.now(),
-      naam
+      naam,
+      type: type || 'vast',
+      team: team || undefined
     };
     setSpelers([...spelers, newSpeler]);
   };

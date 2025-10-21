@@ -1,8 +1,6 @@
 export interface Speler {
   id: number;
   naam: string;
-  type?: 'vast' | 'gast';  // NIEUW: vast = vaste speler, gast = gastspeeler
-  team?: string;           // NIEUW: voor gastspeelers (bijv "VV Ajax")
 }
 
 export interface Wissel {
@@ -11,11 +9,12 @@ export interface Wissel {
   wisselSpelerId: string;
 }
 
+// NIEUW: Doelpunt interface voor score tracking
 export interface Doelpunt {
   id: number;
-  spelerId?: number;
+  spelerId?: number;  // Optioneel - alleen voor eigen doelpunten
   type: 'eigen' | 'tegenstander';
-  tijdstip?: string;
+  tijdstip?: string;  // Optioneel - voor toekomstige uitbreiding
 }
 
 export interface Kwart {
@@ -23,10 +22,10 @@ export interface Kwart {
   opstelling: Record<string, string>;
   wissels: Wissel[];
   minuten: number;
-  aantekeningen?: string;
-  doelpunten?: Doelpunt[];
-  themaBeoordelingen?: Record<string, 'goed' | 'beter' | null>;
-  observaties?: string[];
+  aantekeningen?: string;  // Vrije tekst notities per kwart
+  doelpunten?: Doelpunt[];  // Doelpunten in dit kwart
+  themaBeoordelingen?: Record<string, 'goed' | 'beter' | null>;  // Beoordeling van wedstrijdthema's
+  observaties?: string[];  // Algemene observaties (tags)
 }
 
 export interface Wedstrijd {
@@ -36,9 +35,9 @@ export interface Wedstrijd {
   thuisUit: 'thuis' | 'uit';
   formatie: '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8';
   kwarten: Kwart[];
-  afwezigeSpelers?: number[];
-  notities?: string;
-  themas?: string[];
+  afwezigeSpelers?: number[];  // Array van speler IDs die afwezig zijn
+  notities?: string;  // Vrije tekst notities
+  themas?: string[];  // Geselecteerde thema's voor deze wedstrijd
 }
 
 export const formaties: Record<'6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8', string[]> = {
@@ -47,6 +46,7 @@ export const formaties: Record<'6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8', stri
   '8x8': ['Keeper', 'Links achter', 'Rechts achter', 'Links midden', 'Midden', 'Rechts midden', 'Links voor', 'Rechts voor']
 };
 
+// Wedstrijd thema's voor focus/training
 export const WEDSTRIJD_THEMAS = {
   aanvallend: [
     { id: 'aanvallen', label: 'Aanvallen opbouwen', emoji: '🎯' },
@@ -68,12 +68,14 @@ export const WEDSTRIJD_THEMAS = {
   ]
 };
 
+// Alle thema's in één platte array
 export const ALLE_THEMAS = [
   ...WEDSTRIJD_THEMAS.aanvallend,
   ...WEDSTRIJD_THEMAS.verdedigend,
   ...WEDSTRIJD_THEMAS.algemeen
 ];
 
+// Algemene observaties per kwart
 export const KWART_OBSERVATIES = [
   { id: 'sterk', label: 'Sterk kwart', emoji: '🔥' },
   { id: 'zwaar', label: 'Zwaar kwart', emoji: '😓' },
