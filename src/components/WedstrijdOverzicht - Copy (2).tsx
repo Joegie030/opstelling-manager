@@ -78,58 +78,71 @@ export default function WedstrijdOverzicht({
 
   const WedstrijdCard = ({ wedstrijd, isKomend }: { wedstrijd: Wedstrijd; isKomend: boolean }) => {
     const isThuis = wedstrijd.thuisUit !== 'uit';
-    const badge = isThuis ? '🏠' : '✈️';
+    const badge = isThuis ? '🏠 Thuis' : '✈️ Uit';
     const badgeBg = isThuis ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
     const cardBg = isKomend ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-300';
+    const titleColor = isKomend ? 'text-blue-900' : 'text-gray-800';
 
     return (
-      <div className={`${cardBg} border-2 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow`}>
-        {/* Rij 1: Datum - Thuis/Uit (klein) */}
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-gray-700">{wedstrijd.datum}</span>
-          <span className={`text-xs font-bold px-2 py-1 rounded-full ${badgeBg}`}>
-            {badge} {isThuis ? 'Thuis' : 'Uit'}
+      <div className={`${cardBg} border-2 rounded-lg p-4 hover:shadow-md transition-shadow`}>
+        {/* Header: Formatie, Datum, Badge */}
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <h4 className={`font-bold text-lg ${titleColor}`}>{getFormatieNaam(wedstrijd.formatie)}</h4>
+            <p className="text-sm text-gray-600">{wedstrijd.datum}</p>
+          </div>
+          <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeBg}`}>
+            {badge}
           </span>
         </div>
 
-        {/* Rij 2: Wie tegen wie - Type */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
-          <div className="flex items-center gap-1 flex-wrap">
-            <span className="font-bold text-blue-600 text-sm">{teamNaam}</span>
-            <span className="text-gray-400 text-xs font-medium">vs</span>
-            <span className="font-bold text-gray-700 text-sm">
-              {wedstrijd.tegenstander || '(Tegenstander)'}
-            </span>
-          </div>
-          <span className="inline-block text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 w-fit">
+        {/* Type Badge */}
+        <div className="mb-3">
+          <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700">
             {getTypeNaam(wedstrijd.type)}
           </span>
         </div>
 
-        {/* Rij 3: Formatie (klein) */}
-        <div className="text-xs text-gray-600 mb-3">
-          {getFormatieNaam(wedstrijd.formatie)}
+        {/* Match-up Display */}
+        <div className="mb-4 flex items-center gap-2 flex-wrap">
+          {isThuis ? (
+            <>
+              <span className="font-bold text-blue-600">{teamNaam}</span>
+              <span className="text-gray-400 font-medium">vs</span>
+              <span className="font-bold text-gray-700">
+                {wedstrijd.tegenstander || '(Tegenstander)'}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="font-bold text-gray-700">
+                {wedstrijd.tegenstander || '(Tegenstander)'}
+              </span>
+              <span className="text-gray-400 font-medium">vs</span>
+              <span className="font-bold text-blue-600">{teamNaam}</span>
+            </>
+          )}
         </div>
 
-        {/* Rij 4: Buttons */}
-        <div className="flex gap-2">
+        {/* Buttons */}
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => onBekijk(wedstrijd)}
-            className="flex-1 px-2 sm:px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-1"
+            className="flex-1 min-w-24 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-sm transition-colors flex items-center justify-center gap-1"
           >
             <Eye className="w-4 h-4" />
-            <span>Bekijk</span>
+            <span className="hidden sm:inline">Bekijk</span>
           </button>
           <button
             onClick={() => onKopieer(wedstrijd)}
-            className="flex-1 px-2 sm:px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-1"
+            className="flex-1 min-w-24 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm transition-colors flex items-center justify-center gap-1"
           >
             <Copy className="w-4 h-4" />
-            <span>Kopieer</span>
+            <span className="hidden sm:inline">Kopieer</span>
           </button>
           <button
             onClick={() => openVerwijderModal(wedstrijd)}
-            className="px-2 sm:px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-xs sm:text-sm transition-colors"
+            className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium text-sm transition-colors"
           >
             <Trash2 className="w-4 h-4" />
           </button>
