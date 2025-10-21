@@ -6,6 +6,7 @@ import Statistieken from './components/statistieken.tsx';
 import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
 import WedstrijdOverzicht from './components/WedstrijdOverzicht.tsx';
 import Instellingen from './components/Instellingen.tsx';
+import Help from './components/Help.tsx';
 import AuthScreen from './components/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
@@ -190,22 +191,8 @@ function App() {
       onScreenChange={setHuidigScherm}
       menuItems={DEFAULT_MENU_ITEMS}
       onLogout={handleLogout}
+      currentCoach={currentCoach}
     >
-      {/* Coach info bar */}
-      <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-600">Ingelogd als:</p>
-          <p className="font-semibold text-gray-800">{currentCoach.naam} ({currentCoach.email})</p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          Uitloggen
-        </button>
-      </div>
-
       {/* WEDSTRIJDEN SCHERM */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
@@ -438,6 +425,11 @@ function App() {
           onExportData={() => {}}
           onImportData={() => {}}
         />
+      )}
+
+      {/* HELP SCHERM */}
+      {huidigScherm === 'help' && (
+        <Help />
       )}
 
       {/* FORMATIE MODAL */}

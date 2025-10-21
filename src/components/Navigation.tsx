@@ -82,13 +82,43 @@ export function Navigation({
           <div className="max-w-7xl mx-auto">
             {/* Top row: Logo + Hamburger (mobile) / Logo + User (desktop) */}
             <div className="flex items-center justify-between mb-3">
-              <div className="flex flex-col">
-                <h1 className="font-bold text-lg truncate">
-                  ⚽ Opstelling Manager
-                </h1>
-                <p className="text-xs text-blue-200 truncate">
-                  🏆 {clubNaam} • {teamNaam}
-                </p>
+              <div className="flex items-center gap-3 flex-1">
+                {/* Logo SVG */}
+                <svg width="36" height="36" viewBox="0 0 480 480" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                  <rect x="30" y="60" width="420" height="360" rx="40" stroke="white" strokeWidth="50" fill="#003d82"/>
+                  <line x1="240" y1="60" x2="240" y2="420" stroke="white" strokeWidth="20"/>
+                  <path d="M 120 180 Q 240 240 360 120" stroke="white" strokeWidth="20" fill="none" strokeLinecap="round"/>
+                  <circle cx="120" cy="120" r="20" fill="white"/>
+                  <circle cx="120" cy="120" r="12" fill="#5ec969"/>
+                  <circle cx="120" cy="300" r="20" fill="white"/>
+                  <circle cx="120" cy="300" r="12" fill="#5ec969"/>
+                  <circle cx="240" cy="240" r="20" fill="white"/>
+                  <circle cx="240" cy="240" r="12" fill="#003d82"/>
+                  <circle cx="360" cy="120" r="20" fill="white"/>
+                  <circle cx="360" cy="120" r="12" fill="#5ec969"/>
+                  <circle cx="360" cy="300" r="20" fill="white"/>
+                  <circle cx="360" cy="300" r="12" fill="#5ec969"/>
+                </svg>
+
+                {/* Brand text */}
+                <div className="flex flex-col">
+                  <h1 className="font-bold text-lg truncate">
+                    Joegie
+                  </h1>
+                  <p className="text-xs text-blue-200 truncate">
+                    Formation Manager
+                  </p>
+                </div>
+
+                {/* Club info */}
+                <div className="ml-auto flex flex-col text-right hidden sm:flex">
+                  <p className="text-xs text-blue-200 truncate">
+                    🏆 {clubNaam}
+                  </p>
+                  <p className="text-xs text-blue-200 truncate">
+                    {teamNaam}
+                  </p>
+                </div>
               </div>
               
               {/* Desktop: User button */}

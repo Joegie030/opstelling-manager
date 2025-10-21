@@ -1,8 +1,8 @@
 export interface Speler {
   id: number;
   naam: string;
-  type?: 'vast' | 'gast';  // NIEUW: vast = vaste speler, gast = gastspeeler
-  team?: string;           // NIEUW: voor gastspeelers (bijv "VV Ajax")
+  type?: 'vast' | 'gast';  // vast = vaste speler, gast = gastspeeler
+  team?: string;           // voor gastspeelers (bijv "VV Ajax")
 }
 
 export interface Wissel {
@@ -34,6 +34,7 @@ export interface Wedstrijd {
   datum: string;
   tegenstander: string;
   thuisUit: 'thuis' | 'uit';
+  type?: 'competitie' | 'oefenwedstrijd';
   formatie: '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8';
   kwarten: Kwart[];
   afwezigeSpelers?: number[];

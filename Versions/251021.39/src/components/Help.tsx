@@ -11,28 +11,8 @@ export default function Help() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center gap-3 mb-4">
-          <svg width="48" height="48" viewBox="0 0 480 480" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="30" y="60" width="420" height="360" rx="40" stroke="#003d82" strokeWidth="50" fill="white"/>
-            <line x1="240" y1="60" x2="240" y2="420" stroke="#003d82" strokeWidth="20"/>
-            <path d="M 120 180 Q 240 240 360 120" stroke="#003d82" strokeWidth="20" fill="none" strokeLinecap="round"/>
-            <circle cx="120" cy="120" r="20" fill="#003d82"/>
-            <circle cx="120" cy="120" r="12" fill="#5ec969"/>
-            <circle cx="120" cy="300" r="20" fill="#003d82"/>
-            <circle cx="120" cy="300" r="12" fill="#5ec969"/>
-            <circle cx="240" cy="240" r="20" fill="#003d82"/>
-            <circle cx="240" cy="240" r="12" fill="white"/>
-            <circle cx="360" cy="120" r="20" fill="#003d82"/>
-            <circle cx="360" cy="120" r="12" fill="#5ec969"/>
-            <circle cx="360" cy="300" r="20" fill="#003d82"/>
-            <circle cx="360" cy="300" r="12" fill="#5ec969"/>
-          </svg>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Joegie</h1>
-            <p className="text-sm text-gray-600">Formation Manager</p>
-          </div>
-        </div>
-        <p className="text-gray-600 mb-6">Leer hoe je Joegie gebruikt voor jouw sport</p>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Help & Documentatie</h1>
+        <p className="text-gray-600">Leer hoe je de Opstelling Manager gebruikt</p>
       </div>
 
       {/* GETTING STARTED */}
@@ -218,7 +198,7 @@ export default function Help() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-600 font-semibold">APP NAAM</p>
-                <p className="text-lg font-bold text-gray-800">Joegie - Formation Manager</p>
+                <p className="text-lg font-bold text-gray-800">⚽ Opstelling Manager</p>
               </div>
 
               <div>
@@ -270,9 +250,9 @@ export default function Help() {
             </div>
 
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-gray-200 rounded-lg p-4">
-              <p className="text-xs sm:text-sm text-gray-700 font-semibold mb-2">🙌 Over Joegie</p>
+              <p className="text-xs sm:text-sm text-gray-700 font-semibold mb-2">🙌 Dankwoord</p>
               <p className="text-xs text-gray-600">
-                Joegie maakt het eenvoudig voor coaches om opstellingen in te regelen in voetbal, hockey, handball en andere sporten. Bespaar tijd op administratie, meer tijd voor coaching.
+                Gemaakt met ❤️ voor voetbalcoaches die hun tijd willen besparen op administratie en meer willen focussen op coaching.
               </p>
             </div>
           </div>
