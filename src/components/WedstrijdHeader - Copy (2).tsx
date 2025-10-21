@@ -23,8 +23,7 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
     onToggleAfwezig,
     onUpdateWedstrijdNotities,
     onUpdateWedstrijdThemas,
-    onSluiten,
-    onUpdateWedstrijdType
+    onSluiten
   } = useWedstrijd();
 
   const [notitiesOpen, setNotitiesOpen] = useState(false);
@@ -102,16 +101,6 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
                 ✈️ Uit
               </button>
             </div>
-            <select
-              value={wedstrijd.type || ''}
-              onChange={(e) => onUpdateWedstrijdType(e.target.value as 'competitie' | 'oefenwedstrijd' | 'vriendschappelijk' | '')}
-              className="px-3 py-2 border-2 border-green-500 rounded-lg font-medium text-sm bg-white"
-            >
-              <option value="">-- Type --</option>
-              <option value="competitie">🏆 Competitie</option>
-              <option value="oefenwedstrijd">🎯 Oefenwedstrijd</option>
-              <option value="vriendschappelijk">🤝 Vriendschappelijk</option>
-            </select>
           </div>
           
           {/* Tegenstander */}
