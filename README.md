@@ -1,117 +1,52 @@
-# ⚽ Voetbal Opstelling Manager
+# Joegie - Formation Manager
 
-Een moderne web applicatie voor het beheren van voetbalopstellingen, speeltijd tracking en keeperstatistieken voor jeugdteams.
+Een moderne web applicatie voor het beheren van team opstellingen, speeltijd tracking en statistieken. Gebouwd voor voetbal, hockey en andere sporten.
 
-## 🎯 Features
+## Features
 
-### Team Beheer
-- ➕ Spelers toevoegen en verwijderen
-- 📝 Club- en teamnaam instellen
-- 💾 Automatisch opslaan in browser (localStorage)
+### Team Management
+- Spelers toevoegen (vaste leden en gasten)
+- Club- en teamnaam instellen
+- Automatische cloud synchronisatie (Firebase)
 
-### Wedstrijd Opstelling
-- 🎮 **2 formaties**: 6x6 of 8x8
-- ⏱️ **4 kwarten** van 12,5 minuten per wedstrijd
-- 🔄 **Wissels systeem**: Wissel spelers na 6,25 minuten
-- 🧤 **Keeper tracking**: Houd bij wie wanneer keeper staat
-- ⚠️ **Intelligente waarschuwingen**:
-  - Keeper mag niet direct voor/na zijn beurt op de bank
-  - Detectie van spelers die nooit keeper zijn geweest
-  - Waarschuwing bij spelers die te vaak op de bank zitten
+### Wedstrijd Planning
+- Datum en tegenstander registreren
+- Wedstrijdtype selecteren (Competitie of Oefenwedstrijd)
+- Formatie kiezen: 6x6 (Vliegtuig/Dobbelsteen) of 8x8
 
-### Statistieken & Overzichten
-- 📊 **Per wedstrijd**: Speelminuten, wisselminuten en keeper-beurten
-- 📈 **Totaal overzicht**: Cumulatieve statistieken over alle wedstrijden
-- 🎯 **Positie statistieken**: Zie hoe vaak elke speler op welke positie speelt
-- 🧤 **Keeper historie**: Volledige keeper statistieken per speler
+### Opstellingen per Wedstrijd
+- 4 kwarten à 12,5 minuten
+- Spelers positioneren op het veld
+- Wissels invoeren (automatisch na 6,25 minuten per kwart)
+- Afwezige spelers markeren
 
-## 🚀 Quick Start
+### Score Tracking
+- Real-time doelpunten registreren
+- Doelpuntenmakers bijhouden
+- Eindstand automatisch berekenen
+- Wedstrijd notities voor context
 
-### Vereisten
-- Node.js (versie 18 of hoger)
-- npm of yarn
+### Statistieken
+- Speeltijd per speler (in minuten)
+- Doelpunten per speler
+- Keeper-beurten bijhouden
+- Top scorers overzicht
+- Team prestaties (gewonnen/verloren/gelijkspel)
+- Doelsaldo berekening
 
-### Installatie
-
-```bash
-# Clone de repository
-git clone https://github.com/Joegie030/opstelling-manager.git
-
-# Ga naar de project directory
-cd opstelling-manager
-
-# Installeer dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-De applicatie is nu beschikbaar op `http://localhost:5173`
-
-## 🏗️ Tech Stack
-
-- **Framework**: React 18 met TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **Deployment**: Vercel
-- **Storage**: Browser localStorage
-
-## 📁 Project Structuur
-
-```
-src/
-├── App.tsx                          # Hoofdcomponent
-├── types/
-│   └── index.ts                     # TypeScript types & formaties
-├── components/
-│   ├── teambeheer.tsx              # Spelersbeheer
-│   ├── wedstrijdopstelling.tsx     # Opstelling per kwart
-│   └── statistieken.tsx            # Statistieken overzichten
-└── main.tsx                         # Entry point
-```
-
-## 🎮 Gebruik
-
-### 1. Team instellen
-1. Ga naar de **👥 Team** tab
-2. Voer je club- en teamnaam in
-3. Voeg spelers toe aan je team
-
-### 2. Wedstrijd aanmaken
-1. Ga naar **➕ Nieuwe Wedstrijd**
-2. Kies formatie (6x6 of 8x8)
-3. Vul datum en tegenstander in
-4. Klik op "Maak Wedstrijd"
-
-### 3. Opstelling maken
-1. Voor elk kwart:
-   - Selecteer spelers voor elke positie
-   - Voeg wissels toe indien nodig (na 6,25 min)
-2. Let op de waarschuwingen:
-   - ⭐ = Speler heeft voorrang (weinig gespeeld)
-   - ⚠️ = Keeper-rust regel geschonden
-   - 🪑 = Aantal keer op de bank
-
-### 4. Statistieken bekijken
-Ga naar **📊 Statistieken** voor:
-- Wedstrijdoverzichten
-- Totale speeltijd per speler
-- Keeper statistieken
-- Positie verdeling
-
-## 🎨 Formaties
+## Formaties
 
 ### 6x6 Formatie
 ```
      Keeper
-      Achter
+     Achter
 Links Midden Rechts
-       Voor
+     Voor
 ```
 
-Posities: Keeper, Achter, Links, Midden, Rechts, Voor
+### 6x6 Varianten
+- Vliegtuig: Standaard
+- Dobbelsteen: Voor gemengde groepen
 
 ### 8x8 Formatie
 ```
@@ -121,90 +56,338 @@ Links midden Midden Rechts midden
 Links voor    Rechts voor
 ```
 
-Posities: Keeper, Links achter, Rechts achter, Links midden, Midden, Rechts midden, Links voor, Rechts voor
+## Installatie
 
-## 🔧 Development
+### Vereisten
+- Node.js 18+
+- npm of yarn
 
+### Setup
 ```bash
-# Development server met hot reload
+# Clone repository
+git clone <url>
+
+# Installeer dependencies
+npm install
+
+# Development server
 npm run dev
 
-# Type checking
+# Production build
+npm run build
+```
+
+## Technologie Stack
+
+- React 18 + TypeScript
+- Vite (build tool)
+- Tailwind CSS (styling)
+- Lucide React (icons)
+- Firebase (authentication & storage)
+- Vercel (deployment)
+
+## Project Structuur
+
+```
+src/
+├── App.tsx                      # Hoofdcomponent
+├── types/
+│   └── index.ts                 # Type definitions
+├── components/
+│   ├── Navigation.tsx           # Header & menu
+│   ├── WedstrijdOverzicht.tsx   # Wedstrijdenlijst
+│   ├── WedstrijdOpstelling.tsx  # Opstelling editor
+│   ├── Statistieken.tsx         # Statistieken
+│   ├── TeamBeheer.tsx           # Spelers beheer
+│   ├── Help.tsx                 # Help scherm
+│   ├── teambeheer.tsx           # (Legacy)
+│   └── ...
+├── firebase/
+│   └── firebaseService.ts       # Firebase integratie
+└── main.tsx                     # Entry point
+```
+
+## Data Types
+
+### Wedstrijd
+```typescript
+interface Wedstrijd {
+  id: number
+  datum: string
+  tegenstander: string
+  thuisUit: 'thuis' | 'uit'
+  formatie: string
+  type?: 'competitie' | 'oefenwedstrijd'
+  kwarten: Kwart[]
+  afwezigeSpelers?: number[]
+  notities?: string
+}
+```
+
+### Kwart
+```typescript
+interface Kwart {
+  opstelling: { [positie: string]: string }
+  wissels?: Wissel[]
+  doelpunten?: Doelpunt[]
+  aantekeningen?: string
+}
+```
+
+### Doelpunt
+```typescript
+interface Doelpunt {
+  id: number
+  spelerId?: number
+  type: 'eigen' | 'tegenstander'
+}
+```
+
+## Workflow
+
+### 1. Team Inrichten
+1. Navigeer naar Team tab
+2. Stel club- en teamnaam in
+3. Voeg spelers toe (vaste spelers of gasten)
+
+### 2. Wedstrijd Aanmaken
+1. Klik "Nieuwe Wedstrijd"
+2. Vul in:
+   - Datum
+   - Tegenstander
+   - Thuis/Uit
+   - Wedstrijdtype
+3. Selecteer formatie (6x6 of 8x8)
+4. Klik "Maak Wedstrijd"
+
+### 3. Opstelling Samenstellen
+1. Per kwart:
+   - Spelers selecteren voor elke positie
+   - Voeg wissels toe (na 6,25 min)
+   - Markeer afwezige spelers
+2. Voeg notities toe per kwart
+
+### 4. Score Bijhouden (Live)
+1. Klik "Wij scoren" of "Zij scoren"
+2. Selecteer doelpuntenmaker
+3. Score update automatisch
+4. Doelpunten verschijnen in lijst
+
+### 5. Statistieken Bekijken
+1. Ga naar Statistieken tab
+2. Bekijk:
+   - Wedstrijdoverzicht
+   - Speeltijd per speler
+   - Topscorers
+   - Team prestaties
+
+## UI/UX Highlights
+
+### Design
+- Moderner, sport-agnostisch branding
+- "Joegie" als brand name
+- "Formation Manager" als subtitel
+- Responsive design voor mobiel en desktop
+- Compact wedstrijdkaarten
+
+### Navigation
+- Blauwe header met Joegie logo
+- Horizontaal menu (desktop)
+- Hamburger menu (mobiel)
+- User profiel dropdown
+- Help scherm in menu
+
+### Wedstrijdoverzicht
+- Filter op type (Competitie/Oefenwedstrijd)
+- Compacte kaarten met:
+  - Datum + Thuis/Uit badge
+  - Matchup (wie tegen wie)
+  - Type
+  - Formatie
+  - Bekijk/Kopieer/Verwijder buttons
+
+### Help Scherm
+- Getting Started (hoe app werken)
+- Features (wat kan je doen)
+- Versie info (over de app)
+- Pro Tips (handige hints)
+
+## Automatische Cloud Sync
+
+Data wordt automatisch gesynchroniseerd naar Firebase:
+- Spelers
+- Wedstrijden
+- Team informatie
+
+Geen handmatig opslaan nodig - alles werkt real-time.
+
+## Authentication
+
+- Firebase Authentication
+- Email/wachtwoord login
+- Team-based access control
+- Multiple coaches per team
+
+## Filter & Zoeken
+
+### Wedstrijdfilter
+- Alle wedstrijden
+- Alleen competitie
+- Alleen oefenwedstrijden
+
+### Automatische Sortering
+- Komende wedstrijden (chronologisch)
+- Gespeelde wedstrijden (nieuwste eerst)
+
+## Statistieken Berekening
+
+### Speeltijd
+- Volledige kwart: 12,5 minuten
+- Met wissel: 6,25 minuten
+- Op bank: 0 minuten (telt als wissel)
+
+### Topscorers
+- Totale doelpunten over alle wedstrijden
+- Gesorteerd descending
+- Top 3 krijgt medailles (🥇🥈🥉)
+
+### Team Prestaties
+- Doelpunten voor/tegen
+- Doelsaldo
+- Wins/draws/losses
+- Winst percentage
+
+## Keyboard & Accessibility
+
+- Tab navigatie ondersteund
+- Enter om te submitten
+- Escape om modals te sluiten
+- Mobile-friendly touch targets
+
+## Browser Support
+
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Mobile browsers (iOS Safari, Chrome Android)
+
+## Performance
+
+- Lazy loading componenten
+- Optimized render performance
+- Firebase real-time updates
+- Efficient state management
+
+## Data Persistence
+
+- Cloud storage via Firebase
+- Automatic sync
+- Real-time updates across devices
+- Offline support (cached)
+
+## Toekomstige Features
+
+- PDF/Excel export
+- Video tutorials
+- Assist tracking
+- Kaarten systeem (geel/rood)
+- Man of the Match voting
+- Live score sharing
+- Multiple teams per coach
+- Seizoensstatistieken
+
+## Troubleshooting
+
+### Data wordt niet gesynchroniseerd
+- Check internet verbinding
+- Controleer Firebase configuratie
+- Logout en login opnieuw
+
+### Filter werkt niet
+- Refresh de pagina
+- Clear browser cache
+- Check of wedstrijdtype correct is ingesteld
+
+### Spelers verschijnen niet
+- Voeg spelers toe in Team tab
+- Zorg dat ze niet als "afwezig" staan
+- Refresh de pagina
+
+## Development
+
+```bash
+# Watch mode
+npm run dev
+
+# Build production
 npm run build
 
-# Preview production build
+# Preview build
 npm run preview
+
+# Type check
+npx tsc --noEmit
 ```
 
-## 🚀 Deployment
+## Deployment
 
-Het project is geconfigureerd voor automatische deployment op Vercel:
+Automatische deployment op Vercel bij push naar main branch.
 
-1. Push naar de `main` branch
-2. Vercel bouwt en deployt automatisch
-3. Live URL: [Je Vercel URL hier]
-
-### Handmatige deployment via Vercel CLI
+Handmatige deployment:
 ```bash
-# Installeer Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
+npm run build
+vercel deploy --prod
 ```
 
-## 📝 Regels & Logica
+## Regels & Logica
 
-### Keeper-rust regel
-Een speler die keeper staat, mag **niet** direct in het kwart ervoor of erna op de wisselbank zitten. Dit voorkomt dat keepers te weinig rust krijgen.
+### Wedstrijdtype
+- Competitie: Officiële wedstrijden
+- Oefenwedstrijd: Training matches
 
-### Prioriteit systeem
-Spelers krijgen een ⭐ als ze:
-- Minder hebben gespeeld dan anderen
-- Nog nooit keeper zijn geweest (bij keeper positie)
-- Vaak op de wisselbank hebben gezeten
+### Formatie Keuze
+- 6x6: Kleinere teams (U12-U14)
+- 8x8: Grotere teams (U15+)
 
-### Speeltijd berekening
-- **Hele kwart gespeeld**: 12,5 minuten
-- **Met wissel na 6,25 min**: 6,25 minuten per speler
-- **Op de bank**: 0 minuten (telt als wisselbeurt)
+### Wissel Timing
+- Automatisch na 6,25 minuten per kwart
+- Spelers kunnen meerdere keren wisselen
+- Positie verandering = nieuwe wissel
 
-## 🐛 Bekende Beperkingen
+## Compatibiliteit
 
-- Data wordt alleen lokaal opgeslagen (geen cloud sync tussen apparaten)
-- Browser cache wissen verwijdert alle data
-- Geen export functionaliteit naar Excel/PDF (nog niet geïmplementeerd)
+### Sporten
+- Voetbal (standaard)
+- Hockey (opstellingen aanpassen)
+- Handball
+- Andere teamsporten
 
-## 📋 Toekomstige Features
+### Devices
+- Desktop (1024px+)
+- Tablet (768px+)
+- Mobiel (360px+)
 
-- [ ] Data export (PDF/Excel)
-- [ ] Cloud opslag (Firebase/Supabase)
-- [ ] Multi-device sync
-- [ ] Seizoensstatistieken
-- [ ] Wedstrijdverslagen
-- [ ] Print-vriendelijke opstellingen
-- [ ] Speler foto's toevoegen
+## Licentie
 
-## 🤝 Bijdragen
+MIT License
 
-Suggesties en verbeteringen zijn welkom! Open een issue of pull request.
+## Contact & Support
 
-## 📄 Licentie
+Voor vragen of bugs:
+1. Check Help scherm in app
+2. Controleer FAQ in documentation
+3. Open een issue op GitHub
 
-Dit project is open source en beschikbaar onder de MIT License.
+## Credits
 
-## 👤 Auteur
-
-**Joegie030**
-- GitHub: [@Joegie030](https://github.com/Joegie030)
-
-## 💡 Support
-
-Voor vragen of problemen:
-1. Check de [Issues](https://github.com/Joegie030/opstelling-manager/issues)
-2. Open een nieuw issue met gedetailleerde beschrijving
-3. Deel screenshots indien mogelijk
+Gebouwd voor coaches die:
+- Hun tijd willen besparen op administratie
+- Eerlijk speeltijd willen verdelen
+- Speler prestaties willen tracken
+- Hun team willen optimaliseren
 
 ---
 
-**Gemaakt met ❤️ voor jeugdvoetbal coaches en teammanagers**
+**Gemaakt met ❤️ voor coaches in alle sporten**
+
+Versie: 2.0 (Oktober 2025)
