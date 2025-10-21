@@ -50,7 +50,7 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
   );
 
   return (
-    <div className="border-2 border-green-400 rounded-lg overflow-hidden bg-green-50">
+    <div className="w-full border-2 border-green-400 rounded-lg overflow-hidden bg-green-50">
       {/* HEADER */}
       <div className="bg-green-100 border-b-2 border-green-400 p-4">
         <h2 className="font-bold text-sm sm:text-lg text-green-900">
@@ -59,8 +59,8 @@ export function WedstrijdHeader({ afwezigeInOpstelling, verwijderAfwezigeUitOpst
       </div>
 
       {/* CONTENT */}
-      <div className="p-4 bg-white">
-        <div className="space-y-4">
+      <div className="p-4 bg-white w-full">
+        <div className="space-y-4 w-full">
           {/* Titel en formatie */}
           <div className="space-y-1">
             <h3 className="text-lg sm:text-2xl font-bold truncate">
