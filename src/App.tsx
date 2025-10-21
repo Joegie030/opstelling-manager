@@ -79,6 +79,36 @@ function App() {
     }
   }, [selectedTeamId]);
 
+  // Auto-save spelers naar Firebase
+  useEffect(() => {
+    if (selectedTeamId && spelers.length > 0) {
+      const saveTimeout = setTimeout(() => {
+        saveSpelers(selectedTeamId, spelers).catch(console.error);
+      }, 1000);
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [spelers, selectedTeamId]);
+
+  // Auto-save wedstrijden naar Firebase
+  useEffect(() => {
+    if (selectedTeamId && wedstrijden.length > 0) {
+      const saveTimeout = setTimeout(() => {
+        saveWedstrijden(selectedTeamId, wedstrijden).catch(console.error);
+      }, 1000);
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [wedstrijden, selectedTeamId]);
+
+  // Auto-save team info naar Firebase
+  useEffect(() => {
+    if (selectedTeamId && clubNaam !== 'Mijn Club' && teamNaam !== 'Team A') {
+      const saveTimeout = setTimeout(() => {
+        saveTeamInfo(selectedTeamId, clubNaam, teamNaam).catch(console.error);
+      }, 1000);
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [clubNaam, teamNaam, selectedTeamId]);
+
   const loadTeamData = async (teamId: string) => {
     try {
       const data = await getTeamData(teamId);
@@ -150,7 +180,7 @@ function App() {
     return <AuthScreen onLoginSuccess={() => {}} />;
   }
 
-  // Main app - show team selector first, then content
+  // Main app
   return (
     <Navigation
       clubNaam={clubNaam}
