@@ -529,7 +529,7 @@ export default function WedstrijdOpstelling({
                 >
                   <div className="flex items-center gap-2">
                     <Plus className="w-4 h-4" />
-                    Wissels {kwart.nummer}
+                    Wissels Kwart {kwart.nummer}
                   </div>
                   {wisselsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
