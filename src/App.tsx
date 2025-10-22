@@ -7,7 +7,7 @@ import WedstrijdOverzicht from './screens/WedstrijdOverzicht.tsx';
 import WedstrijdOpstelling from './screens/WedstrijdOpstelling.tsx';  
 import Instellingen from './screens/Instellingen.tsx';
 import AuthScreen from './screens/AuthScreen.tsx';
-import InviteCoaches from './screens/InviteCoaches.tsx';
+import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
 import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden, saveTeamInfo } from './firebase/firebaseService';
 
