@@ -323,9 +323,15 @@ export const saveWedstrijden = async (teamId: string, wedstrijden: any[]): Promi
 // Save club en team naam
 export const saveTeamInfo = async (teamId: string, clubNaam: string, teamNaam: string): Promise<void> => {
   try {
+    // Never save undefined or empty values
+    if (!clubNaam || !teamNaam) {
+      console.warn('Skipping saveTeamInfo - clubNaam or teamNaam is empty', { clubNaam, teamNaam });
+      return;
+    }
+    
     await updateDoc(doc(db, 'teams', teamId), {
-      clubNaam: clubNaam,
-      teamNaam: teamNaam
+      clubNaam: clubNaam.trim(),
+      teamNaam: teamNaam.trim()
     });
   } catch (error) {
     console.error('Error saving team info:', error);
