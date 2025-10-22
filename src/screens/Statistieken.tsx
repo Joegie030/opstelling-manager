@@ -362,14 +362,14 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     return waarschuwingen;
   };
 
-  const speelminutenDetail = berekenSpeelminutenDetail();
+  const speelminutenDetail = berekenSpeelminutenDetail(wedstrijden, spelers);
   const positieSuccessRate = berekenPositieSuccessRate();
   const themaSucces = berekenThemaSucces();
   const doelpuntenPerKwart = berekenDoelpuntenPerKwart();
   const thuisUitTrend = berekenThuisUitTrend();
   const laatste3 = berekenLaatste3();
   const waarschuwingen = berekenWaarschuwingen();
-  const teamPrestaties = berekenTeamPrestaties();
+  const teamPrestaties = berekenTeamPrestaties(wedstrijden);
   const topscorers = berekenTopscorers(wedstrijden, spelers);
 
   return (
