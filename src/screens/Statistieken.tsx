@@ -1,4 +1,5 @@
 import { Speler, Wedstrijd, Doelpunt, formaties, ALLE_THEMAS } from '../types';
+import { berekenTeamPrestaties, berekenTopscorers, berekenSpeelminutenDetail } from '../utils/calculations';
 
 interface Props {
   spelers: Speler[];
@@ -492,7 +493,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     }
 
     const waarschuwingen: Waarschuwing[] = [];
-    const speelminutenDetail = berekenSpeelminutenDetail();
+    const speelminutenDetail = berekenSpeelminutenDetail(wedstrijden, spelers);
     const totalWedstrijden = wedstrijden.length;
 
     speelminutenDetail.forEach(stat => {
@@ -535,7 +536,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   const laatste3 = berekenLaatste3();
   const waarschuwingen = berekenWaarschuwingen();
   const teamPrestaties = berekenTeamPrestaties();
-  const topscorers = berekenTopscorers();
+  const topscorers = berekenTopscorers(wedstrijden, spelers);
 
   return (
     <div className="space-y-6">

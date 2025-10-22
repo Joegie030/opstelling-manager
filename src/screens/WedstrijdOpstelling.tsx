@@ -6,6 +6,7 @@ import { WedstrijdProvider } from '../components/WedstrijdContext';
 import { WedstrijdHeader } from '../components/WedstrijdHeader';
 import { WedstrijdSamenvatting } from '../components/WedstrijdSamenvatting';
 import VoetbalVeld from '../components/VoetbalVeld';
+import { berekenWedstrijdStats, berekenTotaalKeeperBeurten } from '../utils/calculations';
 
 interface Props {
   wedstrijd: Wedstrijd;
@@ -213,8 +214,8 @@ export default function WedstrijdOpstelling({
     const keepers = getKeeperSpelers();
     const wisselBeurten = getWisselBeurten();
     const keeperBeurten = getKeeperBeurtenInWedstrijd();
-    const totaalKeeperBeurten = berekenTotaalKeeperBeurten();
-    const stats = berekenWedstrijdStats();
+    const totaalKeeperBeurten = berekenTotaalKeeperBeurten(wedstrijden, spelers);
+    const stats = berekenWedstrijdStats(wedstrijd, spelers);
     const isKeeperPositie = huidigePositie === 'Keeper';
     const afwezigeSpelers = wedstrijd.afwezigeSpelers || [];
     
@@ -347,7 +348,7 @@ export default function WedstrijdOpstelling({
     return waarschuwingen;
   };
 
-  const stats = berekenWedstrijdStats();
+  const stats = berekenWedstrijdStats(wedstrijd, spelers);
 
   const getAfwezigeSpelersInOpstelling = () => {
     const afwezigeIds = wedstrijd.afwezigeSpelers || [];
