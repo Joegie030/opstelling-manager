@@ -1,6 +1,6 @@
 import { Plus, Trash2, Eye, Copy, X } from 'lucide-react';
 import { useState } from 'react';
-import { Wedstrijd } from './types';
+import { Wedstrijd } from '..types';
 
 interface WedstrijdOverzichtProps {
   wedstrijden: Wedstrijd[];
