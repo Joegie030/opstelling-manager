@@ -62,65 +62,6 @@ export default function WedstrijdOpstelling({
   
   const posities = formaties[wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8'];
 
-  const berekenWedstrijdStats = () => {
-    const stats: Record<number, { naam: string; minuten: number; keeperBeurten: number; wisselMinuten: number }> = {};
-    
-    spelers.forEach(s => {
-      stats[s.id] = { naam: s.naam, minuten: 0, keeperBeurten: 0, wisselMinuten: 0 };
-    });
-
-    wedstrijd.kwarten.forEach(kwart => {
-      const spelersMetMinuten: Record<string, number> = {};
-      
-      Object.entries(kwart.opstelling).forEach(([pos, sid]) => {
-        if (sid && stats[Number(sid)]) {
-          const wissel = kwart.wissels?.find(w => w.positie === pos);
-          const min = wissel && wissel.wisselSpelerId ? 6.25 : kwart.minuten;
-          stats[Number(sid)].minuten += min;
-          spelersMetMinuten[sid] = (spelersMetMinuten[sid] || 0) + min;
-          if (pos === 'Keeper') stats[Number(sid)].keeperBeurten += 1;
-        }
-      });
-      
-      kwart.wissels?.forEach(w => {
-        if (w.wisselSpelerId && stats[Number(w.wisselSpelerId)]) {
-          stats[Number(w.wisselSpelerId)].minuten += 6.25;
-          spelersMetMinuten[w.wisselSpelerId] = (spelersMetMinuten[w.wisselSpelerId] || 0) + 6.25;
-          if (w.positie === 'Keeper') stats[Number(w.wisselSpelerId)].keeperBeurten += 1;
-        }
-      });
-      
-      spelers.forEach(s => {
-        const gespeeld = spelersMetMinuten[s.id.toString()] || 0;
-        const wissel = kwart.minuten - gespeeld;
-        if (wissel > 0) stats[s.id].wisselMinuten += wissel;
-      });
-    });
-
-    return Object.values(stats);
-  };
-
-  const berekenTotaalKeeperBeurten = () => {
-    const totaalKeeperTelling: Record<number, number> = {};
-    spelers.forEach(s => { totaalKeeperTelling[s.id] = 0; });
-    
-    wedstrijden.forEach(w => {
-      w.kwarten.forEach(kwart => {
-        const keeperId = kwart.opstelling['Keeper'];
-        if (keeperId) {
-          totaalKeeperTelling[Number(keeperId)] = (totaalKeeperTelling[Number(keeperId)] || 0) + 1;
-        }
-        kwart.wissels?.forEach(wissel => {
-          if (wissel.positie === 'Keeper' && wissel.wisselSpelerId) {
-            totaalKeeperTelling[Number(wissel.wisselSpelerId)] = (totaalKeeperTelling[Number(wissel.wisselSpelerId)] || 0) + 1;
-          }
-        });
-      });
-    });
-    
-    return totaalKeeperTelling;
-  };
-
   const getPositieLayout = () => {
     const formatie = wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie;
     
