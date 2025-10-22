@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LogOut, Loader } from 'lucide-react';
 import { Speler, Wedstrijd, Doelpunt, formaties } from './types';
-import TeamBeheer from './components/teambeheer.tsx';
+import TeamBeheer from './screens/TeamBeheer.tsx';
 import Statistieken from './screens/Statistieken.tsx';
 import WedstrijdOverzicht from './screens/WedstrijdOverzicht.tsx';
 import WedstrijdOpstelling from './screens/WedstrijdOpstelling.tsx';  
