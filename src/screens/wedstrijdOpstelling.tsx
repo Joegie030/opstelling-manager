@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Clock, Plus, Trash2, X, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import { Speler, Wedstrijd, Doelpunt, formaties, ALLE_THEMAS, KWART_OBSERVATIES } from '../types';
-import ScoreTracking from './ScoreTracking';
-import { WedstrijdProvider } from './WedstrijdContext';
-import { WedstrijdHeader } from './WedstrijdHeader';
-import { WedstrijdSamenvatting } from './WedstrijdSamenvatting';
-import VoetbalVeld from './VoetbalVeld';
+import ScoreTracking from '../components/ScoreTracking';
+import { WedstrijdProvider } from '../components/WedstrijdContext';
+import { WedstrijdHeader } from '../components/WedstrijdHeader';
+import { WedstrijdSamenvatting } from '../components/WedstrijdSamenvatting';
+import VoetbalVeld from '../components/VoetbalVeld';
 
 interface Props {
   wedstrijd: Wedstrijd;

@@ -3,7 +3,7 @@ import { LogOut, Loader } from 'lucide-react';
 import { Speler, Wedstrijd, Doelpunt, formaties } from './types';
 import TeamBeheer from './components/teambeheer.tsx';
 import Statistieken from './components/statistieken.tsx';
-import WedstrijdOpstelling from './components/wedstrijdopstelling.tsx';
+import WedstrijdOpstelling from './screens/wedstrijdopstelling.tsx';
 import WedstrijdOverzicht from './screens/WedstrijdOverzicht.tsx';
 import Instellingen from './components/Instellingen.tsx';
 import AuthScreen from './screens/AuthScreen.tsx';
