@@ -42,14 +42,16 @@ export const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence);
 
 // ============================================
-// AUTHENTICATION FUNCTIES
+// INTERFACES
 // ============================================
 
 export interface Coach {
   uid: string;
   email: string;
   naam: string;
-  teamId: string;
+  teamId: string;                    // Backward compat
+  teams?: string[];                  // STAP 3: Alle team IDs
+  currentTeamId?: string;            // STAP 3: Actieve team
   rol: 'admin' | 'coach' | 'viewer';
   createdAt: string;
 }
@@ -61,8 +63,24 @@ export interface Team {
   formatie: string;
   createdBy: string;
   createdAt: string;
-  coaches: string[]; // UIDs van coaches
+  coaches: string[];                 // Array van coach UIDs
+  spelers?: any[];
+  wedstrijden?: any[];
+  updatedAt?: string;
 }
+
+export interface CoachInvite {
+  inviteId: string;
+  teamId: string;
+  email: string;
+  invitedBy: string;
+  createdAt: string;
+  status: 'pending' | 'accepted' | 'rejected';
+}
+
+// ============================================
+// AUTHENTICATION FUNCTIES
+// ============================================
 
 // Register nieuwe coach
 export const registerCoach = async (email: string, password: string, naam: string): Promise<Coach> => {
@@ -90,6 +108,8 @@ export const registerCoach = async (email: string, password: string, naam: strin
       email,
       naam,
       teamId,
+      teams: [teamId],                // STAP 3: Start met 1 team
+      currentTeamId: teamId,          // STAP 3: Set als actief
       rol: 'admin',
       createdAt: new Date().toISOString()
     };
@@ -129,14 +149,31 @@ export const logoutCoach = async (): Promise<void> => {
   }
 };
 
-// Haal huidige user op
+// Haal huidige user op - UPDATED STAP 3
 export const getCurrentCoach = (callback: (coach: Coach | null) => void) => {
   return onAuthStateChanged(auth, async (user) => {
     if (user) {
-      const coachDoc = await getDoc(doc(db, 'coaches', user.uid));
-      if (coachDoc.exists()) {
-        callback(coachDoc.data() as Coach);
-      } else {
+      try {
+        const coachDoc = await getDoc(doc(db, 'coaches', user.uid));
+        if (coachDoc.exists()) {
+          const coach = coachDoc.data() as Coach;
+          
+          // STAP 3: Laad alle teams voor deze coach
+          const teams = await getCoachTeams(user.uid);
+          
+          // Zet teams array en currentTeamId
+          const updatedCoach: Coach = {
+            ...coach,
+            teams: teams.map(t => t.teamId),
+            currentTeamId: coach.currentTeamId || coach.teamId
+          };
+          
+          callback(updatedCoach);
+        } else {
+          callback(null);
+        }
+      } catch (error) {
+        console.error('Error in getCurrentCoach:', error);
         callback(null);
       }
     } else {
@@ -173,18 +210,105 @@ export const updateTeam = async (teamId: string, updates: Partial<Team>): Promis
   }
 };
 
+// STAP 3 NIEUW: CREATE NEW TEAM
+export const createNewTeam = async (
+  adminUid: string,
+  clubNaam: string,
+  teamNaam: string
+): Promise<string> => {
+  try {
+    // Maak unieke team ID
+    const teamId = `team_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Nieuw team object
+    const newTeam: Team = {
+      teamId,
+      clubNaam,
+      teamNaam,
+      formatie: '8x8',
+      createdBy: adminUid,
+      createdAt: new Date().toISOString(),
+      coaches: [adminUid],
+      spelers: [],
+      wedstrijden: []
+    };
+
+    // Save team naar Firestore
+    await setDoc(doc(db, 'teams', teamId), newTeam);
+
+    // Update coach met nieuw team
+    const coachRef = doc(db, 'coaches', adminUid);
+    const coachDoc = await getDoc(coachRef);
+    
+    if (coachDoc.exists()) {
+      const coach = coachDoc.data() as Coach;
+      const teams = coach.teams || [coach.teamId];
+      
+      // Voeg nieuw team toe aan teams array
+      await updateDoc(coachRef, {
+        teams: [...new Set([...teams, teamId])],
+        currentTeamId: teamId
+      });
+    }
+
+    console.log('✅ Team aangemaakt:', teamId);
+    return teamId;
+  } catch (error: any) {
+    console.error('Error creating team:', error);
+    throw new Error(error.message);
+  }
+};
+
+// STAP 3 NIEUW: GET COACH TEAMS
+export const getCoachTeams = async (coachUid: string): Promise<Team[]> => {
+  try {
+    // Query: teams waar coach in de coaches array staat
+    const q = query(
+      collection(db, 'teams'),
+      where('coaches', 'array-contains', coachUid)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const teams = querySnapshot.docs.map(doc => doc.data() as Team);
+    
+    console.log('✅ Teams opgehaald:', teams.length);
+    return teams;
+  } catch (error: any) {
+    console.error('Error getting coach teams:', error);
+    return [];
+  }
+};
+
+// STAP 3 NIEUW: SWITCH TEAM
+export const switchTeam = async (coachUid: string, newTeamId: string): Promise<void> => {
+  try {
+    // Check: is coach lid van dit team?
+    const team = await getTeam(newTeamId);
+    
+    if (!team) {
+      throw new Error('Team niet gevonden');
+    }
+    
+    if (!team.coaches.includes(coachUid)) {
+      throw new Error('Je bent niet lid van dit team');
+    }
+
+    // Update coach met nieuw actieve team
+    await updateDoc(doc(db, 'coaches', coachUid), {
+      currentTeamId: newTeamId,
+      teamId: newTeamId
+    });
+
+    console.log('✅ Team gewisseld naar:', newTeamId);
+  } catch (error: any) {
+    console.error('Error switching team:', error);
+    throw new Error(error.message);
+  }
+};
+
 // ============================================
 // COACH UITNODIGING FUNCTIES
 // ============================================
-
-export interface CoachInvite {
-  inviteId: string;
-  teamId: string;
-  email: string;
-  invitedBy: string;
-  createdAt: string;
-  status: 'pending' | 'accepted' | 'rejected';
-}
 
 // Nodig coach uit
 export const inviteCoach = async (teamId: string, email: string, invitedByUid: string): Promise<string> => {
@@ -245,58 +369,106 @@ export const acceptInvite = async (inviteId: string, userUid: string, teamId: st
 };
 
 // ============================================
-// DATA SYNC FUNCTIES (Spelers, Wedstrijden)
+// DATA SYNC FUNCTIES - UPDATED STAP 3
 // ============================================
 
-// Save spelers naar Firestore
-export const saveSpelers = async (teamId: string, spelers: any[]): Promise<void> => {
+// Save spelers - UPDATED: voeg coachUid toe voor security
+export const saveSpelers = async (
+  teamId: string,
+  coachUid: string,
+  spelers: any[]
+): Promise<void> => {
   try {
+    // Security check: is coach lid van dit team?
+    const team = await getTeam(teamId);
+    
+    if (!team?.coaches.includes(coachUid)) {
+      throw new Error('Permission denied: je bent niet lid van dit team');
+    }
+
     await updateDoc(doc(db, 'teams', teamId), {
-      spelers: spelers
+      spelers: spelers,
+      updatedAt: new Date().toISOString()
     });
-  } catch (error) {
+    
+    console.log('✅ Spelers opgeslagen');
+  } catch (error: any) {
     console.error('Error saving spelers:', error);
     throw error;
   }
 };
 
-// Save wedstrijden naar Firestore
-export const saveWedstrijden = async (teamId: string, wedstrijden: any[]): Promise<void> => {
+// Save wedstrijden - UPDATED: voeg coachUid toe voor security
+export const saveWedstrijden = async (
+  teamId: string,
+  coachUid: string,
+  wedstrijden: any[]
+): Promise<void> => {
   try {
+    // Security check: is coach lid van dit team?
+    const team = await getTeam(teamId);
+    
+    if (!team?.coaches.includes(coachUid)) {
+      throw new Error('Permission denied: je bent niet lid van dit team');
+    }
+
     await updateDoc(doc(db, 'teams', teamId), {
-      wedstrijden: wedstrijden
+      wedstrijden: wedstrijden,
+      updatedAt: new Date().toISOString()
     });
-  } catch (error) {
+    
+    console.log('✅ Wedstrijden opgeslagen');
+  } catch (error: any) {
     console.error('Error saving wedstrijden:', error);
     throw error;
   }
 };
 
-// Save club en team naam
-export const saveTeamInfo = async (teamId: string, clubNaam: string, teamNaam: string): Promise<void> => {
+// Save club en team naam - UPDATED: voeg coachUid toe voor security
+export const saveTeamInfo = async (
+  teamId: string,
+  coachUid: string,
+  clubNaam: string,
+  teamNaam: string
+): Promise<void> => {
   try {
+    // Security check: is coach lid van dit team?
+    const team = await getTeam(teamId);
+    
+    if (!team?.coaches.includes(coachUid)) {
+      throw new Error('Permission denied: je bent niet lid van dit team');
+    }
+
     await updateDoc(doc(db, 'teams', teamId), {
       clubNaam: clubNaam,
-      teamNaam: teamNaam
+      teamNaam: teamNaam,
+      updatedAt: new Date().toISOString()
     });
+    
     console.log('✅ Team info opgeslagen:', clubNaam, teamNaam);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving team info:', error);
     throw error;
   }
 };
 
-// Get team data
-export const getTeamData = async (teamId: string) => {
+// Get team data - UPDATED: voeg coachUid toe voor security
+export const getTeamData = async (teamId: string, coachUid: string) => {
   try {
+    // Security check: is coach lid van dit team?
     const team = await getTeam(teamId);
+    
+    if (!team?.coaches.includes(coachUid)) {
+      throw new Error('Permission denied: je bent niet lid van dit team');
+    }
+
     return {
-      spelers: team?.spelers || [],
-      wedstrijden: team?.wedstrijden || [],
-      clubNaam: team?.clubNaam || 'Mijn Club',
-      teamNaam: team?.teamNaam || 'Team A'
+      spelers: team.spelers || [],
+      wedstrijden: team.wedstrijden || [],
+      clubNaam: team.clubNaam || 'Mijn Club',
+      teamNaam: team.teamNaam || 'Team A'
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting team data:', error);
     return {
       spelers: [],

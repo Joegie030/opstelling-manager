@@ -62,6 +62,8 @@ export interface Team {
   createdBy: string;
   createdAt: string;
   coaches: string[]; // UIDs van coaches
+  spelers?: any[];
+  wedstrijden?: any[];
 }
 
 // Register nieuwe coach
@@ -79,7 +81,9 @@ export const registerCoach = async (email: string, password: string, naam: strin
       formatie: '8x8',
       createdBy: user.uid,
       createdAt: new Date().toISOString(),
-      coaches: [user.uid]
+      coaches: [user.uid],
+      spelers: [],
+      wedstrijden: []
     };
 
     await setDoc(doc(db, 'teams', teamId), team);
@@ -173,6 +177,40 @@ export const updateTeam = async (teamId: string, updates: Partial<Team>): Promis
   }
 };
 
+// Get all teams for a coach
+export const getCoachTeams = async (coachUid: string): Promise<Team[]> => {
+  try {
+    const q = query(
+      collection(db, 'teams'),
+      where('coaches', 'array-contains', coachUid)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as Team);
+  } catch (error) {
+    console.error('Error getting coach teams:', error);
+    return [];
+  }
+};
+
+// Switch to different team
+export const switchTeam = async (coachUid: string, newTeamId: string): Promise<void> => {
+  try {
+    // Verify coach has access to this team
+    const team = await getTeam(newTeamId);
+    if (!team || !team.coaches.includes(coachUid)) {
+      throw new Error('Access denied to this team');
+    }
+    
+    // Update coach's current team
+    await updateDoc(doc(db, 'coaches', coachUid), {
+      teamId: newTeamId
+    });
+  } catch (error) {
+    console.error('Error switching team:', error);
+    throw error;
+  }
+};
+
 // ============================================
 // COACH UITNODIGING FUNCTIES
 // ============================================
@@ -251,8 +289,18 @@ export const acceptInvite = async (inviteId: string, userUid: string, teamId: st
 // Save spelers naar Firestore
 export const saveSpelers = async (teamId: string, spelers: any[]): Promise<void> => {
   try {
+    // Filter uit undefined velden
+    const cleanedSpelers = spelers.map(s => ({
+      id: s.id,
+      naam: s.naam,
+      type: s.type || 'vast',
+      ...(s.team && { team: s.team })  // Only include team if it exists
+    }));
+    
+    console.log('Saving spelers:', cleanedSpelers);
+    
     await updateDoc(doc(db, 'teams', teamId), {
-      spelers: spelers
+      spelers: cleanedSpelers
     });
   } catch (error) {
     console.error('Error saving spelers:', error);
@@ -275,26 +323,46 @@ export const saveWedstrijden = async (teamId: string, wedstrijden: any[]): Promi
 // Save club en team naam
 export const saveTeamInfo = async (teamId: string, clubNaam: string, teamNaam: string): Promise<void> => {
   try {
+    // Never save undefined or empty values
+    if (!clubNaam || !teamNaam) {
+      console.warn('Skipping saveTeamInfo - clubNaam or teamNaam is empty', { clubNaam, teamNaam });
+      return;
+    }
+    
     await updateDoc(doc(db, 'teams', teamId), {
-      clubNaam: clubNaam,
-      teamNaam: teamNaam
+      clubNaam: clubNaam.trim(),
+      teamNaam: teamNaam.trim()
     });
-    console.log('✅ Team info opgeslagen:', clubNaam, teamNaam);
   } catch (error) {
     console.error('Error saving team info:', error);
     throw error;
   }
 };
 
-// Get team data
-export const getTeamData = async (teamId: string) => {
+// Get team data - FIXED: accepts optional coachUid parameter to match App.tsx signature
+export const getTeamData = async (teamId: string, coachUid?: string) => {
   try {
     const team = await getTeam(teamId);
+    
+    if (!team) {
+      return {
+        spelers: [],
+        wedstrijden: [],
+        clubNaam: 'Mijn Club',
+        teamNaam: 'Team A'
+      };
+    }
+    
+    const spelers = (team.spelers || []).map((s: any) => ({
+      ...s,
+      type: s.type || 'vast'
+    }));
+    
     return {
-      spelers: team?.spelers || [],
-      wedstrijden: team?.wedstrijden || [],
-      clubNaam: team?.clubNaam || 'Mijn Club',
-      teamNaam: team?.teamNaam || 'Team A'
+      spelers,
+      wedstrijden: team.wedstrijden || [],
+      clubNaam: team.clubNaam || 'Mijn Club',
+      teamNaam: team.teamNaam || 'Team A'
     };
   } catch (error) {
     console.error('Error getting team data:', error);
@@ -304,5 +372,38 @@ export const getTeamData = async (teamId: string) => {
       clubNaam: 'Mijn Club',
       teamNaam: 'Team A'
     };
+  }
+};
+
+// ============================================
+// CREATE NEW TEAM
+// ============================================
+
+export const createNewTeam = async (coachUid: string, clubNaam: string, teamNaam: string): Promise<string> => {
+  try {
+    const teamId = `team_${Date.now()}`;
+    const team: Team = {
+      teamId,
+      clubNaam,
+      teamNaam,
+      formatie: '8x8',
+      createdBy: coachUid,
+      createdAt: new Date().toISOString(),
+      coaches: [coachUid],
+      spelers: [],
+      wedstrijden: []
+    };
+
+    await setDoc(doc(db, 'teams', teamId), team);
+    
+    // Update coach om naar dit nieuwe team te wijzen
+    await updateDoc(doc(db, 'coaches', coachUid), {
+      teamId: teamId
+    });
+    
+    return teamId;
+  } catch (error) {
+    console.error('Error creating team:', error);
+    throw error;
   }
 };
