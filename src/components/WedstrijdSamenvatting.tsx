@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { ALLE_THEMAS } from '../types';
 import { useWedstrijd } from './WedstrijdContext';
+import { formatResultaat } from '../utils/formatters';
 
 export function WedstrijdSamenvatting() {
   const [sections, setSections] = useState({
@@ -140,7 +141,7 @@ export function WedstrijdSamenvatting() {
                   )}
                 </p>
                 <p className="text-sm text-gray-700 mt-2">
-                  De wedstrijd eindigde in een <strong>{eindstand.resultaat === 'gewonnen' ? 'overwinning ✅' : eindstand.resultaat === 'verloren' ? 'verlies ❌' : 'gelijkspel 🤝'}</strong>.
+                  De wedstrijd eindigde in een <strong>{formatResultaat(eindstand.eigenDoelpunten, eindstand.tegenstanderDoelpunten).text} {formatResultaat(eindstand.eigenDoelpunten, eindstand.tegenstanderDoelpunten).emoji}</strong>.
                 </p>
               </div>
               
