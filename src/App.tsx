@@ -10,6 +10,7 @@ import AuthScreen from './screens/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
 import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden, saveTeamInfo } from './firebase/firebaseService';
+import { getFormatieNaam } from './utils/formatters';
 
 function App() {
   // Auth state
@@ -88,16 +89,6 @@ function App() {
       return () => clearTimeout(saveTimeout);
     }
   }, [clubNaam, teamNaam, currentCoach]);
-
-  const getFormatieNaam = (formatie: string): string => {
-    const namen: Record<string, string> = {
-      '6x6': '✈️ 6x6 Vliegtuig',
-      '6x6-vliegtuig': '✈️ 6x6 Vliegtuig',
-      '6x6-dobbelsteen': '🎲 6x6 Dobbelsteen',
-      '8x8': '⚽ 8x8'
-    };
-    return namen[formatie] || formatie;
-  };
 
   const kopieerWedstrijd = (wedstrijd: Wedstrijd) => {
     setKopieerModal({
