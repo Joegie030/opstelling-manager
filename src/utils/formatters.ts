@@ -37,13 +37,25 @@ export function getThuisUitBadge(thuisUit: 'thuis' | 'uit'): string {
 /**
  * Formats match result with emoji and text
  */
-export function formatResultaat(eigenDoelpunten: number, tegenstanderDoelpunten: number): { emoji: string; text: string } {
+export function formatResultaat(eigenDoelpunten: number, tegenstanderDoelpunten: number) {
   if (eigenDoelpunten > tegenstanderDoelpunten) {
-    return { emoji: '✅', text: 'gewonnen' };
+    return { 
+      emoji: '✅', 
+      text: 'gewonnen',
+      color: 'bg-green-100 border-green-400'
+    };
   } else if (eigenDoelpunten < tegenstanderDoelpunten) {
-    return { emoji: '❌', text: 'verloren' };
+    return { 
+      emoji: '❌', 
+      text: 'verloren',
+      color: 'bg-red-100 border-red-400'
+    };
   } else {
-    return { emoji: '🤝', text: 'gelijkspel' };
+    return { 
+      emoji: '🤝', 
+      text: 'gelijkspel',
+      color: 'bg-gray-100 border-gray-400'
+    };
   }
 }
 

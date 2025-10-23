@@ -1,5 +1,6 @@
 import { Speler, Wedstrijd, Doelpunt, formaties, ALLE_THEMAS } from '../types';
 import { berekenTeamPrestaties, berekenTopscorers, berekenSpeelminutenDetail } from '../utils/calculations';
+import { formatResultaat } from '../utils/formatters';
 
 interface Props {
   spelers: Speler[];
@@ -371,6 +372,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   const waarschuwingen = berekenWaarschuwingen();
   const teamPrestaties = berekenTeamPrestaties(wedstrijden);
   const topscorers = berekenTopscorers(wedstrijden, spelers);
+  const result = formatResultaat(wed.eigenDoelpunten, wed.tegenstanderDoelpunten);
 
   return (
     <div className="space-y-6">
@@ -700,10 +702,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
             </div>
             <div className="space-y-2">
               {laatste3.wedstrijden.map((wed, idx) => {
-                const resultaatColor = wed.resultaat === 'gewonnen' ? 'bg-green-100 border-green-400' : 
-                                       wed.resultaat === 'verloren' ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-400';
-                const resultaatEmoji = wed.resultaat === 'gewonnen' ? '✅' : 
-                                       wed.resultaat === 'verloren' ? '❌' : '🤝';
+                const resultaatColor = result.color;
+                const resultaatEmoji = result.emoji;
                 
                 return (
                   <div key={idx} className={`border-2 rounded-lg p-3 ${resultaatColor}`}>
