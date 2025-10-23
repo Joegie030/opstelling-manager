@@ -1,6 +1,7 @@
 import { Plus, Trash2, Eye, Copy, X } from 'lucide-react';
 import { useState } from 'react';
 import { Wedstrijd } from '../types';
+import { getFormatieNaam, getTypeNaam } from '../utils/formatters';
 
 interface WedstrijdOverzichtProps {
   wedstrijden: Wedstrijd[];
@@ -27,26 +28,6 @@ export default function WedstrijdOverzicht({
   // Filter state
   const [typeFilter, setTypeFilter] = useState<'all' | 'competitie' | 'oefenwedstrijd'>('all');
   const [filterOpen, setFilterOpen] = useState(false);
-
-  // Helper functie om formatie naam mooi weer te geven
-  const getFormatieNaam = (formatie: string): string => {
-    const namen: Record<string, string> = {
-      '6x6': '✈️ 6x6 Vliegtuig',
-      '6x6-vliegtuig': '✈️ 6x6 Vliegtuig',
-      '6x6-dobbelsteen': '🎲 6x6 Dobbelsteen',
-      '8x8': '⚽ 8x8'
-    };
-    return namen[formatie] || formatie;
-  };
-
-  // Helper functie voor wedstrijdtype
-  const getTypeNaam = (type?: string): string => {
-    const namen: Record<string, string> = {
-      'competitie': '🏆 Competitie',
-      'oefenwedstrijd': '🎯 Oefenwedstrijd'
-    };
-    return type ? namen[type] : '📋 Overig';
-  };
 
   // Filter wedstrijden op type
   const gefilterdWedstrijden = wedstrijden.filter(w => {
