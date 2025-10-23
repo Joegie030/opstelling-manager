@@ -98,6 +98,7 @@ export function WedstrijdSamenvatting() {
 
   const eindstand = berekenEindstand();
   const stats = berekenWedstrijdStats();
+  const result = formatResultaat(eindstand.eigenDoelpunten, eindstand.tegenstanderDoelpunten);
 
   const SectionButton = ({ section, label, icon }: { section: keyof typeof sections; label: string; icon: string }) => (
     <button
@@ -141,7 +142,7 @@ export function WedstrijdSamenvatting() {
                   )}
                 </p>
                 <p className="text-sm text-gray-700 mt-2">
-                  De wedstrijd eindigde in een <strong>{formatResultaat(eindstand.eigenDoelpunten, eindstand.tegenstanderDoelpunten).text} {formatResultaat(eindstand.eigenDoelpunten, eindstand.tegenstanderDoelpunten).emoji}</strong>.
+                  De wedstrijd eindigde in een <strong>{result.text} {result.emoji}</strong>.
                 </p>
               </div>
               
