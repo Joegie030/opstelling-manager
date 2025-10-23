@@ -372,7 +372,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   const waarschuwingen = berekenWaarschuwingen();
   const teamPrestaties = berekenTeamPrestaties(wedstrijden);
   const topscorers = berekenTopscorers(wedstrijden, spelers);
-  const result = formatResultaat(wed.eigenDoelpunten, wed.tegenstanderDoelpunten);
 
   return (
     <div className="space-y-6">
@@ -702,6 +701,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
             </div>
             <div className="space-y-2">
               {laatste3.wedstrijden.map((wed, idx) => {
+                const result = formatResultaat(wed.eigenDoelpunten, wed.tegenstanderDoelpunten);
                 const resultaatColor = result.color;
                 const resultaatEmoji = result.emoji;
                 
