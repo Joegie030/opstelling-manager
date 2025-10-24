@@ -3,9 +3,9 @@ import { Plus, Trash2, Edit2, CheckCircle, Clock, AlertCircle } from 'lucide-rea
 import { Seizoen } from '../types';
 import {
   getSeizoenen,
-  addSeizouen,      // ← Correct: "ouen" typo in firebaseService
-  updateSeizouen,   // ← Correct: "ouen" typo in firebaseService
-  deleteSeizouen    // ← Correct: "ouen" typo in firebaseService
+  addSeizoenen,      // ← JUISTE NAAM (gefixt in firebaseService)
+  updateSeizoenen,   // ← JUISTE NAAM (gefixt in firebaseService)
+  deleteSeizoenen    // ← JUISTE NAAM (gefixt in firebaseService)
 } from '../firebase/firebaseService';
 
 interface SeizoenenBeheerProps {
@@ -27,7 +27,6 @@ function SeizoenenBeheer({
   const [editingSeizoenId, setEditingSeizoenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Form state voor nieuw seizoen
   const [formState, setFormState] = useState({
     naam: '',
     startDatum: new Date().toISOString().split('T')[0],
@@ -35,7 +34,6 @@ function SeizoenenBeheer({
     status: 'actief' as 'actief' | 'gearchiveerd'
   });
 
-  // Reset form
   const resetForm = () => {
     setFormState({
       naam: '',
@@ -46,7 +44,6 @@ function SeizoenenBeheer({
     setEditingSeizoenId(null);
   };
 
-  // Load seizoen data voor bewerken
   const loadSeizoenForEdit = (seizoen: Seizoen) => {
     setFormState({
       naam: seizoen.naam,
@@ -58,7 +55,6 @@ function SeizoenenBeheer({
     setShowNieuwSeizoenModal(true);
   };
 
-  // Voeg nieuw seizoen toe of update bestaand
   const handleSaveSeizoen = async () => {
     if (!formState.naam || !formState.startDatum || !formState.eindDatum) {
       alert('Vul alle velden in');
@@ -74,10 +70,9 @@ function SeizoenenBeheer({
       setLoading(true);
 
       if (editingSeizoenId) {
-        // Update bestaand seizoen
         const seizoen = seizoenen.find(s => s.seizoenId === editingSeizoenId);
         if (seizoen) {
-          await updateSeizouen(teamId, editingSeizoenId, {
+          await updateSeizoenen(teamId, editingSeizoenId, {
             naam: formState.naam,
             startDatum: formState.startDatum,
             eindDatum: formState.eindDatum,
@@ -86,7 +81,6 @@ function SeizoenenBeheer({
           console.log('✅ Seizoen bijgewerkt:', formState.naam);
         }
       } else {
-        // Voeg nieuw seizoen toe
         const newSeizoen: Seizoen = {
           seizoenId: `seizoen_${Date.now()}`,
           naam: formState.naam,
@@ -97,11 +91,10 @@ function SeizoenenBeheer({
           updatedAt: new Date().toISOString()
         };
 
-        await addSeizouen(teamId, newSeizoen);
+        await addSeizoenen(teamId, newSeizoen);
         console.log('✅ Seizoen aangemaakt:', formState.naam);
       }
 
-      // Refresh seizoenen list
       onSeizoenUpdate();
       resetForm();
       setShowNieuwSeizoenModal(false);
@@ -113,7 +106,6 @@ function SeizoenenBeheer({
     }
   };
 
-  // Verwijder seizoen
   const handleDeleteSeizoen = async (seizoenId: string) => {
     if (!confirm('Weet je zeker dat je dit seizoen wilt verwijderen? Alle wedstrijden in dit seizoen worden ook verwijderd!')) {
       return;
@@ -121,7 +113,7 @@ function SeizoenenBeheer({
 
     try {
       setLoading(true);
-      await deleteSeizouen(teamId, seizoenId);
+      await deleteSeizoenen(teamId, seizoenId);
       console.log('✅ Seizoen verwijderd');
       onSeizoenUpdate();
       setLoading(false);
@@ -132,7 +124,6 @@ function SeizoenenBeheer({
     }
   };
 
-  // Toggle seizoen status (actief/gearchiveerd)
   const handleToggleStatus = async (seizoenId: string, currentStatus: 'actief' | 'gearchiveerd') => {
     const seizoen = seizoenen.find(s => s.seizoenId === seizoenId);
     if (!seizoen) return;
@@ -141,7 +132,7 @@ function SeizoenenBeheer({
       setLoading(true);
       const newStatus = currentStatus === 'actief' ? 'gearchiveerd' : 'actief';
       
-      await updateSeizouen(teamId, seizoenId, {
+      await updateSeizoenen(teamId, seizoenId, {
         status: newStatus
       });
 
@@ -155,7 +146,6 @@ function SeizoenenBeheer({
     }
   };
 
-  // Format datum voor display
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
@@ -165,7 +155,6 @@ function SeizoenenBeheer({
     }
   };
 
-  // Bereken aantal weken in seizoen
   const calculateWeeks = (start: string, end: string) => {
     try {
       const startDate = new Date(start);
@@ -180,13 +169,11 @@ function SeizoenenBeheer({
 
   return (
     <div className="space-y-6 p-4 md:p-8">
-      {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-gray-800">Seizoen Beheer</h1>
         <p className="text-gray-600">Beheer seizoenen en selecteer welk seizoen je wilt gebruiken</p>
       </div>
 
-      {/* Info Box */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
         <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div>
@@ -197,7 +184,6 @@ function SeizoenenBeheer({
         </div>
       </div>
 
-      {/* Nieuwe Seizoen Button */}
       <button
         onClick={() => {
           resetForm();
@@ -209,7 +195,6 @@ function SeizoenenBeheer({
         Nieuw Seizoen
       </button>
 
-      {/* Seizoenen Grid */}
       {seizoenen.length === 0 ? (
         <div className="text-center py-12">
           <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -228,7 +213,6 @@ function SeizoenenBeheer({
               }`}
               onClick={() => onSeizoenChange(seizoen.seizoenId)}
             >
-              {/* Header met status */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-gray-800">{seizoen.naam}</h3>
@@ -251,7 +235,6 @@ function SeizoenenBeheer({
                 )}
               </div>
 
-              {/* Datums */}
               <div className="space-y-2 mb-4 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Start:</span>
@@ -269,7 +252,6 @@ function SeizoenenBeheer({
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex gap-2 pt-4 border-t border-gray-200">
                 <button
                   onClick={(e) => {
@@ -313,11 +295,9 @@ function SeizoenenBeheer({
         </div>
       )}
 
-      {/* MODAL: Nieuw/Bewerk Seizoen */}
       {showNieuwSeizoenModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
-            {/* Modal Header */}
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">
                 {editingSeizoenId ? 'Seizoen Bewerken' : 'Nieuw Seizoen'}
@@ -327,13 +307,9 @@ function SeizoenenBeheer({
               </p>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6 space-y-4">
-              {/* Naam */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Seizoen Naam
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Seizoen Naam</label>
                 <input
                   type="text"
                   value={formState.naam}
@@ -344,11 +320,8 @@ function SeizoenenBeheer({
                 <p className="text-xs text-gray-500 mt-1">Bijvoorbeeld: 2024/2025 of Herfst 2024</p>
               </div>
 
-              {/* Start Datum */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Start Datum
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Start Datum</label>
                 <input
                   type="date"
                   value={formState.startDatum}
@@ -357,11 +330,8 @@ function SeizoenenBeheer({
                 />
               </div>
 
-              {/* Eind Datum */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Eind Datum
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Eind Datum</label>
                 <input
                   type="date"
                   value={formState.eindDatum}
@@ -370,11 +340,8 @@ function SeizoenenBeheer({
                 />
               </div>
 
-              {/* Status */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Status
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
                 <div className="flex gap-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -395,12 +362,8 @@ function SeizoenenBeheer({
                     <span className="text-sm">Gearchiveerd</span>
                   </label>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Actieve seizoenen worden standaard geselecteerd. Gearchiveerde seizoenen zijn ter archivering.
-                </p>
               </div>
 
-              {/* Duration Info */}
               {formState.startDatum && formState.eindDatum && (
                 <div className="bg-blue-50 border border-blue-200 rounded p-3">
                   <p className="text-sm">
@@ -413,7 +376,6 @@ function SeizoenenBeheer({
               )}
             </div>
 
-            {/* Modal Footer */}
             <div className="px-6 pb-6 flex gap-2 border-t border-gray-200 pt-6">
               <button
                 onClick={() => {
