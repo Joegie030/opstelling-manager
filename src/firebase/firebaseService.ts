@@ -91,39 +91,28 @@ export interface CoachInvite {
 // AUTHENTICATION FUNCTIES
 // ============================================
 
-export const registerCoach = async (email: string, password: string, naam: string): Promise<Coach> => {
+export const loginCoach = async (email: string, password: string): Promise<Coach> => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Maak nieuw team aan
-    const teamId = `team_${Date.now()}`;
-    const now = new Date().toISOString();
+    let coachDoc = await getDoc(doc(db, 'coaches', user.uid));
     
-    const team: Team = {
-      teamId,
-      clubNaam: 'Mijn Club',
-      teamNaam: 'Team A',
-      coaches: [user.uid],
-      createdAt: now,
-      updatedAt: now
-    };
+    // Als coach document niet bestaat, maak het aan (backward compatibility)
+    if (!coachDoc.exists()) {
+      const coach: Coach = {
+        uid: user.uid,
+        email,
+        naam: email.split('@')[0], // Default naam
+        teamIds: [],
+        rol: 'admin',
+        createdAt: new Date().toISOString()
+      };
+      await setDoc(doc(db, 'coaches', user.uid), coach);
+      return coach;
+    }
 
-    await setDoc(doc(db, 'teams', teamId), team);
-
-    // Maak coach profiel met multi-team support
-    const coach: Coach = {
-      uid: user.uid,
-      email,
-      naam,
-      teamIds: [teamId],  // ARRAY voor meerdere teams
-      rol: 'admin',
-      createdAt: now
-    };
-
-    await setDoc(doc(db, 'coaches', user.uid), coach);
-
-    return coach;
+    return coachDoc.data() as Coach;
   } catch (error: any) {
     throw new Error(error.message);
   }
