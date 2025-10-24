@@ -295,10 +295,21 @@ export const saveSpelersInBatch = async (teamId: string, spelers: Speler[]): Pro
     spelers.forEach(speler => {
       const spelerId = `speler_${speler.id}`;
       const docRef = doc(db, 'teams', teamId, 'spelers', spelerId);
-      batch.set(docRef, {
-        ...speler,
+      
+      // Verwijder undefined velden
+      const spelerData: any = {
+        id: speler.id,
+        naam: speler.naam,
+        type: speler.type || 'vast',
         updatedAt: new Date().toISOString()
-      }, { merge: true });
+      };
+      
+      // Voeg team toe als het bestaat
+      if (speler.team) {
+        spelerData.team = speler.team;
+      }
+      
+      batch.set(docRef, spelerData, { merge: true });
     });
     
     await batch.commit();
