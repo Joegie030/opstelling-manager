@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LogOut, Loader, AlertCircle } from 'lucide-react';
+import { LogOut, Loader } from 'lucide-react';
 import { Speler, Wedstrijd, Doelpunt, formaties, Seizoen } from './types';
 import TeamBeheer from './screens/TeamBeheer.tsx';
 import Statistieken from './screens/Statistieken.tsx';
@@ -243,40 +243,7 @@ function App() {
     return <AuthScreen onLoginSuccess={() => {}} />;
   }
 
-  // ✨ NIEUW: Seizoen loading/selectie screen
-  if (!selectedTeamId || !selectedSeizoenId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          {seizoenenLoading ? (
-            <>
-              <Loader className="w-12 h-12 text-white animate-spin mx-auto" />
-              <p className="text-white text-lg font-semibold">Seizoenen laden...</p>
-            </>
-          ) : seizoenen.length === 0 ? (
-            <>
-              <AlertCircle className="w-12 h-12 text-yellow-300 mx-auto" />
-              <p className="text-white text-lg font-semibold">Geen seizoenen gevonden</p>
-              <p className="text-white text-sm">Maak eerst een seizoen aan</p>
-              <button
-                onClick={() => setHuidigScherm('seizoenen')}
-                className="mt-4 px-6 py-2 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50"
-              >
-                Seizoen Beheer
-              </button>
-            </>
-          ) : (
-            <>
-              <Loader className="w-12 h-12 text-white animate-spin mx-auto" />
-              <p className="text-white text-lg font-semibold">Data laden...</p>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Main app
+  // Main app - No seizoen check needed! User kan seizoen in TeamBeheer kiezen
   return (
     <Navigation
       clubNaam={clubNaam}

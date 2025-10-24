@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { Speler, Seizoen } from '../types';
-import SeizoenenBeheer from '..//components/SeizoenenBeheer';
+import SeizoenenBeheer from './SeizoenenBeheer';
 
 interface Props {
   spelers: Speler[];
