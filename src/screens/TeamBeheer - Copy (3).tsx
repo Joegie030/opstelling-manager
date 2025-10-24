@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronDown } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Speler } from '../types';
 import InviteCoaches from '../components/InviteCoaches';
 
@@ -16,10 +16,8 @@ interface TeamBeheerProps {
   onVoegSpelerToe: (naam: string, type?: 'vast' | 'gast', team?: string) => void;
   onVerwijderSpeler: (id: number) => void;
 
-  // Coach & Team Selection
+  // Coach & Team Creation
   currentCoach?: any;
-  teamIds?: string[];
-  onSelectTeam?: (teamId: string) => void;
   onCreateTeam?: (clubNaam: string, teamNaam: string) => Promise<void>;
 }
 
@@ -33,8 +31,6 @@ export default function TeamBeheer({
   onVoegSpelerToe,
   onVerwijderSpeler,
   currentCoach,
-  teamIds = [],
-  onSelectTeam,
   onCreateTeam
 }: TeamBeheerProps) {
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
@@ -46,9 +42,6 @@ export default function TeamBeheer({
   const [newClubNaam, setNewClubNaam] = useState('');
   const [newTeamNaam, setNewTeamNaam] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-
-  // Dropdown state
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Filter spelers
   const vasteSpelers = spelers.filter(s => s.type !== 'gast');
@@ -86,8 +79,6 @@ export default function TeamBeheer({
       setIsCreating(true);
       await onCreateTeam(newClubNaam, newTeamNaam);
       setCreateTeamModal(false);
-      setNewClubNaam('');
-      setNewTeamNaam('');
     } catch (error) {
       console.error('Error creating team:', error);
       alert('Fout bij aanmaken team: ' + error);
@@ -150,66 +141,6 @@ export default function TeamBeheer({
 
   return (
     <div className="space-y-6">
-      {/* ========== 0. TEAM SELECTOR (DROPDOWN) ========== */}
-      {teamIds.length > 0 && (
-        <div className="border-2 border-purple-400 rounded-lg p-4 bg-purple-50">
-          <div className="flex items-center justify-between gap-3">
-            <label className="text-sm font-semibold text-gray-700">Selecteer Team:</label>
-            
-            <div className="relative flex-1">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg bg-white hover:bg-purple-50 font-medium text-left flex items-center justify-between transition-colors"
-              >
-                <span>📋 {clubNaam} - {teamNaam}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Dropdown Menu */}
-              {dropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-purple-300 rounded-lg shadow-lg z-40">
-                  <div className="py-2 max-h-64 overflow-y-auto">
-                    {teamIds.map((tId) => {
-                      // TODO: Je moet hier teaminfo ophalen - voorlopig toon we IDs
-                      const isSelected = tId === teamId;
-                      return (
-                        <button
-                          key={tId}
-                          onClick={() => {
-                            if (onSelectTeam) {
-                              onSelectTeam(tId);
-                            }
-                            setDropdownOpen(false);
-                          }}
-                          className={`w-full text-left px-4 py-3 transition-colors ${
-                            isSelected
-                              ? 'bg-purple-100 border-l-4 border-purple-600 text-purple-700 font-semibold'
-                              : 'hover:bg-gray-50 text-gray-700'
-                          }`}
-                        >
-                          <span className="text-sm">
-                            📋 {tId}
-                            {isSelected && ' ✓'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => setCreateTeamModal(true)}
-              className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold flex items-center gap-2 transition-colors whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4" />
-              Nieuw
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* ========== 1. TEAM AANMAKEN / BEHEER ========== */}
       <div className="border-2 border-blue-400 rounded-lg p-6 bg-blue-50">
         <div className="flex items-center justify-between mb-4">
