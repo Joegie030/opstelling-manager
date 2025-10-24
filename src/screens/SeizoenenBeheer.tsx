@@ -93,6 +93,9 @@ function SeizoenenBeheer({
 
         await addSeizoenen(teamId, newSeizoen);
         console.log('✅ Seizoen aangemaakt:', formState.naam);
+        
+        // ✅ FIX: Automatisch het nieuwe seizoen selecteren na aanmaken
+        onSeizoenChange(newSeizoen.seizoenId);
       }
 
       onSeizoenUpdate();
