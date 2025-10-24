@@ -306,28 +306,28 @@ function App() {
       }}
       activeScreen={huidigScherm}
     >
-      {/* WEDSTRIJDEN SCHERM */}
+      {/* ✅ STAP 1: WEDSTRIJDEN SCHERM - FIXED PROPS */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
           wedstrijden={wedstrijden}
-          spelers={spelers}
-          clubNaam={clubNaam}
           teamNaam={teamNaam}
-          onSelectWedstrijd={(w) => {
+          onNieuweWedstrijd={() => setFormatieModal(true)}
+          onBekijk={(w) => {
             setHuidgeWedstrijd(w);
             setHuidigScherm('wedstrijd');
           }}
-          onNewWedstrijd={() => setFormatieModal(true)}
-          onDeleteWedstrijd={verwijderWedstrijd}
-          onCopyWedstrijd={kopieerWedstrijd}
+          onKopieer={kopieerWedstrijd}
+          onVerwijder={verwijderWedstrijd}
         />
       )}
 
-      {/* WEDSTRIJD OPSTELLING SCHERM */}
+      {/* ✅ STAP 4: WEDSTRIJD OPSTELLING SCHERM - ADDED clubNaam & teamNaam */}
       {huidigScherm === 'wedstrijd' && huidgeWedstrijd && (
         <WedstrijdOpstelling
           wedstrijd={huidgeWedstrijd}
           spelers={spelers}
+          clubNaam={clubNaam}
+          teamNaam={teamNaam}
           onUpdateWedstrijd={(updated) => {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));

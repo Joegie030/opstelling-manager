@@ -19,7 +19,8 @@ import {
   saveSpelers, 
   saveWedstrijden, 
   saveTeamInfo,
-  createTeam
+  createTeam,
+  deleteTeam
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
 
@@ -34,8 +35,8 @@ function App() {
   // App state
   const [spelers, setSpelers] = useState<Speler[]>([]);
   const [wedstrijden, setWedstrijden] = useState<Wedstrijd[]>([]);
-  const [clubNaam, setClubNaam] = useState('Mijn Club');
-  const [teamNaam, setTeamNaam] = useState('Team A');
+  const [clubNaam, setClubNaam] = useState('');
+  const [teamNaam, setTeamNaam] = useState('');
   const [huidigScherm, setHuidigScherm] = useState('wedstrijden');
   const [huidgeWedstrijd, setHuidgeWedstrijd] = useState<Wedstrijd | null>(null);
   const [formatieModal, setFormatieModal] = useState(false);
@@ -114,8 +115,8 @@ function App() {
 
       setSpelers(spelers);
       setWedstrijden(wedstrijden);
-      setClubNaam(team?.clubNaam || 'Mijn Club');
-      setTeamNaam(team?.teamNaam || 'Team A');
+      setClubNaam(team?.clubNaam || '');
+      setTeamNaam(team?.teamNaam || '');
     } catch (error) {
       console.error('Error loading team data:', error);
     }
@@ -199,6 +200,59 @@ function App() {
     } catch (error) {
       console.error('❌ Error creating team:', error);
       alert('Fout bij aanmaken team: ' + error);
+    }
+  };
+
+  // ✅ NEW: Delete team handler (ook laatste team allowed!)
+  const handleDeleteTeam = async (teamIdToDelete: string) => {
+    if (!currentCoach) return;
+
+    // Double confirmation
+    const confirmed1 = confirm(
+      `⚠️ Wil je "${clubNaam} - ${teamNaam}" echt verwijderen?\n\nDit kan NIET ongedaan gemaakt worden!`
+    );
+
+    if (!confirmed1) return;
+
+    const confirmed2 = confirm(
+      `🚨 LAATSTE WAARSCHUWING!\n\nAlle spelers, wedstrijden en statistieken worden verwijderd!\n\nBen je echt zeker?`
+    );
+
+    if (!confirmed2) return;
+
+    try {
+      console.log('🔵 Deleting team:', teamIdToDelete);
+      await deleteTeam(currentCoach.uid, teamIdToDelete);
+      
+      // Update state
+      const remainingTeamIds = currentCoach.teamIds.filter(id => id !== teamIdToDelete);
+      setCurrentCoach({
+        ...currentCoach,
+        teamIds: remainingTeamIds
+      });
+
+      // Als teams over zijn, selecteer volgende. Anders: terug naar team beheer scherm
+      if (remainingTeamIds.length > 0) {
+        // Nog teams over? Select eerste
+        setSelectedTeamId(remainingTeamIds[0]);
+        setHuidigScherm('wedstrijden');
+        console.log('✅ Switched to team:', remainingTeamIds[0]);
+      } else {
+        // Geen teams meer? Terug naar team beheer
+        setSelectedTeamId(null);
+        setHuidigScherm('team');
+        setClubNaam('');
+        setTeamNaam('');
+        setSpelers([]);
+        setWedstrijden([]);
+        console.log('✅ All teams deleted, back to team creation');
+      }
+
+      alert('✅ Team verwijderd');
+      console.log('✅ Team deleted successfully');
+    } catch (error) {
+      console.error('❌ Error deleting team:', error);
+      alert('❌ Fout bij verwijderen team: ' + error);
     }
   };
 
@@ -418,10 +472,10 @@ function App() {
               console.log('🔵 User selected team:', newTeamId);
               setSelectedTeamId(newTeamId);
             }}
+            onDeleteTeam={handleDeleteTeam}
           />
 
-          {/* Invite Coaches */}
-          {selectedTeamId && <InviteCoaches teamId={selectedTeamId} currentCoach={currentCoach} />}
+          {/* Coaches Invitatie is in TeamBeheer component */}
         </div>
       )}
 
