@@ -134,20 +134,9 @@ export const loginCoach = async (email: string, password: string): Promise<Coach
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    let coachDoc = await getDoc(doc(db, 'coaches', user.uid));
-    
-    // Als coach document niet bestaat, maak het aan (backward compatibility)
+    const coachDoc = await getDoc(doc(db, 'coaches', user.uid));
     if (!coachDoc.exists()) {
-      const coach: Coach = {
-        uid: user.uid,
-        email,
-        naam: email.split('@')[0], // Default naam
-        teamIds: [],
-        rol: 'admin',
-        createdAt: new Date().toISOString()
-      };
-      await setDoc(doc(db, 'coaches', user.uid), coach);
-      return coach;
+      throw new Error('Coach profiel niet gevonden');
     }
 
     return coachDoc.data() as Coach;
