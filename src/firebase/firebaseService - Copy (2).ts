@@ -618,33 +618,3 @@ export const createTeam = async (uid: string, clubNaam: string, teamNaam: string
     throw error;
   }
 };
-
-// ✅ NEW: Delete team functie
-export const deleteTeam = async (uid: string, teamId: string): Promise<void> => {
-  try {
-    console.log('🔵 Deleting team:', teamId);
-
-    // Stap 1: Verwijder team document
-    await deleteDoc(doc(db, 'teams', teamId));
-    console.log('✅ Team document verwijderd');
-
-    // Stap 2: Verwijder team uit coach profiel
-    const coachRef = doc(db, 'coaches', uid);
-    const coachDoc = await getDoc(coachRef);
-    
-    if (coachDoc.exists()) {
-      const currentTeamIds = coachDoc.data().teamIds || [];
-      const updatedTeamIds = currentTeamIds.filter((tId: string) => tId !== teamId);
-      
-      await updateDoc(coachRef, {
-        teamIds: updatedTeamIds
-      });
-      console.log('✅ Coach profiel bijgewerkt - team verwijderd');
-    }
-
-    console.log('✅ Team volledig verwijderd');
-  } catch (error) {
-    console.error('❌ Error deleting team:', error);
-    throw error;
-  }
-};
