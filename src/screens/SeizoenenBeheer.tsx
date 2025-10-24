@@ -4,8 +4,8 @@ import { Seizoen } from '../types';
 import {
   getSeizoenen,
   addSeizoenen,
-  updateSeizoenen,
-  deleteSeizoenen
+  updateSeizouen,  // ← NOTE: De functie in firebaseService heet updateSeizouen (typo in original)
+  deleteSeizouen
 } from '../firebase/firebaseService';
 
 interface SeizoenenBeheerProps {
@@ -77,7 +77,7 @@ function SeizoenenBeheer({
         // Update bestaand seizoen
         const seizoen = seizoenen.find(s => s.seizoenId === editingSeizoenId);
         if (seizoen) {
-          await updateSeizoenen(teamId, editingSeizoenId, {
+          await updateSeizouen(teamId, editingSeizoenId, {
             naam: formState.naam,
             startDatum: formState.startDatum,
             eindDatum: formState.eindDatum,
@@ -121,7 +121,7 @@ function SeizoenenBeheer({
 
     try {
       setLoading(true);
-      await deleteSeizoenen(teamId, seizoenId);
+      await deleteSeizouen(teamId, seizoenId);
       console.log('✅ Seizoen verwijderd');
       onSeizoenUpdate();
       setLoading(false);
@@ -141,7 +141,7 @@ function SeizoenenBeheer({
       setLoading(true);
       const newStatus = currentStatus === 'actief' ? 'gearchiveerd' : 'actief';
       
-      await updateSeizoenen(teamId, seizoenId, {
+      await updateSeizouen(teamId, seizoenId, {
         status: newStatus
       });
 
