@@ -61,6 +61,14 @@ export default function TeamBeheer({
   const vasteSpelers = spelers.filter(s => s.type !== 'gast');
   const gastSpelers = spelers.filter(s => s.type === 'gast');
 
+  // ✅ NEW: Open modal automatisch als geen team EN geen teams beschikbaar
+  useEffect(() => {
+    if (!teamId && teamIds.length === 0) {
+      console.log('⚠️ Geen team, open create modal automatisch');
+      setCreateTeamModal(true);
+    }
+  }, [teamId, teamIds]);
+
   // ✅ FIX 3: Load team metadata voor dropdown
   useEffect(() => {
     if (teamIds.length === 0) return;
