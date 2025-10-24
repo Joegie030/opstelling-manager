@@ -267,6 +267,8 @@ export default function TeamBeheer({
       </div>
 
       {/* ✨ SEIZOEN BEHEER - INGEBED IN TEAMBEHEER */}
+      {/* TIJDELIJK UIT COMMENTAAR - TEST */}
+      {/*
       <SeizoenenBeheer
         teamId={teamId}
         seizoenen={seizoenen}
@@ -274,6 +276,7 @@ export default function TeamBeheer({
         onSeizoenChange={onSeizoenChange}
         onSeizoenUpdate={onSeizoenUpdate}
       />
+      */}
     </div>
   );
 }
