@@ -208,11 +208,13 @@ function App() {
   // Main app with navigation
   return (
     <Navigation
+      clubNaam={clubNaam}
+      teamNaam={teamNaam}
       currentCoach={currentCoach}
       onLogout={handleLogout}
-      onMenuClick={(item) => {
-        setHuidigScherm(item.id);
-        if (item.id === 'team') {
+      onScreenChange={(screenId) => {
+        setHuidigScherm(screenId);
+        if (screenId === 'team') {
           setHuidgeWedstrijd(null);
         }
       }}
