@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
-import { Speler, Seizoen } from '../types';
-import SeizoenenBeheer from '../components/SeizoenenBeheer';
+import { Speler } from '../types';
 
 interface Props {
   spelers: Speler[];
@@ -13,11 +12,6 @@ interface Props {
   onUpdateTeamNaam: (naam: string) => void;
   onLaadTestdata: () => void;
   onWisAlles: () => void;
-  teamId: string;
-  seizoenen: Seizoen[];
-  selectedSeizoenId: string | null;
-  onSeizoenChange: (seizoenId: string) => void;
-  onSeizoenUpdate: () => void;
 }
 
 export default function TeamBeheer({
@@ -29,12 +23,7 @@ export default function TeamBeheer({
   onUpdateClubNaam,
   onUpdateTeamNaam,
   onLaadTestdata,
-  onWisAlles,
-  teamId,
-  seizoenen,
-  selectedSeizoenId,
-  onSeizoenChange,
-  onSeizoenUpdate
+  onWisAlles
 }: Props) {
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
@@ -265,18 +254,6 @@ export default function TeamBeheer({
           </p>
         </div>
       </div>
-
-      {/* ✨ SEIZOEN BEHEER - INGEBED IN TEAMBEHEER */}
-      {/* TIJDELIJK UIT COMMENTAAR - TEST */}
-      {/*
-      <SeizoenenBeheer
-        teamId={teamId}
-        seizoenen={seizoenen}
-        selectedSeizoenId={selectedSeizoenId}
-        onSeizoenChange={onSeizoenChange}
-        onSeizoenUpdate={onSeizoenUpdate}
-      />
-      */}
     </div>
   );
 }
