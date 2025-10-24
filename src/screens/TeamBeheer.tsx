@@ -162,7 +162,7 @@ export default function TeamBeheer({
                 type="text"
                 value={newClubNaam}
                 onChange={(e) => setNewClubNaam(e.target.value)}
-                placeholder="Bijv: VV Amsterdam"
+                placeholder="Bijv: VV Club"
                 className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
@@ -305,7 +305,7 @@ export default function TeamBeheer({
             value={clubNaam}
             onChange={(e) => onUpdateClubNaam(e.target.value)}
             className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg font-medium focus:outline-none focus:border-blue-600"
-            placeholder="Bijv: VV Amsterdam"
+            placeholder="Bijv: VV Club"
           />
         </div>
 
@@ -428,7 +428,7 @@ export default function TeamBeheer({
                     value={nieuwGastTeam}
                     onChange={(e) => setNieuwGastTeam(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleVoegSpelerToe()}
-                    placeholder="Bijv: VV Ajax"
+                    placeholder="Bijv: VV Club"
                     className="flex-1 px-4 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:border-orange-600"
                   />
                   <button
