@@ -112,9 +112,9 @@ export default function TeamBeheer({
         </div>
       </div>
 
-      {/* ========== SPELAERSLIJST MET TABS ========== */}
+      {/* ========== SPELERSLIJST MET TABS ========== */}
       <div className="border-2 border-green-400 rounded-lg p-4 bg-green-50">
-        <h2 className="text-2xl font-bold mb-4">👥 Spelaerslijst</h2>
+        <h2 className="text-2xl font-bold mb-4">👥 Spelerslijst</h2>
 
         {/* TABS */}
         <div className="flex gap-2 mb-4 border-b-2 border-green-300">
@@ -145,7 +145,7 @@ export default function TeamBeheer({
           {activeTab === 'vast' ? (
             <>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Spelaer Naam</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Speler Naam</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -221,7 +221,7 @@ export default function TeamBeheer({
                     <button
                       onClick={() => onVerwijderSpeler(speler.id)}
                       className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                      title="Verwijder spelaer"
+                      title="Verwijder speler"
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </button>
@@ -266,6 +266,7 @@ export default function TeamBeheer({
             <strong>Totaal:</strong> {spelers.length} spelaers ({vasteSpelers.length} vast, {gastSpelers.length} gast)
           </p>
         </div>
+      </div>
 
         {/* SEIZOEN BEHEER */}
         <SeizoenenBeheer
@@ -276,7 +277,6 @@ export default function TeamBeheer({
           onSeizoenUpdate={onSeizoenUpdate || (() => {})}
         />
 
-      </div>
     </div>
   );
 }
