@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { Speler, Seizoen } from '../types';
+import SeizoenenBeheer from '../components/SeizoenenBeheer';
 
 interface Props {
   spelers: Speler[];
@@ -167,7 +168,7 @@ export default function TeamBeheer({
           ) : (
             <>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Gastspeaker Naam</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Gastspeler Naam</label>
                 <input
                   type="text"
                   value={nieuwSpelerNaam}
@@ -201,7 +202,7 @@ export default function TeamBeheer({
           )}
         </div>
 
-        {/* SPELAERSLIJST */}
+        {/* SPELERSLIJST */}
         <div className="space-y-2">
           {activeTab === 'vast' ? (
             <>
@@ -265,6 +266,16 @@ export default function TeamBeheer({
             <strong>Totaal:</strong> {spelers.length} spelaers ({vasteSpelers.length} vast, {gastSpelers.length} gast)
           </p>
         </div>
+
+        {/* SEIZOEN BEHEER */}
+        <SeizoenenBeheer
+          teamId={teamId || ''}
+          seizoenen={seizoenen || []}
+          selectedSeizoenId={selectedSeizoenId || null}
+          onSeizoenChange={onSeizoenChange || (() => {})}
+          onSeizoenUpdate={onSeizoenUpdate || (() => {})}
+        />
+
       </div>
     </div>
   );
