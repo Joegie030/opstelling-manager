@@ -305,7 +305,7 @@ export const saveSpelersInBatch = async (teamId: string, spelers: Speler[]): Pro
 // SEIZOEN FUNCTIES
 // ============================================
 
-export const addSeizouen = async (teamId: string, seizoen: Seizoen): Promise<string> => {
+export const addSeizoenen = async (teamId: string, seizoen: Seizoen): Promise<string> => {
   try {
     const seizoenId = `seizoen_${seizoen.seizoenId}`;
     const docRef = doc(db, 'teams', teamId, 'seizoenen', seizoenId);
@@ -346,7 +346,7 @@ export const getSeizoenen = async (teamId: string, status?: 'actief' | 'gearchiv
   }
 };
 
-export const updateSeizouen = async (teamId: string, seizoenId: string, updates: Partial<Seizoen>): Promise<void> => {
+export const updateSeizoenen = async (teamId: string, seizoenId: string, updates: Partial<Seizoen>): Promise<void> => {
   try {
     await updateDoc(doc(db, 'teams', teamId, 'seizoenen', seizoenId), {
       ...updates,
@@ -358,7 +358,7 @@ export const updateSeizouen = async (teamId: string, seizoenId: string, updates:
   }
 };
 
-export const deleteSeizouen = async (teamId: string, seizoenId: string): Promise<void> => {
+export const deleteSeizoenen = async (teamId: string, seizoenId: string): Promise<void> => {
   try {
     const batch = writeBatch(db);
     batch.delete(doc(db, 'teams', teamId, 'seizoenen', seizoenId));

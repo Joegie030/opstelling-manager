@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, Edit2, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Seizoen } from '../types';
 import {
   getSeizoenen,
-  addSeizoenen,
-  updateSeizouen,  // ← NOTE: De functie in firebaseService heet updateSeizouen (typo in original)
-  deleteSeizouen
+  addSeizouen,      // ← Correct: "ouen" typo in firebaseService
+  updateSeizouen,   // ← Correct: "ouen" typo in firebaseService
+  deleteSeizouen    // ← Correct: "ouen" typo in firebaseService
 } from '../firebase/firebaseService';
 
 interface SeizoenenBeheerProps {
@@ -97,7 +97,7 @@ function SeizoenenBeheer({
           updatedAt: new Date().toISOString()
         };
 
-        await addSeizoenen(teamId, newSeizoen);
+        await addSeizouen(teamId, newSeizoen);
         console.log('✅ Seizoen aangemaakt:', formState.naam);
       }
 
