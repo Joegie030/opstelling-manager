@@ -395,7 +395,7 @@ function App() {
       )}
 
       {/* TEAM SCHERM */}
-      {huidigScherm === 'team' && (
+      {huidigScherm === 'team' && selectedTeamId && (
         <div className="space-y-6">
           <TeamBeheer
             spelers={spelers}
