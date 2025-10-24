@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Mail, Check, X, ChevronDown } from 'lucide-react';
 import { Speler, Seizoen } from '../types';
-import InviteCoaches from './InviteCoaches';
+import InviteCoaches from '../components/InviteCoaches';
 
 interface TeamBeheerProps {
   // Team Data
