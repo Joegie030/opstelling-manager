@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
-import { Speler } from '../types';
+import { Speler, Seizoen } from '../types';
 
 interface Props {
   spelers: Speler[];
@@ -12,6 +12,12 @@ interface Props {
   onUpdateTeamNaam: (naam: string) => void;
   onLaadTestdata: () => void;
   onWisAlles: () => void;
+  // SEIZOEN PROPS - TOEGEVOEGD
+  teamId?: string;
+  seizoenen?: Seizoen[];
+  selectedSeizoenId?: string | null;
+  onSeizoenChange?: (seizoenId: string) => void;
+  onSeizoenUpdate?: () => void;
 }
 
 export default function TeamBeheer({
@@ -23,7 +29,13 @@ export default function TeamBeheer({
   onUpdateClubNaam,
   onUpdateTeamNaam,
   onLaadTestdata,
-  onWisAlles
+  onWisAlles,
+  // SEIZOEN PROPS
+  teamId,
+  seizoenen = [],
+  selectedSeizoenId,
+  onSeizoenChange,
+  onSeizoenUpdate
 }: Props) {
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
@@ -40,7 +52,7 @@ export default function TeamBeheer({
       onVoegSpelerToe(nieuwSpelerNaam, 'vast');
     } else {
       if (!nieuwGastTeam.trim()) {
-        alert('Voer team naam in voor gastspeeler');
+        alert('Voer team naam in voor gastspeaker');
         return;
       }
       onVoegSpelerToe(nieuwSpelerNaam, 'gast', nieuwGastTeam);
@@ -54,7 +66,7 @@ export default function TeamBeheer({
     <div className="space-y-6">
       {/* ========== TEAM INFO ========== */}
       <div className="border-2 border-blue-400 rounded-lg p-4 bg-blue-50">
-        <h2 className="text-2xl font-bold mb-4">🏠 Team Instellingen</h2>
+        <h2 className="text-2xl font-bold mb-4">🏟️ Team Instellingen</h2>
         
         <div className="space-y-4">
           {/* Club Naam */}
@@ -123,7 +135,7 @@ export default function TeamBeheer({
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            👤 Gastspeelers ({gastSpelers.length})
+            👤 Gastspeakers ({gastSpelers.length})
           </button>
         </div>
 
@@ -219,7 +231,7 @@ export default function TeamBeheer({
           ) : (
             <>
               {gastSpelers.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">Nog geen gastspeelers</p>
+                <p className="text-gray-500 text-center py-4">Nog geen gastspeakers</p>
               ) : (
                 gastSpelers.map(speler => (
                   <div
