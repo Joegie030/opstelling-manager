@@ -188,12 +188,14 @@ export const getTeam = async (teamId: string): Promise<Team | null> => {
 
 export const updateTeam = async (teamId: string, updates: Partial<Team>): Promise<void> => {
   try {
+    console.log('🔵 updateTeam called with teamId:', teamId, 'updates:', updates);
     await updateDoc(doc(db, 'teams', teamId), {
       ...updates,
       updatedAt: new Date().toISOString()
     });
+    console.log('✅ updateTeam SUCCESS');
   } catch (error) {
-    console.error('Error updating team:', error);
+    console.error('❌ Error updating team:', error);
     throw error;
   }
 };
