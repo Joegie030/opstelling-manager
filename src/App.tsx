@@ -413,6 +413,11 @@ function App() {
             teamId={selectedTeamId}
             onCreateTeam={handleCreateTeam}
             currentCoach={currentCoach}
+            teamIds={currentCoach?.teamIds || []}
+            onSelectTeam={(newTeamId) => {
+              console.log('🔵 User selected team:', newTeamId);
+              setSelectedTeamId(newTeamId);
+            }}
           />
 
           {/* Invite Coaches */}
