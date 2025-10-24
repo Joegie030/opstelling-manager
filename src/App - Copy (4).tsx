@@ -475,7 +475,8 @@ function App() {
             onDeleteTeam={handleDeleteTeam}
           />
 
-          {/* Coaches Invitatie is in TeamBeheer component */}
+          {/* Invite Coaches */}
+          {selectedTeamId && <InviteCoaches teamId={selectedTeamId} currentCoach={currentCoach} />}
         </div>
       )}
 
