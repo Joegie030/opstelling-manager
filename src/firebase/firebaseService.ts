@@ -126,15 +126,31 @@ export const loginCoach = async (email: string, password: string): Promise<Coach
 
     let coachDoc = await getDoc(doc(db, 'coaches', user.uid));
     
-    // Als coach document niet bestaat, maak het aan (backward compatibility)
+    // Als coach document niet bestaat, maak het aan met DEFAULT TEAM
     if (!coachDoc.exists()) {
+      // Maak default team aan voor deze coach
+      const teamId = `team_${Date.now()}`;
+      const now = new Date().toISOString();
+      
+      const defaultTeam: Team = {
+        teamId,
+        clubNaam: 'Mijn Club',
+        teamNaam: 'Team A',
+        coaches: [user.uid],
+        createdAt: now,
+        updatedAt: now
+      };
+
+      await setDoc(doc(db, 'teams', teamId), defaultTeam);
+
+      // Maak coach profiel met het nieuwe team
       const coach: Coach = {
         uid: user.uid,
         email,
         naam: email.split('@')[0], // Default naam
-        teamIds: [],
+        teamIds: [teamId],  // ✅ ASSIGN DEFAULT TEAM!
         rol: 'admin',
-        createdAt: new Date().toISOString()
+        createdAt: now
       };
       await setDoc(doc(db, 'coaches', user.uid), coach);
       return coach;
