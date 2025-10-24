@@ -16,8 +16,9 @@ interface TeamBeheerProps {
   onVoegSpelerToe: (naam: string, type?: 'vast' | 'gast', team?: string) => void;
   onVerwijderSpeler: (id: number) => void;
 
-  // Coach
+  // Coach & Team Creation
   currentCoach?: any;
+  onCreateTeam?: (clubNaam: string, teamNaam: string) => Promise<void>;
 }
 
 export default function TeamBeheer({
@@ -29,11 +30,18 @@ export default function TeamBeheer({
   spelers,
   onVoegSpelerToe,
   onVerwijderSpeler,
-  currentCoach
+  currentCoach,
+  onCreateTeam
 }: TeamBeheerProps) {
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
   const [nieuwGastTeam, setNieuwGastTeam] = useState('');
+  
+  // Modal voor nieuw team
+  const [createTeamModal, setCreateTeamModal] = useState(!teamId);
+  const [newClubNaam, setNewClubNaam] = useState('');
+  const [newTeamNaam, setNewTeamNaam] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   // Filter spelers
   const vasteSpelers = spelers.filter(s => s.type !== 'gast');
@@ -56,11 +64,97 @@ export default function TeamBeheer({
     setNieuwGastTeam('');
   };
 
+  const handleCreateTeam = async () => {
+    if (!newClubNaam.trim() || !newTeamNaam.trim()) {
+      alert('Voer zowel club naam als team naam in');
+      return;
+    }
+
+    if (!onCreateTeam) {
+      alert('Fout: createTeam functie niet beschikbaar');
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      await onCreateTeam(newClubNaam, newTeamNaam);
+      setCreateTeamModal(false);
+    } catch (error) {
+      console.error('Error creating team:', error);
+      alert('Fout bij aanmaken team: ' + error);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // Toon modal als geen team
+  if (createTeamModal && !teamId) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-blue-50 border-b-2 border-blue-300 p-6">
+            <h2 className="text-2xl font-bold text-blue-800">🏟️ Maak Je Team Aan</h2>
+            <p className="text-sm text-blue-600 mt-2">Begin met het aanmaken van je eerste team</p>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Club Naam</label>
+              <input
+                type="text"
+                value={newClubNaam}
+                onChange={(e) => setNewClubNaam(e.target.value)}
+                placeholder="Bijv: VV Amsterdam"
+                className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Team Naam</label>
+              <input
+                type="text"
+                value={newTeamNaam}
+                onChange={(e) => setNewTeamNaam(e.target.value)}
+                placeholder="Bijv: Team A"
+                className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-600"
+              />
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-3 text-sm text-blue-700">
+              <p>💡 Je kan later altijd meer teams aanmaken en spelers beheren.</p>
+            </div>
+          </div>
+
+          <div className="p-6 bg-gray-50 border-t-2 border-gray-200 flex gap-2">
+            <button
+              onClick={handleCreateTeam}
+              disabled={isCreating}
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCreating ? '⏳ Aanmaken...' : '✅ Maak Team'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* ========== 1. TEAM AANMAKEN / BEHEER ========== */}
       <div className="border-2 border-blue-400 rounded-lg p-6 bg-blue-50">
-        <h2 className="text-3xl font-bold mb-4">🏟️ Team</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-3xl font-bold">🏟️ Team</h2>
+          {teamId && (
+            <button
+              onClick={() => setCreateTeamModal(true)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Nieuw Team
+            </button>
+          )}
+        </div>
 
         <div className="space-y-4">
           {/* Club Naam */}

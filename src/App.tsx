@@ -18,7 +18,8 @@ import {
   getWedstrijden,
   saveSpelers, 
   saveWedstrijden, 
-  saveTeamInfo
+  saveTeamInfo,
+  createTeam
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
 
@@ -51,9 +52,14 @@ function App() {
       setCurrentCoach(coach);
       setAuthLoading(false);
 
-      // Selecteer eerste team automatisch
+      // Selecteer eerste team automatisch, ANDERS toon TeamBeheer
       if (coach && coach.teamIds.length > 0) {
         setSelectedTeamId(coach.teamIds[0]);
+        setHuidigScherm('wedstrijden');
+      } else {
+        // Geen team - toon TeamBeheer om team te maken
+        setHuidigScherm('team');
+        console.log('ℹ️ Geen team gevonden - toon TeamBeheer');
       }
     });
 
@@ -168,6 +174,32 @@ function App() {
       team: team || undefined
     };
     setSpelers([...spelers, newSpeler]);
+  };
+
+  // Maak nieuw team aan
+  const handleCreateTeam = async (clubNaam: string, teamNaam: string) => {
+    if (!currentCoach) return;
+    
+    try {
+      console.log('🔵 Creating new team...');
+      const newTeamId = await createTeam(currentCoach.uid, clubNaam, teamNaam);
+      console.log('✅ Team created:', newTeamId);
+      
+      // Update current coach state
+      setCurrentCoach({
+        ...currentCoach,
+        teamIds: [...currentCoach.teamIds, newTeamId]
+      });
+      
+      // Selecteer nieuwe team
+      setSelectedTeamId(newTeamId);
+      setClubNaam(clubNaam);
+      setTeamNaam(teamNaam);
+      setHuidigScherm('wedstrijden');
+    } catch (error) {
+      console.error('❌ Error creating team:', error);
+      alert('Fout bij aanmaken team: ' + error);
+    }
   };
 
   // Verwijder speler
@@ -379,10 +411,12 @@ function App() {
               }
             }}
             teamId={selectedTeamId}
+            onCreateTeam={handleCreateTeam}
+            currentCoach={currentCoach}
           />
 
           {/* Invite Coaches */}
-          <InviteCoaches teamId={selectedTeamId} currentCoach={currentCoach} />
+          {selectedTeamId && <InviteCoaches teamId={selectedTeamId} currentCoach={currentCoach} />}
         </div>
       )}
 

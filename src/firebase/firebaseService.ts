@@ -566,3 +566,44 @@ export const saveWedstrijden = async (teamId: string, wedstrijden: any[]): Promi
 export const saveTeamInfo = async (teamId: string, clubNaam: string, teamNaam: string): Promise<void> => {
   return updateTeamInfo(teamId, clubNaam, teamNaam);
 };
+
+// ============================================
+// CREATE NEW TEAM (voor TeamBeheer)
+// ============================================
+
+export const createTeam = async (uid: string, clubNaam: string, teamNaam: string): Promise<string> => {
+  try {
+    const teamId = `team_${Date.now()}`;
+    const now = new Date().toISOString();
+    
+    const team: Team = {
+      teamId,
+      clubNaam,
+      teamNaam,
+      coaches: [uid],
+      createdAt: now,
+      updatedAt: now
+    };
+
+    // Maak team document aan
+    await setDoc(doc(db, 'teams', teamId), team);
+    console.log('✅ Team aangemaakt:', teamId, clubNaam, teamNaam);
+
+    // Update coach profiel - voeg team toe aan teamIds
+    const coachRef = doc(db, 'coaches', uid);
+    const coachDoc = await getDoc(coachRef);
+    
+    if (coachDoc.exists()) {
+      const currentTeamIds = coachDoc.data().teamIds || [];
+      await updateDoc(coachRef, {
+        teamIds: [...currentTeamIds, teamId]
+      });
+      console.log('✅ Coach profiel bijgewerkt met nieuw team');
+    }
+
+    return teamId;
+  } catch (error) {
+    console.error('❌ Error creating team:', error);
+    throw error;
+  }
+};
