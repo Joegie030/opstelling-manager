@@ -1,3 +1,5 @@
+console.log('🟢 App.tsx loaded');
+
 import { useState, useEffect } from 'react';
 import { LogOut, Loader } from 'lucide-react';
 import { Speler, Wedstrijd, Doelpunt, formaties } from './types';
@@ -422,7 +424,7 @@ function App() {
                         id: Date.now(),
                         datum: new Date().toISOString().split('T')[0],
                         tegenstander: '',
-                        formatie: key as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8',
+                        formatie: key,
                         thuisUit: 'thuis',
                         afwezigeSpelers: gastspelerIds,
                         kwarten: Array(4)
