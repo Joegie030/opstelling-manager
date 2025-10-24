@@ -6,7 +6,6 @@ import Statistieken from './screens/Statistieken.tsx';
 import WedstrijdOverzicht from './screens/WedstrijdOverzicht.tsx';
 import WedstrijdOpstelling from './screens/WedstrijdOpstelling.tsx';  
 import Instellingen from './screens/Instellingen.tsx';
-import SeizoenenBeheer from './screens/SeizoenenBeheer.tsx';
 import AuthScreen from './screens/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
@@ -126,10 +125,8 @@ function App() {
         // Fallback: selecteer eerste seizoen als geen actief
         setSelectedSeizoenId(data[0].seizoenId);
         setShowSeizoenModal(true);
-      } else {
-        // Geen seizoenen: toon seizoen beheer
-        setHuidigScherm('seizoenen');
       }
+      // ✅ FIXED: Geen forced redirect meer! User kan zelf seizoen aanmaken in TeamBeheer
       setSeizoenLoading(false);
     } catch (error) {
       console.error('Error loading seizoenen:', error);
@@ -430,11 +427,6 @@ function App() {
         />
       )}
 
-      {/* STATISTIEKEN SCHERM */}
-      {huidigScherm === 'statistieken' && (
-        <Statistieken wedstrijden={wedstrijden} spelers={spelers} />
-      )}
-
       {/* TEAM SCHERM */}
       {huidigScherm === 'team' && selectedTeamId && (
         <div className="space-y-6">
@@ -455,6 +447,18 @@ function App() {
                 setWedstrijden([]);
               }
             }}
+            teamId={selectedTeamId}
+            seizoenen={seizoenen}
+            selectedSeizoenId={selectedSeizoenId}
+            onSeizoenChange={(seizoenId) => {
+              setSelectedSeizoenId(seizoenId);
+              setHuidigScherm('wedstrijden');
+            }}
+            onSeizoenUpdate={() => {
+              if (selectedTeamId) {
+                loadSeizoenen(selectedTeamId);
+              }
+            }}
           />
 
           {/* Invite Coaches - ✨ FIXED: Gebruik selectedTeamId */}
@@ -462,20 +466,9 @@ function App() {
         </div>
       )}
 
-      {/* SEIZOEN BEHEER SCHERM - ✨ NIEUW */}
-      {huidigScherm === 'seizoenen' && selectedTeamId && (
-        <SeizoenenBeheer
-          teamId={selectedTeamId}
-          seizoenen={seizoenen}
-          selectedSeizoenId={selectedSeizoenId}
-          onSeizoenChange={(seizoenId) => {
-            setSelectedSeizoenId(seizoenId);
-            setHuidigScherm('wedstrijden');
-          }}
-          onSeizoenUpdate={() => {
-            loadSeizoenen(selectedTeamId);
-          }}
-        />
+      {/* STATISTIEKEN SCHERM */}
+      {huidigScherm === 'statistieken' && (
+        <Statistieken wedstrijden={wedstrijden} spelers={spelers} />
       )}
 
       {/* INSTELLINGEN SCHERM */}

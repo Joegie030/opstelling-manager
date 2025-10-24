@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
-import { Speler } from '../types';
+import { Speler, Seizoen } from '../types';
+import SeizoenenBeheer from './SeizoenenBeheer';
 
 interface Props {
   spelers: Speler[];
@@ -12,6 +13,11 @@ interface Props {
   onUpdateTeamNaam: (naam: string) => void;
   onLaadTestdata: () => void;
   onWisAlles: () => void;
+  teamId: string;
+  seizoenen: Seizoen[];
+  selectedSeizoenId: string | null;
+  onSeizoenChange: (seizoenId: string) => void;
+  onSeizoenUpdate: () => void;
 }
 
 export default function TeamBeheer({
@@ -23,7 +29,12 @@ export default function TeamBeheer({
   onUpdateClubNaam,
   onUpdateTeamNaam,
   onLaadTestdata,
-  onWisAlles
+  onWisAlles,
+  teamId,
+  seizoenen,
+  selectedSeizoenId,
+  onSeizoenChange,
+  onSeizoenUpdate
 }: Props) {
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
@@ -254,6 +265,15 @@ export default function TeamBeheer({
           </p>
         </div>
       </div>
+
+      {/* ✨ SEIZOEN BEHEER - INGEBED IN TEAMBEHEER */}
+      <SeizoenenBeheer
+        teamId={teamId}
+        seizoenen={seizoenen}
+        selectedSeizoenId={selectedSeizoenId}
+        onSeizoenChange={onSeizoenChange}
+        onSeizoenUpdate={onSeizoenUpdate}
+      />
     </div>
   );
 }
