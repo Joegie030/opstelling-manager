@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, Mail, Check, X, ChevronDown } from 'lucide-react';
-import { Speler, Seizoen } from '../types';
+import { useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { Speler } from '../types';
 import InviteCoaches from '../components/InviteCoaches';
 
 interface TeamBeheerProps {
   // Team Data
-  selectedTeamId: string | null;
+  teamId: string | null;
   clubNaam: string;
   teamNaam: string;
   onUpdateClubNaam: (naam: string) => void;
@@ -16,18 +16,12 @@ interface TeamBeheerProps {
   onVoegSpelerToe: (naam: string, type?: 'vast' | 'gast', team?: string) => void;
   onVerwijderSpeler: (id: number) => void;
 
-  // Seizoenen
-  seizoenen: Seizoen[];
-  selectedSeizoenId: string | null;
-  onSeizoenChange: (seizoenId: string) => void;
-  onSeizoenUpdate: () => void;
-
   // Coach
   currentCoach?: any;
 }
 
 export default function TeamBeheer({
-  selectedTeamId,
+  teamId,
   clubNaam,
   teamNaam,
   onUpdateClubNaam,
@@ -35,26 +29,15 @@ export default function TeamBeheer({
   spelers,
   onVoegSpelerToe,
   onVerwijderSpeler,
-  seizoenen,
-  selectedSeizoenId,
-  onSeizoenChange,
-  onSeizoenUpdate,
   currentCoach
 }: TeamBeheerProps) {
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
   const [nieuwGastTeam, setNieuwGastTeam] = useState('');
-  const [selectedSeizoenForTeam, setSelectedSeizoenForTeam] = useState<string>(selectedSeizoenId || '');
 
   // Filter spelers
   const vasteSpelers = spelers.filter(s => s.type !== 'gast');
   const gastSpelers = spelers.filter(s => s.type === 'gast');
-
-  useEffect(() => {
-    if (selectedSeizoenId) {
-      setSelectedSeizoenForTeam(selectedSeizoenId);
-    }
-  }, [selectedSeizoenId]);
 
   const handleVoegSpelerToe = () => {
     if (!nieuwSpelerNaam.trim()) return;
@@ -71,11 +54,6 @@ export default function TeamBeheer({
 
     setNieuwSpelerNaam('');
     setNieuwGastTeam('');
-  };
-
-  const handleSeizoenChange = (seizoenId: string) => {
-    setSelectedSeizoenForTeam(seizoenId);
-    onSeizoenChange(seizoenId);
   };
 
   return (
@@ -109,32 +87,9 @@ export default function TeamBeheer({
             />
           </div>
 
-          {/* Seizoen Selectie */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Seizoen</label>
-            {seizoenen.length === 0 ? (
-              <div className="p-3 bg-yellow-100 border-2 border-yellow-400 rounded-lg text-sm text-yellow-800">
-                ⚠️ Geen seizoenen beschikbaar. Maak eerst een seizoen aan.
-              </div>
-            ) : (
-              <select
-                value={selectedSeizoenForTeam}
-                onChange={(e) => handleSeizoenChange(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg font-medium focus:outline-none focus:border-blue-600"
-              >
-                <option value="">-- Selecteer seizoen --</option>
-                {seizoenen.map(s => (
-                  <option key={s.seizoenId} value={s.seizoenId}>
-                    {s.naam} ({s.status === 'actief' ? '✅ Actief' : '📦 Gearchiveerd'})
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-
           {/* Team Info Display */}
           <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-gray-600">Club</p>
                 <p className="text-lg font-bold text-blue-600">{clubNaam || 'Niet ingesteld'}</p>
@@ -144,13 +99,7 @@ export default function TeamBeheer({
                 <p className="text-lg font-bold text-blue-600">{teamNaam || 'Niet ingesteld'}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-600">Seizoen</p>
-                <p className="text-lg font-bold text-blue-600">
-                  {seizoenen.find(s => s.seizoenId === selectedSeizoenForTeam)?.naam || 'Niet geselecteerd'}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-600">Spelaers</p>
+                <p className="text-xs text-gray-600">Spelers</p>
                 <p className="text-lg font-bold text-blue-600">{spelers.length}</p>
               </div>
             </div>
@@ -172,7 +121,7 @@ export default function TeamBeheer({
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            ⚽ Vaste Spelaers ({vasteSpelers.length})
+            ⚽ Vaste Spelers ({vasteSpelers.length})
           </button>
           <button
             onClick={() => setActiveTab('gast')}
@@ -182,7 +131,7 @@ export default function TeamBeheer({
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            👤 Gastspelaers ({gastSpelers.length})
+            👤 Gastspelers ({gastSpelers.length})
           </button>
         </div>
 
@@ -190,7 +139,7 @@ export default function TeamBeheer({
         <div className="mb-6 p-4 bg-white rounded-lg border-2 border-green-200">
           {activeTab === 'vast' ? (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Spelaer Naam</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Speler Naam</label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -212,7 +161,7 @@ export default function TeamBeheer({
           ) : (
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Gastspelaer Naam</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Gastspeler Naam</label>
                 <input
                   type="text"
                   value={nieuwSpelerNaam}
@@ -245,14 +194,14 @@ export default function TeamBeheer({
           )}
         </div>
 
-        {/* SPELAERSLIJST DISPLAY */}
+        {/* SPELERSLIJST DISPLAY */}
         <div className="space-y-2">
           {activeTab === 'vast' ? (
             <>
               {vasteSpelers.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p className="text-lg">Nog geen vaste spelaers</p>
-                  <p className="text-sm">Voeg hierboven je eerste spelaer toe!</p>
+                  <p className="text-lg">Nog geen vaste spelers</p>
+                  <p className="text-sm">Voeg hierboven je eerste speler toe!</p>
                 </div>
               ) : (
                 vasteSpelers.map(speler => (
@@ -264,13 +213,13 @@ export default function TeamBeheer({
                       <span className="text-2xl">⚽</span>
                       <div>
                         <p className="font-bold text-gray-800">{speler.naam}</p>
-                        <p className="text-xs text-gray-500">Vaste spelaer</p>
+                        <p className="text-xs text-gray-500">Vaste speler</p>
                       </div>
                     </div>
                     <button
                       onClick={() => onVerwijderSpeler(speler.id)}
                       className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                      title="Verwijder spelaer"
+                      title="Verwijder speler"
                     >
                       <Trash2 className="w-5 h-5 text-red-600" />
                     </button>
@@ -282,8 +231,8 @@ export default function TeamBeheer({
             <>
               {gastSpelers.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p className="text-lg">Nog geen gastspelaers</p>
-                  <p className="text-sm">Voeg hierboven je eerste gastspelaer toe!</p>
+                  <p className="text-lg">Nog geen gastspelers</p>
+                  <p className="text-sm">Voeg hierboven je eerste gastspeler toe!</p>
                 </div>
               ) : (
                 gastSpelers.map(speler => (
@@ -301,7 +250,7 @@ export default function TeamBeheer({
                     <button
                       onClick={() => onVerwijderSpeler(speler.id)}
                       className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                      title="Verwijder gastspelaer"
+                      title="Verwijder gastspeler"
                     >
                       <Trash2 className="w-5 h-5 text-red-600" />
                     </button>
@@ -314,8 +263,8 @@ export default function TeamBeheer({
       </div>
 
       {/* ========== 3. COACHES BEHEREN ========== */}
-      {selectedTeamId && currentCoach && (
-        <InviteCoaches teamId={selectedTeamId} currentCoach={currentCoach} />
+      {teamId && currentCoach && (
+        <InviteCoaches teamId={teamId} currentCoach={currentCoach} />
       )}
     </div>
   );

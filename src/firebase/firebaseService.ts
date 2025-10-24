@@ -68,16 +68,6 @@ export interface Team {
   updatedAt: string;
 }
 
-export interface Seizoen {
-  seizoenId: string;
-  naam: string;
-  startDatum: string;
-  eindDatum: string;
-  status: 'actief' | 'gearchiveerd';
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface CoachInvite {
   inviteId: string;
   teamId: string;
@@ -302,81 +292,13 @@ export const saveSpelersInBatch = async (teamId: string, spelers: Speler[]): Pro
 };
 
 // ============================================
-// SEIZOEN FUNCTIES
+// WEDSTRIJD FUNCTIES (DIRECT ONDER TEAM!)
 // ============================================
 
-export const addSeizoenen = async (teamId: string, seizoen: Seizoen): Promise<string> => {
-  try {
-    const seizoenId = `seizoen_${seizoen.seizoenId}`;
-    const docRef = doc(db, 'teams', teamId, 'seizoenen', seizoenId);
-    
-    await setDoc(docRef, {
-      ...seizoen,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
-    
-    return seizoenId;
-  } catch (error) {
-    console.error('Error adding seizoen:', error);
-    throw error;
-  }
-};
-
-export const getSeizoenen = async (teamId: string, status?: 'actief' | 'gearchiveerd'): Promise<Seizoen[]> => {
-  try {
-    let constraints: QueryConstraint[] = [
-      orderBy('startDatum', 'desc')
-    ];
-    
-    if (status) {
-      constraints.push(where('status', '==', status));
-    }
-    
-    const q = query(
-      collection(db, 'teams', teamId, 'seizoenen'),
-      ...constraints
-    );
-    
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as Seizoen);
-  } catch (error) {
-    console.error('Error getting seizoenen:', error);
-    return [];
-  }
-};
-
-export const updateSeizoenen = async (teamId: string, seizoenId: string, updates: Partial<Seizoen>): Promise<void> => {
-  try {
-    await updateDoc(doc(db, 'teams', teamId, 'seizoenen', seizoenId), {
-      ...updates,
-      updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error updating seizoen:', error);
-    throw error;
-  }
-};
-
-export const deleteSeizoenen = async (teamId: string, seizoenId: string): Promise<void> => {
-  try {
-    const batch = writeBatch(db);
-    batch.delete(doc(db, 'teams', teamId, 'seizoenen', seizoenId));
-    await batch.commit();
-  } catch (error) {
-    console.error('Error deleting seizoen:', error);
-    throw error;
-  }
-};
-
-// ============================================
-// WEDSTRIJD FUNCTIES (onder seizoen!)
-// ============================================
-
-export const addWedstrijd = async (teamId: string, seizoenId: string, wedstrijd: Wedstrijd): Promise<string> => {
+export const addWedstrijd = async (teamId: string, wedstrijd: Wedstrijd): Promise<string> => {
   try {
     const wedstrijdId = `wedstrijd_${wedstrijd.id}`;
-    const docRef = doc(db, 'teams', teamId, 'seizoenen', seizoenId, 'wedstrijden', wedstrijdId);
+    const docRef = doc(db, 'teams', teamId, 'wedstrijden', wedstrijdId);
     
     await setDoc(docRef, {
       ...wedstrijd,
@@ -392,9 +314,9 @@ export const addWedstrijd = async (teamId: string, seizoenId: string, wedstrijd:
   }
 };
 
-export const updateWedstrijd = async (teamId: string, seizoenId: string, wedstrijdId: string, updates: Partial<Wedstrijd>): Promise<void> => {
+export const updateWedstrijd = async (teamId: string, wedstrijdId: string, updates: Partial<Wedstrijd>): Promise<void> => {
   try {
-    await updateDoc(doc(db, 'teams', teamId, 'seizoenen', seizoenId, 'wedstrijden', wedstrijdId), {
+    await updateDoc(doc(db, 'teams', teamId, 'wedstrijden', wedstrijdId), {
       ...updates,
       updatedAt: new Date().toISOString()
     });
@@ -404,10 +326,10 @@ export const updateWedstrijd = async (teamId: string, seizoenId: string, wedstri
   }
 };
 
-export const deleteWedstrijd = async (teamId: string, seizoenId: string, wedstrijdId: string): Promise<void> => {
+export const deleteWedstrijd = async (teamId: string, wedstrijdId: string): Promise<void> => {
   try {
     const batch = writeBatch(db);
-    batch.delete(doc(db, 'teams', teamId, 'seizoenen', seizoenId, 'wedstrijden', wedstrijdId));
+    batch.delete(doc(db, 'teams', teamId, 'wedstrijden', wedstrijdId));
     await batch.commit();
   } catch (error) {
     console.error('Error deleting wedstrijd:', error);
@@ -417,7 +339,6 @@ export const deleteWedstrijd = async (teamId: string, seizoenId: string, wedstri
 
 export const getWedstrijden = async (
   teamId: string,
-  seizoenId: string,
   type?: 'competitie' | 'oefenwedstrijd',
   sortOrder: 'asc' | 'desc' = 'desc'
 ): Promise<Wedstrijd[]> => {
@@ -431,7 +352,7 @@ export const getWedstrijden = async (
     }
     
     const q = query(
-      collection(db, 'teams', teamId, 'seizoenen', seizoenId, 'wedstrijden'),
+      collection(db, 'teams', teamId, 'wedstrijden'),
       ...constraints
     );
     
@@ -443,9 +364,9 @@ export const getWedstrijden = async (
   }
 };
 
-export const onWedstrijdenChange = (teamId: string, seizoenId: string, callback: (wedstrijden: Wedstrijd[]) => void): Unsubscribe => {
+export const onWedstrijdenChange = (teamId: string, callback: (wedstrijden: Wedstrijd[]) => void): Unsubscribe => {
   const q = query(
-    collection(db, 'teams', teamId, 'seizoenen', seizoenId, 'wedstrijden'),
+    collection(db, 'teams', teamId, 'wedstrijden'),
     orderBy('datum', 'desc')
   );
   
@@ -455,13 +376,13 @@ export const onWedstrijdenChange = (teamId: string, seizoenId: string, callback:
   });
 };
 
-export const saveWedstrijdenInBatch = async (teamId: string, seizoenId: string, wedstrijden: Wedstrijd[]): Promise<void> => {
+export const saveWedstrijdenInBatch = async (teamId: string, wedstrijden: Wedstrijd[]): Promise<void> => {
   try {
     const batch = writeBatch(db);
     
     wedstrijden.forEach(wedstrijd => {
       const wedstrijdId = `wedstrijd_${wedstrijd.id}`;
-      const docRef = doc(db, 'teams', teamId, 'seizoenen', seizoenId, 'wedstrijden', wedstrijdId);
+      const docRef = doc(db, 'teams', teamId, 'wedstrijden', wedstrijdId);
       batch.set(docRef, {
         ...wedstrijd,
         updatedAt: new Date().toISOString()
@@ -477,12 +398,12 @@ export const saveWedstrijdenInBatch = async (teamId: string, seizoenId: string, 
 };
 
 // ============================================
-// KWARTEN FUNCTIES (onder wedstrijd!)
+// KWARTEN FUNCTIES (DIRECT ONDER WEDSTRIJD!)
 // ============================================
 
-export const updateKwart = async (teamId: string, seizoenId: string, wedstrijdId: string, kwartNum: number, updates: any): Promise<void> => {
+export const updateKwart = async (teamId: string, wedstrijdId: string, kwartNum: number, updates: any): Promise<void> => {
   try {
-    await updateDoc(doc(db, 'teams', teamId, 'seizoenen', seizoenId, 'wedstrijden', wedstrijdId, 'kwarten', kwartNum.toString()), {
+    await updateDoc(doc(db, 'teams', teamId, 'wedstrijden', wedstrijdId, 'kwarten', kwartNum.toString()), {
       ...updates,
       updatedAt: new Date().toISOString()
     });
@@ -493,12 +414,12 @@ export const updateKwart = async (teamId: string, seizoenId: string, wedstrijdId
 };
 
 // ============================================
-// STATISTIEKEN FUNCTIES
+// STATISTIEKEN FUNCTIES (DIRECT ONDER TEAM!)
 // ============================================
 
-export const updateStatistieken = async (teamId: string, seizoenId: string, statistieken: any): Promise<void> => {
+export const updateStatistieken = async (teamId: string, statistieken: any): Promise<void> => {
   try {
-    await updateDoc(doc(db, 'teams', teamId, 'seizoenen', seizoenId, 'statistieken', 'totaal'), {
+    await updateDoc(doc(db, 'statistieken', teamId), {
       ...statistieken,
       updatedAt: new Date().toISOString()
     });
@@ -508,9 +429,9 @@ export const updateStatistieken = async (teamId: string, seizoenId: string, stat
   }
 };
 
-export const getStatistieken = async (teamId: string, seizoenId: string): Promise<any> => {
+export const getStatistieken = async (teamId: string): Promise<any> => {
   try {
-    const docSnap = await getDoc(doc(db, 'teams', teamId, 'seizoenen', seizoenId, 'statistieken', 'totaal'));
+    const docSnap = await getDoc(doc(db, 'statistieken', teamId));
     if (docSnap.exists()) {
       return docSnap.data();
     }
@@ -593,11 +514,11 @@ export const acceptInvite = async (inviteId: string, userUid: string, teamId: st
 // LEGACY COMPATIBILITY
 // ============================================
 
-export const getTeamData = async (teamId: string, seizoenId: string) => {
+export const getTeamData = async (teamId: string) => {
   try {
     const team = await getTeam(teamId);
     const spelers = await getSpelers(teamId);
-    const wedstrijden = await getWedstrijden(teamId, seizoenId);
+    const wedstrijden = await getWedstrijden(teamId);
     
     return {
       spelers,
@@ -620,8 +541,8 @@ export const saveSpelers = async (teamId: string, spelers: any[]): Promise<void>
   return saveSpelersInBatch(teamId, spelers);
 };
 
-export const saveWedstrijden = async (teamId: string, seizoenId: string, wedstrijden: any[]): Promise<void> => {
-  return saveWedstrijdenInBatch(teamId, seizoenId, wedstrijden);
+export const saveWedstrijden = async (teamId: string, wedstrijden: any[]): Promise<void> => {
+  return saveWedstrijdenInBatch(teamId, wedstrijden);
 };
 
 export const saveTeamInfo = async (teamId: string, clubNaam: string, teamNaam: string): Promise<void> => {
