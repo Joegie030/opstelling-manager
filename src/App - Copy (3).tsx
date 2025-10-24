@@ -35,8 +35,8 @@ function App() {
   // App state
   const [spelers, setSpelers] = useState<Speler[]>([]);
   const [wedstrijden, setWedstrijden] = useState<Wedstrijd[]>([]);
-  const [clubNaam, setClubNaam] = useState('');
-  const [teamNaam, setTeamNaam] = useState('');
+  const [clubNaam, setClubNaam] = useState('Mijn Club');
+  const [teamNaam, setTeamNaam] = useState('Team A');
   const [huidigScherm, setHuidigScherm] = useState('wedstrijden');
   const [huidgeWedstrijd, setHuidgeWedstrijd] = useState<Wedstrijd | null>(null);
   const [formatieModal, setFormatieModal] = useState(false);
@@ -115,8 +115,8 @@ function App() {
 
       setSpelers(spelers);
       setWedstrijden(wedstrijden);
-      setClubNaam(team?.clubNaam || '');
-      setTeamNaam(team?.teamNaam || '');
+      setClubNaam(team?.clubNaam || 'Mijn Club');
+      setTeamNaam(team?.teamNaam || 'Team A');
     } catch (error) {
       console.error('Error loading team data:', error);
     }
@@ -241,8 +241,8 @@ function App() {
         // Geen teams meer? Terug naar team beheer
         setSelectedTeamId(null);
         setHuidigScherm('team');
-        setClubNaam('');
-        setTeamNaam('');
+        setClubNaam('Mijn Club');
+        setTeamNaam('Team A');
         setSpelers([]);
         setWedstrijden([]);
         console.log('✅ All teams deleted, back to team creation');
