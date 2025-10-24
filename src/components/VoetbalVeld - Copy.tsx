@@ -1,5 +1,4 @@
 import React from 'react';
-import { useWedstrijd } from './WedstrijdContext';
 
 interface Speler {
   id: number;
@@ -7,26 +6,28 @@ interface Speler {
 }
 
 interface VoetbalVeldProps {
-  kwart: any; // Kwart data
   formatie: string; // '6x6-vliegtuig', '6x6-dobbelsteen', '8x8'
+  opstelling: Record<string, string>; // positie -> spelerId mapping
+  spelers: Speler[];
   onSelectSpeler?: (positie: string) => void;
+  isEditable?: boolean;
+  teamNaam?: string;
 }
 
 export default function VoetbalVeld({
-  kwart,
   formatie,
-  onSelectSpeler
+  opstelling,
+  spelers,
+  onSelectSpeler,
+  isEditable = false,
+  teamNaam = 'Team'
 }: VoetbalVeldProps) {
-  // ✅ Nu uit context
-  const { spelers, teamNaam } = useWedstrijd();
   
   const getSpelerNaam = (spelerId: string): string => {
     if (!spelerId) return '---';
     const speler = spelers.find(s => s.id.toString() === spelerId);
     return speler?.naam || 'Onbekend';
   };
-
-  const opstelling = kwart.opstelling;
 
   // 6x6 Vliegtuig Formatie
   const render6x6Vliegtuig = () => {
@@ -39,7 +40,7 @@ export default function VoetbalVeld({
       { positie: 'Keeper', top: '82%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
-      <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} onSelectSpeler={onSelectSpeler} />
+      <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
     ));
   };
 
@@ -54,7 +55,7 @@ export default function VoetbalVeld({
       { positie: 'Keeper', top: '82%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
-      <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} onSelectSpeler={onSelectSpeler} />
+      <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
     ));
   };
 
@@ -71,7 +72,7 @@ export default function VoetbalVeld({
       { positie: 'Keeper', top: '82%', left: '50%', rol: 'Keeper' },
     ];
     return positions.map(pos => (
-      <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} onSelectSpeler={onSelectSpeler} />
+      <PlayerSlot key={pos.positie} {...pos} spelerId={opstelling[pos.positie]} isEditable={isEditable} onSelectSpeler={onSelectSpeler} />
     ));
   };
 
@@ -81,6 +82,7 @@ export default function VoetbalVeld({
     left, 
     rol, 
     spelerId, 
+    isEditable,
     onSelectSpeler
   }: any) => {
     const spelerNaam = spelerId ? getSpelerNaam(spelerId) : '';
@@ -104,9 +106,9 @@ export default function VoetbalVeld({
                   ? 'bg-yellow-300 border-yellow-500 text-gray-900 hover:shadow-lg hover:scale-110'
                   : 'bg-green-200 border-green-600 text-gray-800 hover:shadow-lg hover:scale-110'
                 }
-                cursor-pointer hover:ring-2 ring-offset-1 ring-gray-400
+                ${isEditable ? 'cursor-pointer hover:ring-2 ring-offset-1 ring-gray-400' : 'cursor-default'}
               `}
-              onClick={() => onSelectSpeler?.(positie)}
+              onClick={() => isEditable && onSelectSpeler?.(positie)}
               title={`${rol}: ${spelerNaam}`}
             >
               <span className="text-center line-clamp-2 leading-tight px-0.5">
@@ -125,9 +127,9 @@ export default function VoetbalVeld({
                 transition-all duration-200 relative border-2 font-bold
                 w-10 h-10 sm:w-16 sm:h-16 text-xs sm:text-sm
                 bg-transparent border-gray-300 text-gray-400
-                hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50
+                ${isEditable ? 'hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50' : 'cursor-default'}
               `}
-              onClick={() => onSelectSpeler?.(positie)}
+              onClick={() => isEditable && onSelectSpeler?.(positie)}
               title={`${rol}: Selecteer speler`}
             >
               <span className="text-center leading-tight">+</span>
