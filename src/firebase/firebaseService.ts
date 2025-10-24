@@ -118,22 +118,6 @@ export const loginCoach = async (email: string, password: string): Promise<Coach
   }
 };
 
-export const loginCoach = async (email: string, password: string): Promise<Coach> => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    const coachDoc = await getDoc(doc(db, 'coaches', user.uid));
-    if (!coachDoc.exists()) {
-      throw new Error('Coach profiel niet gevonden');
-    }
-
-    return coachDoc.data() as Coach;
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
-};
-
 export const logoutCoach = async (): Promise<void> => {
   try {
     await signOut(auth);
