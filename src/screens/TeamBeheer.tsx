@@ -269,13 +269,15 @@ export default function TeamBeheer({
       </div>
 
         {/* SEIZOEN BEHEER */}
-        <SeizoenenBeheer
-          teamId={teamId || ''}
-          seizoenen={seizoenen || []}
-          selectedSeizoenId={selectedSeizoenId || null}
-          onSeizoenChange={onSeizoenChange || (() => {})}
-          onSeizoenUpdate={onSeizoenUpdate || (() => {})}
-        />
+        {teamId && (
+          <SeizoenenBeheer
+            teamId={teamId}
+            seizoenen={seizoenen || []}
+            selectedSeizoenId={selectedSeizoenId || null}
+            onSeizoenChange={onSeizoenChange || (() => {})}
+            onSeizoenUpdate={onSeizoenUpdate || (() => {})}
+          />
+        )}
 
     </div>
   );
