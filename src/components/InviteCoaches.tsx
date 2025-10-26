@@ -1,159 +1,132 @@
-import { useState } from 'react';
-import { Plus, Trash2, Mail, Shield, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Mail, Users, CheckCircle, Loader, AlertCircle, X } from 'lucide-react';
+import { inviteCoach, getTeam, Coach } from '../firebase/firebaseService';
 
-interface InviteCoachesProps {
+interface Props {
   teamId: string;
-  currentCoach?: any;
+  currentCoach: Coach;
 }
 
-export default function InviteCoaches({ teamId, currentCoach }: InviteCoachesProps) {
-  const [showInviteModal, setShowInviteModal] = useState(false);
+export default function InviteCoaches({ teamId, currentCoach }: Props) {
   const [inviteEmail, setInviteEmail] = useState('');
-  const [isInviting, setIsInviting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [teamCoaches, setTeamCoaches] = useState<number>(0);
 
-  // TODO: Get team data om coaches te tonen
-  // const [teamCoaches, setTeamCoaches] = useState<string[]>([]);
+  useEffect(() => {
+    loadTeamCoaches();
+  }, [teamId]);
 
-  const handleInviteCoach = async () => {
-    if (!inviteEmail.trim()) {
-      alert('Voer een email in');
-      return;
-    }
-
-    try {
-      setIsInviting(true);
-      // TODO: Call inviteCoach from firebaseService
-      console.log('📧 Inviting coach:', inviteEmail);
-      
-      alert('✅ Uitnodiging verzonden naar ' + inviteEmail);
-      setInviteEmail('');
-      setShowInviteModal(false);
-    } catch (error) {
-      console.error('Error inviting coach:', error);
-      alert('❌ Fout bij uitnodigen: ' + error);
-    } finally {
-      setIsInviting(false);
+  const loadTeamCoaches = async () => {
+    const team = await getTeam(teamId);
+    if (team) {
+      setTeamCoaches(team.coaches?.length || 0);
     }
   };
 
-  // ⚠️ ROLE GUIDE
-  const roleDescriptions = {
-    admin: {
-      icon: <Shield className="w-4 h-4" />,
-      label: 'Admin',
-      description: 'Volledig beheer - Teams, spelers, wedstrijden, statistieken'
-    },
-    coach: {
-      icon: <Mail className="w-4 h-4" />,
-      label: 'Coach',
-      description: 'Beheer wedstrijden, opstelling, scores'
-    },
-    viewer: {
-      icon: <Eye className="w-4 h-4" />,
-      label: 'Viewer',
-      description: 'Alleen lezen - Statistieken en data bekijken'
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage(null);
+    setLoading(true);
+
+    try {
+      if (!inviteEmail.trim()) {
+        setMessage({ type: 'error', text: 'Voer een email adres in' });
+        setLoading(false);
+        return;
+      }
+
+      if (!inviteEmail.includes('@')) {
+        setMessage({ type: 'error', text: 'Ongeldig email adres' });
+        setLoading(false);
+        return;
+      }
+
+      await inviteCoach(teamId, inviteEmail, currentCoach.uid);
+      setMessage({ 
+        type: 'success', 
+        text: `Uitnodiging verstuurd naar ${inviteEmail}` 
+      });
+      setInviteEmail('');
+      await loadTeamCoaches();
+    } catch (error: any) {
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Fout bij verzenden uitnodiging' 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="border-2 border-purple-400 rounded-lg p-6 bg-purple-50">
-      <h2 className="text-2xl font-bold mb-4">👥 Coaches Beheren</h2>
-
-      {/* ROLE GUIDE INFO */}
-      <div className="mb-6 p-4 bg-white rounded-lg border-2 border-purple-200">
-        <p className="text-sm font-semibold text-gray-700 mb-3">📋 Coach Rollen in Joegie:</p>
-        <div className="space-y-2">
-          {Object.entries(roleDescriptions).map(([key, role]) => (
-            <div key={key} className="flex items-start gap-3 text-sm">
-              <div className="text-purple-600 mt-0.5">{role.icon}</div>
-              <div>
-                <p className="font-semibold text-gray-800">{role.label}</p>
-                <p className="text-gray-600">{role.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 sm:p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <Users className="w-6 h-6 text-purple-600" />
+        <h3 className="text-xl font-bold text-gray-800">👥 Coaches beheren</h3>
+        <span className="ml-auto px-3 py-1 bg-purple-500 text-white rounded-full text-sm font-bold">
+          {teamCoaches}
+        </span>
       </div>
 
-      {/* TODO: SHOW CURRENT TEAM COACHES */}
-      <div className="mb-6 p-4 bg-white rounded-lg border-2 border-purple-200">
-        <p className="text-sm font-semibold text-gray-700 mb-3">🔐 Huidge Coaches:</p>
-        <div className="space-y-2">
-          {/* PLACEHOLDER - TODO: Load from team data */}
-          <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
-            <div>
-              <p className="font-semibold text-gray-800">{currentCoach?.email || 'Coach'}</p>
-              <p className="text-xs text-gray-600">Rol: Admin (Jij) 👑</p>
-            </div>
-            <div className="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded font-semibold">
-              JIJZELF
-            </div>
-          </div>
-          
-          {/* TODO: Map through other coaches */}
-          <p className="text-xs text-gray-500 italic mt-2">
-            💡 Voeg meer coaches toe met de "+ Coach Uitnodigen" knop
+      <p className="text-sm text-gray-700">
+        Nodig andere coaches uit om samen je team in te delen en wedstrijden in te voeren.
+      </p>
+
+      {/* Message */}
+      {message && (
+        <div className={`p-4 rounded-lg flex items-start gap-3 ${
+          message.type === 'success'
+            ? 'bg-green-50 border-2 border-green-300'
+            : 'bg-red-50 border-2 border-red-300'
+        }`}>
+          {message.type === 'success' ? (
+            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+          )}
+          <p className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+            {message.text}
           </p>
         </div>
-      </div>
-
-      {/* INVITE COACH BUTTON */}
-      <button
-        onClick={() => setShowInviteModal(true)}
-        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold flex items-center justify-center gap-2 transition-colors"
-      >
-        <Plus className="w-4 h-4" />
-        Coach Uitnodigen
-      </button>
-
-      {/* INVITE MODAL */}
-      {showInviteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="bg-purple-50 border-b-2 border-purple-300 p-6">
-              <h3 className="text-2xl font-bold text-purple-800">📧 Coach Uitnodigen</h3>
-              <p className="text-sm text-purple-600 mt-2">Nodig een coach uit voor dit team</p>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Coach</label>
-                <input
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="coach@example.com"
-                  className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:outline-none focus:border-purple-600"
-                />
-              </div>
-
-              <div className="bg-purple-50 rounded-lg p-3 text-sm text-purple-700">
-                <p>✉️ De coach ontvangt een email met de uitnodiging.</p>
-                <p className="text-xs mt-1">Ze kunnen deze aanvaarden en je team beheren.</p>
-              </div>
-            </div>
-
-            <div className="p-6 bg-gray-50 border-t-2 border-gray-200 flex gap-2">
-              <button
-                onClick={() => {
-                  setShowInviteModal(false);
-                  setInviteEmail('');
-                }}
-                className="flex-1 px-4 py-3 bg-gray-400 text-white rounded-lg hover:bg-gray-500 font-bold transition-colors"
-              >
-                Annuleren
-              </button>
-              <button
-                onClick={handleInviteCoach}
-                disabled={isInviting}
-                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold transition-colors disabled:opacity-50"
-              >
-                {isInviting ? '⏳ Verzenden...' : '✉️ Uitnodigen'}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
+
+      {/* Invite Form */}
+      <form onSubmit={handleInvite} className="space-y-3">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="Email van coach"
+              className="w-full pl-10 pr-4 py-2.5 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+              disabled={loading}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {loading && <Loader className="w-5 h-5 animate-spin" />}
+            {!loading && <Plus className="w-5 h-5" />}
+            Uitnodigen
+          </button>
+        </div>
+      </form>
+
+      {/* Info */}
+      <div className="bg-white rounded-lg p-3 border border-purple-200 space-y-2 text-sm">
+        <p className="font-semibold text-gray-800">📧 Hoe werkt het?</p>
+        <ul className="text-gray-700 space-y-1 ml-4">
+          <li>✓ Voer email van coach in</li>
+          <li>✓ Coach krijgt uitnodiging (mag zelf registreren)</li>
+          <li>✓ Coach accepteert en hoort bij team</li>
+          <li>✓ Alles is real-time gesynchroniseerd</li>
+        </ul>
+      </div>
     </div>
   );
 }

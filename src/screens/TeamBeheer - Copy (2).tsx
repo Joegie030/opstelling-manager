@@ -22,6 +22,7 @@ interface TeamBeheerProps {
   teamIds?: string[];
   onSelectTeam?: (teamId: string) => void;
   onCreateTeam?: (clubNaam: string, teamNaam: string) => Promise<void>;
+  onDeleteTeam?: (teamId: string) => Promise<void>;
 }
 
 export default function TeamBeheer({
@@ -36,7 +37,8 @@ export default function TeamBeheer({
   currentCoach,
   teamIds = [],
   onSelectTeam,
-  onCreateTeam
+  onCreateTeam,
+  onDeleteTeam
 }: TeamBeheerProps) {
   const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
@@ -58,6 +60,14 @@ export default function TeamBeheer({
   // Filter spelers
   const vasteSpelers = spelers.filter(s => s.type !== 'gast');
   const gastSpelers = spelers.filter(s => s.type === 'gast');
+
+  // ✅ NEW: Open modal automatisch als geen team EN geen teams beschikbaar
+  useEffect(() => {
+    if (!teamId && teamIds.length === 0) {
+      console.log('⚠️ Geen team, open create modal automatisch');
+      setCreateTeamModal(true);
+    }
+  }, [teamId, teamIds]);
 
   // ✅ FIX 3: Load team metadata voor dropdown
   useEffect(() => {
@@ -152,7 +162,7 @@ export default function TeamBeheer({
                 type="text"
                 value={newClubNaam}
                 onChange={(e) => setNewClubNaam(e.target.value)}
-                placeholder="Bijv: VV Amsterdam"
+                placeholder="Bijv: VV Club"
                 className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
@@ -295,7 +305,7 @@ export default function TeamBeheer({
             value={clubNaam}
             onChange={(e) => onUpdateClubNaam(e.target.value)}
             className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg font-medium focus:outline-none focus:border-blue-600"
-            placeholder="Bijv: VV Amsterdam"
+            placeholder="Bijv: VV Club"
           />
         </div>
 
@@ -312,7 +322,7 @@ export default function TeamBeheer({
         </div>
 
         {/* Team Info Display */}
-        <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
+        <div className="bg-white rounded-lg p-4 border-2 border-blue-200 mb-4">
           <div className="grid grid-cols-3 gap-4">
             <div>
               <p className="text-xs text-gray-600">Club</p>
@@ -327,6 +337,23 @@ export default function TeamBeheer({
               <p className="text-lg font-bold text-blue-600">{spelers.length}</p>
             </div>
           </div>
+        </div>
+
+        {/* ✅ DELETE TEAM BUTTON - ALTIJD ZICHTBAAR */}
+        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+          <p className="text-sm text-gray-700 mb-3">
+            ⚠️ Wil je dit team verwijderen? Dit kan niet ongedaan gemaakt worden.
+          </p>
+          <button
+            onClick={() => {
+              if (teamId && onDeleteTeam) {
+                onDeleteTeam(teamId);
+              }
+            }}
+            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold transition-colors"
+          >
+            🗑️ Verwijder Dit Team
+          </button>
         </div>
       </div>
 
@@ -401,7 +428,7 @@ export default function TeamBeheer({
                     value={nieuwGastTeam}
                     onChange={(e) => setNieuwGastTeam(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleVoegSpelerToe()}
-                    placeholder="Bijv: VV Ajax"
+                    placeholder="Bijv: VV Club"
                     className="flex-1 px-4 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:border-orange-600"
                   />
                   <button

@@ -9,20 +9,34 @@ import Instellingen from './screens/Instellingen.tsx';
 import AuthScreen from './screens/AuthScreen.tsx';
 import InviteCoaches from './components/InviteCoaches.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
-import { getCurrentCoach, logoutCoach, getTeamData, Coach, saveSpelers, saveWedstrijden, saveTeamInfo } from './firebase/firebaseService';
+import { 
+  getCurrentCoach, 
+  logoutCoach, 
+  Coach, 
+  getTeam,
+  getSpelers, 
+  getWedstrijden,
+  saveSpelers, 
+  saveWedstrijden, 
+  saveTeamInfo,
+  createTeam,
+  deleteTeam
+} from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
 
 function App() {
   // Auth state
   const [currentCoach, setCurrentCoach] = useState<Coach | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);  // ✅ NIEUWE STATE
+
+  // ✨ Team selectie (seizoenen verwijderd)
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
   // App state
   const [spelers, setSpelers] = useState<Speler[]>([]);
   const [wedstrijden, setWedstrijden] = useState<Wedstrijd[]>([]);
-  const [clubNaam, setClubNaam] = useState('Mijn Club');
-  const [teamNaam, setTeamNaam] = useState('Team A');
+  const [clubNaam, setClubNaam] = useState('');
+  const [teamNaam, setTeamNaam] = useState('');
   const [huidigScherm, setHuidigScherm] = useState('wedstrijden');
   const [huidgeWedstrijd, setHuidgeWedstrijd] = useState<Wedstrijd | null>(null);
   const [formatieModal, setFormatieModal] = useState(false);
@@ -33,42 +47,34 @@ function App() {
     tegenstander: string;
   }>({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
 
-  // Check auth on mount
+  // ✨ EFFECT 1: Check auth on mount
   useEffect(() => {
     const unsubscribe = getCurrentCoach((coach) => {
       setCurrentCoach(coach);
       setAuthLoading(false);
 
-      // ✅ FIXED: Gebruik teamIds (array) niet teamId
-      if (coach && coach.teamIds && coach.teamIds.length > 0) {
-        setSelectedTeamId(coach.teamIds[0]);  // Selecteer eerste team
+      // Selecteer eerste team automatisch, ANDERS toon TeamBeheer
+      if (coach && coach.teamIds.length > 0) {
+        setSelectedTeamId(coach.teamIds[0]);
+        setHuidigScherm('wedstrijden');
+      } else {
+        // Geen team - toon TeamBeheer om team te maken
+        setHuidigScherm('team');
+        console.log('ℹ️ Geen team gevonden - toon TeamBeheer');
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  // ✅ NIEUWE EFFECT: Load team data wanneer selectedTeamId verandert
+  // ✨ EFFECT 2: Load team data when team selected (seizoenen verwijderd!)
   useEffect(() => {
     if (selectedTeamId) {
       loadTeamData(selectedTeamId);
     }
   }, [selectedTeamId]);
 
-  // Laad team data van Firestore
-  const loadTeamData = async (teamId: string) => {
-    try {
-      const data = await getTeamData(teamId);
-      setSpelers(data.spelers);
-      setWedstrijden(data.wedstrijden);
-      setClubNaam(data.clubNaam);
-      setTeamNaam(data.teamNaam);
-    } catch (error) {
-      console.error('Error loading team data:', error);
-    }
-  };
-
-  // Save spelers naar Firestore (auto-sync)
+  // ✨ EFFECT 3: Auto-save spelers naar Firestore (teamId nodig)
   useEffect(() => {
     if (selectedTeamId && spelers.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -78,7 +84,7 @@ function App() {
     }
   }, [spelers, selectedTeamId]);
 
-  // Save wedstrijden naar Firestore (auto-sync)
+  // ✨ EFFECT 4: Auto-save wedstrijden naar Firestore (seizoenId verwijderd!)
   useEffect(() => {
     if (selectedTeamId && wedstrijden.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -88,7 +94,7 @@ function App() {
     }
   }, [wedstrijden, selectedTeamId]);
 
-  // Save club en team naam naar Firestore (auto-sync)
+  // ✨ EFFECT 5: Auto-save team info naar Firestore (teamId nodig)
   useEffect(() => {
     if (selectedTeamId) {
       const saveTimeout = setTimeout(() => {
@@ -98,6 +104,25 @@ function App() {
     }
   }, [clubNaam, teamNaam, selectedTeamId]);
 
+  // ✨ Laad team data van Firestore (seizoenId verwijderd!)
+  const loadTeamData = async (teamId: string) => {
+    try {
+      const [team, spelers, wedstrijden] = await Promise.all([
+        getTeam(teamId),
+        getSpelers(teamId),
+        getWedstrijden(teamId)
+      ]);
+
+      setSpelers(spelers);
+      setWedstrijden(wedstrijden);
+      setClubNaam(team?.clubNaam || '');
+      setTeamNaam(team?.teamNaam || '');
+    } catch (error) {
+      console.error('Error loading team data:', error);
+    }
+  };
+
+  // Kopieer wedstrijd
   const kopieerWedstrijd = (wedstrijd: Wedstrijd) => {
     setKopieerModal({
       open: true,
@@ -107,14 +132,16 @@ function App() {
     });
   };
 
+  // Bevestig kopie
   const bevestigKopieerWedstrijd = () => {
-    if (!kopieerModal.wedstrijd) return;
+    if (!kopieerModal.wedstrijd || !selectedTeamId) return;
 
     const gekopieerd: Wedstrijd = {
       ...kopieerModal.wedstrijd,
       id: Date.now(),
       datum: kopieerModal.datum,
       tegenstander: kopieerModal.tegenstander,
+      thuisUit: kopieerModal.wedstrijd.thuisUit || 'thuis',
       notities: '',
       themas: [],
       afwezigeSpelers: [],
@@ -131,17 +158,15 @@ function App() {
     setWedstrijden([...wedstrijden, gekopieerd]);
     setKopieerModal({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
     setHuidgeWedstrijd(gekopieerd);
-    setHuidigScherm('wedstrijd');
+    setHuidigScherm('wedstrijden');
   };
 
+  // Verwijder wedstrijd
   const verwijderWedstrijd = (id: number) => {
     setWedstrijden(wedstrijden.filter(w => w.id !== id));
   };
 
-  const removeSpeler = (id: number) => {
-    setSpelers(spelers.filter(s => s.id !== id));
-  };
-
+  // Voeg speler toe
   const addSpeler = (naam: string, type?: 'vast' | 'gast', team?: string) => {
     const newSpeler: Speler = {
       id: Date.now(),
@@ -152,38 +177,140 @@ function App() {
     setSpelers([...spelers, newSpeler]);
   };
 
+  // Maak nieuw team aan
+  const handleCreateTeam = async (clubNaam: string, teamNaam: string) => {
+    if (!currentCoach) return;
+    
+    try {
+      console.log('🔵 Creating new team...');
+      const newTeamId = await createTeam(currentCoach.uid, clubNaam, teamNaam);
+      console.log('✅ Team created:', newTeamId);
+      
+      // Update current coach state
+      setCurrentCoach({
+        ...currentCoach,
+        teamIds: [...currentCoach.teamIds, newTeamId]
+      });
+      
+      // Selecteer nieuwe team
+      setSelectedTeamId(newTeamId);
+      setClubNaam(clubNaam);
+      setTeamNaam(teamNaam);
+      setHuidigScherm('wedstrijden');
+    } catch (error) {
+      console.error('❌ Error creating team:', error);
+      alert('Fout bij aanmaken team: ' + error);
+    }
+  };
+
+  // ✅ NEW: Delete team handler (ook laatste team allowed!)
+  const handleDeleteTeam = async (teamIdToDelete: string) => {
+    if (!currentCoach) return;
+
+    // Double confirmation
+    const confirmed1 = confirm(
+      `⚠️ Wil je "${clubNaam} - ${teamNaam}" echt verwijderen?\n\nDit kan NIET ongedaan gemaakt worden!`
+    );
+
+    if (!confirmed1) return;
+
+    const confirmed2 = confirm(
+      `🚨 LAATSTE WAARSCHUWING!\n\nAlle spelers, wedstrijden en statistieken worden verwijderd!\n\nBen je echt zeker?`
+    );
+
+    if (!confirmed2) return;
+
+    try {
+      console.log('🔵 Deleting team:', teamIdToDelete);
+      await deleteTeam(currentCoach.uid, teamIdToDelete);
+      
+      // Update state
+      const remainingTeamIds = currentCoach.teamIds.filter(id => id !== teamIdToDelete);
+      setCurrentCoach({
+        ...currentCoach,
+        teamIds: remainingTeamIds
+      });
+
+      // Als teams over zijn, selecteer volgende. Anders: terug naar team beheer scherm
+      if (remainingTeamIds.length > 0) {
+        // Nog teams over? Select eerste
+        setSelectedTeamId(remainingTeamIds[0]);
+        setHuidigScherm('wedstrijden');
+        console.log('✅ Switched to team:', remainingTeamIds[0]);
+      } else {
+        // Geen teams meer? Terug naar team beheer
+        setSelectedTeamId(null);
+        setHuidigScherm('team');
+        setClubNaam('');
+        setTeamNaam('');
+        setSpelers([]);
+        setWedstrijden([]);
+        console.log('✅ All teams deleted, back to team creation');
+      }
+
+      alert('✅ Team verwijderd');
+      console.log('✅ Team deleted successfully');
+    } catch (error) {
+      console.error('❌ Error deleting team:', error);
+      alert('❌ Fout bij verwijderen team: ' + error);
+    }
+  };
+
+  // Verwijder speler
+  const removeSpeler = (id: number) => {
+    setSpelers(spelers.filter(s => s.id !== id));
+  };
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await logoutCoach();
+      setCurrentCoach(null);
+      setSelectedTeamId(null);
+      setSpelers([]);
+      setWedstrijden([]);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Loading state
   if (authLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-        <div className="flex flex-col items-center gap-4">
-          <Loader className="w-12 h-12 animate-spin text-blue-600" />
-          <p className="text-gray-600 font-medium">App laden...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center gap-2">
+          <Loader className="w-8 h-8 animate-spin text-blue-500" />
+          <p className="text-gray-600">Laden...</p>
         </div>
       </div>
     );
   }
 
+  // Auth screen
   if (!currentCoach) {
     return <AuthScreen />;
   }
 
+  // Main app with navigation
   return (
-    <Navigation 
-      menuItems={DEFAULT_MENU_ITEMS}
-      currentScreen={huidigScherm}
-      onSelectScreen={setHuidigScherm}
-      userEmail={currentCoach.email}
-      onLogout={() => {
-        logoutCoach();
-        setCurrentCoach(null);
+    <Navigation
+      clubNaam={clubNaam}
+      teamNaam={teamNaam}
+      currentCoach={currentCoach}
+      onLogout={handleLogout}
+      onScreenChange={(screenId) => {
+        setHuidigScherm(screenId);
+        if (screenId === 'team') {
+          setHuidgeWedstrijd(null);
+        }
       }}
-      teamNames={`${clubNaam} - ${teamNaam}`}
+      activeScreen={huidigScherm}
     >
-      {/* ✅ WEDSTRIJDOVERZICHT */}
+      {/* ✅ STAP 1: WEDSTRIJDEN SCHERM - FIXED PROPS */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
-          teamNaam={teamNaam}
           wedstrijden={wedstrijden}
+          teamNaam={teamNaam}
           onNieuweWedstrijd={() => setFormatieModal(true)}
           onBekijk={(w) => {
             setHuidgeWedstrijd(w);
@@ -194,48 +321,170 @@ function App() {
         />
       )}
 
-      {/* WEDSTRIJDOPSTELLING */}
+      {/* ✅ STAP 4: WEDSTRIJD OPSTELLING SCHERM - ADDED clubNaam & teamNaam */}
       {huidigScherm === 'wedstrijd' && huidgeWedstrijd && (
         <WedstrijdOpstelling
           wedstrijd={huidgeWedstrijd}
-          wedstrijden={wedstrijden}
           spelers={spelers}
           clubNaam={clubNaam}
           teamNaam={teamNaam}
-          onSelectWedstrijd={(w) => {
-            setHuidgeWedstrijd(w);
-            setWedstrijden(wedstrijden.map(wd => wd.id === w.id ? w : wd));
+          onUpdateWedstrijd={(updated) => {
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onClose={() => setHuidigScherm('wedstrijden')}
+          onUpdateWedstrijdNotities={(notities) => {
+            const updated = { ...huidgeWedstrijd, notities };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateWedstrijdThemas={(themas) => {
+            const updated = { ...huidgeWedstrijd, themas };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateWedstrijdType={(type) => {
+            const updated = { ...huidgeWedstrijd, type };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateWedstrijdFormatie={(formatie) => {
+            const updated = { ...huidgeWedstrijd, formatie };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateThuisUit={(thuisUit) => {
+            const updated = { ...huidgeWedstrijd, thuisUit };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateWedstrijdAfgelast={(isAfgelast) => {
+            const updated = { ...huidgeWedstrijd, isAfgelast };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onToggleAfwezig={(spelerId) => {
+            const updated = {
+              ...huidgeWedstrijd,
+              afwezigeSpelers: huidgeWedstrijd.afwezigeSpelers.includes(spelerId)
+                ? huidgeWedstrijd.afwezigeSpelers.filter(id => id !== spelerId)
+                : [...huidgeWedstrijd.afwezigeSpelers, spelerId]
+            };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateKwartOpstelling={(kwartIndex, opstelling) => {
+            const updated = {
+              ...huidgeWedstrijd,
+              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
+                i === kwartIndex ? { ...k, opstelling } : k
+              )
+            };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateKwartWissels={(kwartIndex, wissels) => {
+            const updated = {
+              ...huidgeWedstrijd,
+              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
+                i === kwartIndex ? { ...k, wissels } : k
+              )
+            };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateKwartDoelpunten={(kwartIndex, doelpunten) => {
+            const updated = {
+              ...huidgeWedstrijd,
+              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
+                i === kwartIndex ? { ...k, doelpunten } : k
+              )
+            };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateKwartAantekeningen={(kwartIndex, aantekeningen) => {
+            const updated = {
+              ...huidgeWedstrijd,
+              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
+                i === kwartIndex ? { ...k, aantekeningen } : k
+              )
+            };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateKwartThemaBeoordeling={(kwartIndex, themaId, beoordeling) => {
+            const updated = {
+              ...huidgeWedstrijd,
+              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
+                i === kwartIndex
+                  ? {
+                      ...k,
+                      themaBeoordelingen: {
+                        ...k.themaBeoordelingen,
+                        [themaId]: beoordeling
+                      }
+                    }
+                  : k
+              )
+            };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateKwartObservaties={(kwartIndex, observaties) => {
+            const updated = {
+              ...huidgeWedstrijd,
+              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
+                i === kwartIndex ? { ...k, observaties } : k
+              )
+            };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onSluiten={() => setHuidigScherm('wedstrijden')}
         />
       )}
 
-      {/* TEAM */}
+      {/* TEAM SCHERM */}
       {huidigScherm === 'team' && (
-        <TeamBeheer
-          spelers={spelers}
-          onVoegSpelerToe={addSpeler}
-          onVerwijderSpeler={removeSpeler}
-          clubNaam={clubNaam}
-          teamNaam={teamNaam}
-          onUpdateClubNaam={setClubNaam}
-          onUpdateTeamNaam={setTeamNaam}
-          onLaadTestdata={() => {}}
-          onWisAlles={() => {
-            if (confirm('Weet je zeker dat je alles wilt wissen?')) {
-              setSpelers([]);
-              setWedstrijden([]);
-            }
-          }}
-        />
+        <div className="space-y-6">
+          <TeamBeheer
+            spelers={spelers}
+            onVoegSpelerToe={addSpeler}
+            onVerwijderSpeler={removeSpeler}
+            clubNaam={clubNaam}
+            teamNaam={teamNaam}
+            onUpdateClubNaam={setClubNaam}
+            onUpdateTeamNaam={setTeamNaam}
+            onLaadTestdata={() => {
+              console.log('Testdata laden (nog niet implemented)');
+            }}
+            onWisAlles={() => {
+              if (confirm('Weet je zeker dat je alles wilt wissen?')) {
+                setSpelers([]);
+                setWedstrijden([]);
+              }
+            }}
+            teamId={selectedTeamId}
+            onCreateTeam={handleCreateTeam}
+            currentCoach={currentCoach}
+            teamIds={currentCoach?.teamIds || []}
+            onSelectTeam={(newTeamId) => {
+              console.log('🔵 User selected team:', newTeamId);
+              setSelectedTeamId(newTeamId);
+            }}
+            onDeleteTeam={handleDeleteTeam}
+          />
+
+          {/* Coaches Invitatie is in TeamBeheer component */}
+        </div>
       )}
 
-      {/* STATISTIEKEN */}
+      {/* STATISTIEKEN SCHERM */}
       {huidigScherm === 'statistieken' && (
         <Statistieken wedstrijden={wedstrijden} spelers={spelers} />
       )}
 
-      {/* INSTELLINGEN */}
+      {/* INSTELLINGEN SCHERM */}
       {huidigScherm === 'instellingen' && (
         <Instellingen
           clubNaam={clubNaam}
@@ -254,7 +503,7 @@ function App() {
             <div className="p-6">
               <h3 className="text-xl font-bold mb-4">Kies Formatie</h3>
               <div className="space-y-3">
-                {Object.entries(formaties).map(([key, positieLijst]) => (
+                {Object.entries(formaties).map(([key, formatie]) => (
                   <button
                     key={key}
                     onClick={() => {
@@ -274,7 +523,7 @@ function App() {
                           .map((_, i) => ({
                             nummer: i + 1,
                             minuten: 12.5,
-                            opstelling: positieLijst.reduce(
+                            opstelling: formatie.reduce(
                               (acc, pos) => ({
                                 ...acc,
                                 [pos]: ''
@@ -296,7 +545,7 @@ function App() {
                     className="w-full p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
                   >
                     <h4 className="font-bold">{getFormatieNaam(key)}</h4>
-                    <p className="text-sm text-gray-600">{positieLijst.length} posities</p>
+                    <p className="text-sm text-gray-600">{formatie.length} posities</p>
                   </button>
                 ))}
               </div>
