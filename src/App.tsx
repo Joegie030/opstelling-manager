@@ -143,7 +143,7 @@ function App() {
     setWedstrijden([...wedstrijden, gekopieerd]);
     setKopieerModal({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
     setHuidgeWedstrijd(gekopieerd);
-    setHuidigScherm('wedstrijden');
+    setHuidigScherm('wedstrijd');
   };
 
   const verwijderWedstrijd = (id: number) => {
@@ -251,19 +251,18 @@ function App() {
       }}
       teamNames={selectedTeamId ? `${clubNaam} - ${teamNaam}` : 'Geen team'}
     >
-      {/* WEDSTRIJDOVERZICHT */}
+      {/* ✅ WEDSTRIJDOVERZICHT - CORRECTE PROPS */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
           teamNaam={teamNaam}
           wedstrijden={wedstrijden}
-          spelers={spelers}
-          onSelectWedstrijd={(w) => {
+          onNieuweWedstrijd={() => setFormatieModal(true)}
+          onBekijk={(w) => {
             setHuidgeWedstrijd(w);
             setHuidigScherm('wedstrijd');
           }}
-          onNieuweWedstrijd={() => setFormatieModal(true)}
-          onKopieerWedstrijd={kopieerWedstrijd}
-          onVerwijderWedstrijd={verwijderWedstrijd}
+          onKopieer={kopieerWedstrijd}
+          onVerwijder={verwijderWedstrijd}
         />
       )}
 
