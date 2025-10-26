@@ -16,6 +16,7 @@ function App() {
   // Auth state
   const [currentCoach, setCurrentCoach] = useState<Coach | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);  // ✅ NIEUWE STATE
 
   // App state
   const [spelers, setSpelers] = useState<Speler[]>([]);
@@ -38,14 +39,21 @@ function App() {
       setCurrentCoach(coach);
       setAuthLoading(false);
 
-      // Laad team data als coach ingelogd is
-      if (coach) {
-        loadTeamData(coach.teamId);
+      // ✅ FIXED: Gebruik teamIds (array) niet teamId
+      if (coach && coach.teamIds && coach.teamIds.length > 0) {
+        setSelectedTeamId(coach.teamIds[0]);  // Selecteer eerste team
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  // ✅ NIEUWE EFFECT: Load team data wanneer selectedTeamId verandert
+  useEffect(() => {
+    if (selectedTeamId) {
+      loadTeamData(selectedTeamId);
+    }
+  }, [selectedTeamId]);
 
   // Laad team data van Firestore
   const loadTeamData = async (teamId: string) => {
@@ -62,33 +70,33 @@ function App() {
 
   // Save spelers naar Firestore (auto-sync)
   useEffect(() => {
-    if (currentCoach && spelers.length > 0) {
+    if (selectedTeamId && spelers.length > 0) {
       const saveTimeout = setTimeout(() => {
-        saveSpelers(currentCoach.teamId, spelers).catch(console.error);
+        saveSpelers(selectedTeamId, spelers).catch(console.error);
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [spelers, currentCoach]);
+  }, [spelers, selectedTeamId]);
 
   // Save wedstrijden naar Firestore (auto-sync)
   useEffect(() => {
-    if (currentCoach && wedstrijden.length > 0) {
+    if (selectedTeamId && wedstrijden.length > 0) {
       const saveTimeout = setTimeout(() => {
-        saveWedstrijden(currentCoach.teamId, wedstrijden).catch(console.error);
+        saveWedstrijden(selectedTeamId, wedstrijden).catch(console.error);
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [wedstrijden, currentCoach]);
+  }, [wedstrijden, selectedTeamId]);
 
   // Save club en team naam naar Firestore (auto-sync)
   useEffect(() => {
-    if (currentCoach) {
+    if (selectedTeamId) {
       const saveTimeout = setTimeout(() => {
-        saveTeamInfo(currentCoach.teamId, clubNaam, teamNaam).catch(console.error);
+        saveTeamInfo(selectedTeamId, clubNaam, teamNaam).catch(console.error);
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [clubNaam, teamNaam, currentCoach]);
+  }, [clubNaam, teamNaam, selectedTeamId]);
 
   const kopieerWedstrijd = (wedstrijd: Wedstrijd) => {
     setKopieerModal({
@@ -171,7 +179,7 @@ function App() {
       }}
       teamNames={`${clubNaam} - ${teamNaam}`}
     >
-      {/* ✅ WEDSTRIJDOVERZICHT - JUISTE PROP NAMEN */}
+      {/* ✅ WEDSTRIJDOVERZICHT */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
           teamNaam={teamNaam}
