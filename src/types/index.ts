@@ -1,8 +1,8 @@
 export interface Speler {
   id: number;
   naam: string;
-  type?: 'vast' | 'gast';  // vast = vaste speler, gast = gastspeeler
-  team?: string;           // voor gastspeelers (bijv "VV Ajax")
+  type?: 'vast' | 'gast';
+  team?: string;
 }
 
 export interface Wissel {
@@ -11,11 +11,11 @@ export interface Wissel {
   wisselSpelerId: string;
 }
 
+// ✅ GECORRIGEERDE Doelpunt
 export interface Doelpunt {
   id: number;
-  spelerId?: number;
-  type: 'eigen' | 'tegenstander';
-  tijdstip?: string;
+  thuisOf: 'thuis' | 'uit';      // ✅ CORRECT VELD NAAM
+  doelpuntenmaker?: string;      // ✅ String (speler id), niet number
 }
 
 export interface Kwart {
@@ -40,6 +40,7 @@ export interface Wedstrijd {
   afwezigeSpelers?: number[];
   notities?: string;
   themas?: string[];
+  isAfgelast?: boolean;
 }
 
 export const formaties: Record<'6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8', string[]> = {
@@ -76,9 +77,9 @@ export const ALLE_THEMAS = [
 ];
 
 export const KWART_OBSERVATIES = [
-  { id: 'sterk', label: 'Sterk kwart', emoji: '🔥' },
-  { id: 'zwaar', label: 'Zwaar kwart', emoji: '😓' },
-  { id: 'kansen', label: 'Veel kansen', emoji: '⚽' },
-  { id: 'goedverdedigd', label: 'Goed verdedigd', emoji: '🧱' },
-  { id: 'goedeinzet', label: 'Goede inzet', emoji: '💪' }
+  'Sterk kwart',
+  'Zwaar kwart',
+  'Veel kansen',
+  'Goed verdedigd',
+  'Goede inzet'
 ];
