@@ -25,9 +25,14 @@ import {
 import { getFormatieNaam } from './utils/formatters';
 
 function App() {
+  // Auth state
   const [currentCoach, setCurrentCoach] = useState<Coach | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  // ✨ Team selectie (seizoenen verwijderd)
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+
+  // App state
   const [spelers, setSpelers] = useState<Speler[]>([]);
   const [wedstrijden, setWedstrijden] = useState<Wedstrijd[]>([]);
   const [clubNaam, setClubNaam] = useState('');
@@ -42,15 +47,18 @@ function App() {
     tegenstander: string;
   }>({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
 
+  // ✨ EFFECT 1: Check auth on mount
   useEffect(() => {
     const unsubscribe = getCurrentCoach((coach) => {
       setCurrentCoach(coach);
       setAuthLoading(false);
 
+      // Selecteer eerste team automatisch, ANDERS toon TeamBeheer
       if (coach && coach.teamIds.length > 0) {
         setSelectedTeamId(coach.teamIds[0]);
         setHuidigScherm('wedstrijden');
       } else {
+        // Geen team - toon TeamBeheer om team te maken
         setHuidigScherm('team');
         console.log('ℹ️ Geen team gevonden - toon TeamBeheer');
       }
@@ -59,12 +67,14 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  // ✨ EFFECT 2: Load team data when team selected (seizoenen verwijderd!)
   useEffect(() => {
     if (selectedTeamId) {
       loadTeamData(selectedTeamId);
     }
   }, [selectedTeamId]);
 
+  // ✨ EFFECT 3: Auto-save spelers naar Firestore (teamId nodig)
   useEffect(() => {
     if (selectedTeamId && spelers.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -74,6 +84,7 @@ function App() {
     }
   }, [spelers, selectedTeamId]);
 
+  // ✨ EFFECT 4: Auto-save wedstrijden naar Firestore (seizoenId verwijderd!)
   useEffect(() => {
     if (selectedTeamId && wedstrijden.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -83,6 +94,7 @@ function App() {
     }
   }, [wedstrijden, selectedTeamId]);
 
+  // ✨ EFFECT 5: Auto-save team info naar Firestore (teamId nodig)
   useEffect(() => {
     if (selectedTeamId) {
       const saveTimeout = setTimeout(() => {
@@ -92,6 +104,7 @@ function App() {
     }
   }, [clubNaam, teamNaam, selectedTeamId]);
 
+  // ✨ Laad team data van Firestore (seizoenId verwijderd!)
   const loadTeamData = async (teamId: string) => {
     try {
       const [team, spelers, wedstrijden] = await Promise.all([
@@ -109,6 +122,7 @@ function App() {
     }
   };
 
+  // Kopieer wedstrijd
   const kopieerWedstrijd = (wedstrijd: Wedstrijd) => {
     setKopieerModal({
       open: true,
@@ -118,6 +132,7 @@ function App() {
     });
   };
 
+  // Bevestig kopie
   const bevestigKopieerWedstrijd = () => {
     if (!kopieerModal.wedstrijd || !selectedTeamId) return;
 
@@ -146,14 +161,12 @@ function App() {
     setHuidigScherm('wedstrijden');
   };
 
+  // Verwijder wedstrijd
   const verwijderWedstrijd = (id: number) => {
     setWedstrijden(wedstrijden.filter(w => w.id !== id));
   };
 
-  const removeSpeler = (id: number) => {
-    setSpelers(spelers.filter(s => s.id !== id));
-  };
-
+  // Voeg speler toe
   const addSpeler = (naam: string, type?: 'vast' | 'gast', team?: string) => {
     const newSpeler: Speler = {
       id: Date.now(),
@@ -164,6 +177,7 @@ function App() {
     setSpelers([...spelers, newSpeler]);
   };
 
+  // Maak nieuw team aan
   const handleCreateTeam = async (clubNaam: string, teamNaam: string) => {
     if (!currentCoach) return;
     
@@ -172,11 +186,13 @@ function App() {
       const newTeamId = await createTeam(currentCoach.uid, clubNaam, teamNaam);
       console.log('✅ Team created:', newTeamId);
       
+      // Update current coach state
       setCurrentCoach({
         ...currentCoach,
         teamIds: [...currentCoach.teamIds, newTeamId]
       });
       
+      // Selecteer nieuwe team
       setSelectedTeamId(newTeamId);
       setClubNaam(clubNaam);
       setTeamNaam(teamNaam);
@@ -187,9 +203,11 @@ function App() {
     }
   };
 
+  // ✅ NEW: Delete team handler (ook laatste team allowed!)
   const handleDeleteTeam = async (teamIdToDelete: string) => {
     if (!currentCoach) return;
 
+    // Double confirmation
     const confirmed1 = confirm(
       `⚠️ Wil je "${clubNaam} - ${teamNaam}" echt verwijderen?\n\nDit kan NIET ongedaan gemaakt worden!`
     );
@@ -206,68 +224,104 @@ function App() {
       console.log('🔵 Deleting team:', teamIdToDelete);
       await deleteTeam(currentCoach.uid, teamIdToDelete);
       
+      // Update state
       const remainingTeamIds = currentCoach.teamIds.filter(id => id !== teamIdToDelete);
       setCurrentCoach({
         ...currentCoach,
         teamIds: remainingTeamIds
       });
 
+      // Als teams over zijn, selecteer volgende. Anders: terug naar team beheer scherm
       if (remainingTeamIds.length > 0) {
+        // Nog teams over? Select eerste
         setSelectedTeamId(remainingTeamIds[0]);
+        setHuidigScherm('wedstrijden');
+        console.log('✅ Switched to team:', remainingTeamIds[0]);
       } else {
+        // Geen teams meer? Terug naar team beheer
         setSelectedTeamId(null);
         setHuidigScherm('team');
+        setClubNaam('');
+        setTeamNaam('');
+        setSpelers([]);
+        setWedstrijden([]);
+        console.log('✅ All teams deleted, back to team creation');
       }
+
+      alert('✅ Team verwijderd');
+      console.log('✅ Team deleted successfully');
     } catch (error) {
       console.error('❌ Error deleting team:', error);
-      alert('Fout bij verwijderen team: ' + error);
+      alert('❌ Fout bij verwijderen team: ' + error);
     }
   };
 
+  // Verwijder speler
+  const removeSpeler = (id: number) => {
+    setSpelers(spelers.filter(s => s.id !== id));
+  };
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await logoutCoach();
+      setCurrentCoach(null);
+      setSelectedTeamId(null);
+      setSpelers([]);
+      setWedstrijden([]);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Loading state
   if (authLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-        <div className="flex flex-col items-center gap-4">
-          <Loader className="w-12 h-12 animate-spin text-blue-600" />
-          <p className="text-gray-600 font-medium">App laden...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center gap-2">
+          <Loader className="w-8 h-8 animate-spin text-blue-500" />
+          <p className="text-gray-600">Laden...</p>
         </div>
       </div>
     );
   }
 
+  // Auth screen
   if (!currentCoach) {
     return <AuthScreen />;
   }
 
+  // Main app with navigation
   return (
-    <Navigation 
-      menuItems={DEFAULT_MENU_ITEMS}
-      currentScreen={huidigScherm}
-      onSelectScreen={setHuidigScherm}
-      userEmail={currentCoach.email}
-      onLogout={() => {
-        logoutCoach();
-        setCurrentCoach(null);
+    <Navigation
+      clubNaam={clubNaam}
+      teamNaam={teamNaam}
+      currentCoach={currentCoach}
+      onLogout={handleLogout}
+      onScreenChange={(screenId) => {
+        setHuidigScherm(screenId);
+        if (screenId === 'team') {
+          setHuidgeWedstrijd(null);
+        }
       }}
-      teamNames={selectedTeamId ? `${clubNaam} - ${teamNaam}` : 'Geen team'}
+      activeScreen={huidigScherm}
     >
-      {/* WEDSTRIJDOVERZICHT */}
+      {/* ✅ STAP 1: WEDSTRIJDEN SCHERM - FIXED PROPS */}
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
-          teamNaam={teamNaam}
           wedstrijden={wedstrijden}
-          spelers={spelers}
-          onSelectWedstrijd={(w) => {
+          teamNaam={teamNaam}
+          onNieuweWedstrijd={() => setFormatieModal(true)}
+          onBekijk={(w) => {
             setHuidgeWedstrijd(w);
             setHuidigScherm('wedstrijd');
           }}
-          onNieuweWedstrijd={() => setFormatieModal(true)}
-          onKopieerWedstrijd={kopieerWedstrijd}
-          onVerwijderWedstrijd={verwijderWedstrijd}
+          onKopieer={kopieerWedstrijd}
+          onVerwijder={verwijderWedstrijd}
         />
       )}
 
-      {/* WEDSTRIJDOPSTELLING */}
+      {/* ✅ STAP 4: WEDSTRIJD OPSTELLING SCHERM - ADDED clubNaam & teamNaam */}
       {huidigScherm === 'wedstrijd' && huidgeWedstrijd && (
         <WedstrijdOpstelling
           wedstrijd={huidgeWedstrijd}
@@ -309,12 +363,11 @@ function App() {
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
           onToggleAfwezig={(spelerId) => {
-            const afwezigeSpelers = huidgeWedstrijd.afwezigeSpelers || [];
             const updated = {
               ...huidgeWedstrijd,
-              afwezigeSpelers: afwezigeSpelers.includes(spelerId)
-                ? afwezigeSpelers.filter(id => id !== spelerId)
-                : [...afwezigeSpelers, spelerId]
+              afwezigeSpelers: huidgeWedstrijd.afwezigeSpelers.includes(spelerId)
+                ? huidgeWedstrijd.afwezigeSpelers.filter(id => id !== spelerId)
+                : [...huidgeWedstrijd.afwezigeSpelers, spelerId]
             };
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
@@ -391,7 +444,7 @@ function App() {
         />
       )}
 
-      {/* TEAM */}
+      {/* TEAM SCHERM */}
       {huidigScherm === 'team' && (
         <div className="space-y-6">
           <TeamBeheer
@@ -421,15 +474,17 @@ function App() {
             }}
             onDeleteTeam={handleDeleteTeam}
           />
+
+          {/* Coaches Invitatie is in TeamBeheer component */}
         </div>
       )}
 
-      {/* STATISTIEKEN */}
+      {/* STATISTIEKEN SCHERM */}
       {huidigScherm === 'statistieken' && (
         <Statistieken wedstrijden={wedstrijden} spelers={spelers} />
       )}
 
-      {/* INSTELLINGEN */}
+      {/* INSTELLINGEN SCHERM */}
       {huidigScherm === 'instellingen' && (
         <Instellingen
           clubNaam={clubNaam}
@@ -441,14 +496,14 @@ function App() {
         />
       )}
 
-      {/* ✅ FORMATIE MODAL - FIXED */}
+      {/* FORMATIE MODAL */}
       {formatieModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
             <div className="p-6">
               <h3 className="text-xl font-bold mb-4">Kies Formatie</h3>
               <div className="space-y-3">
-                {Object.entries(formaties).map(([key, positieLijst]) => (
+                {Object.entries(formaties).map(([key, formatie]) => (
                   <button
                     key={key}
                     onClick={() => {
@@ -468,7 +523,7 @@ function App() {
                           .map((_, i) => ({
                             nummer: i + 1,
                             minuten: 12.5,
-                            opstelling: positieLijst.reduce(
+                            opstelling: formatie.reduce(
                               (acc, pos) => ({
                                 ...acc,
                                 [pos]: ''
@@ -490,7 +545,7 @@ function App() {
                     className="w-full p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
                   >
                     <h4 className="font-bold">{getFormatieNaam(key)}</h4>
-                    <p className="text-sm text-gray-600">{positieLijst.length} posities</p>
+                    <p className="text-sm text-gray-600">{formatie.length} posities</p>
                   </button>
                 ))}
               </div>
