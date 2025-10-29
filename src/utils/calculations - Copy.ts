@@ -10,12 +10,6 @@ export function berekenWedstrijdStats(
   wedstrijd: Wedstrijd,
   spelers: Speler[]
 ) {
-  // 🔒 DEFENSIVE: Check if kwarten exists and is array
-  if (!wedstrijd || !Array.isArray(wedstrijd.kwarten)) {
-    console.warn('⚠️ berekenWedstrijdStats: wedstrijd.kwarten is undefined or not an array', { wedstrijd });
-    return [];
-  }
-
   const stats: Record<number, { naam: string; minuten: number; keeperBeurten: number; wisselMinuten: number }> = {};
   
   spelers.forEach(s => {
@@ -60,24 +54,10 @@ export function berekenTotaalKeeperBeurten(
   wedstrijden: Wedstrijd[],
   spelers: Speler[]
 ) {
-  // 🔒 DEFENSIVE: Check if wedstrijden is array
-  if (!Array.isArray(wedstrijden)) {
-    console.warn('⚠️ berekenTotaalKeeperBeurten: wedstrijden is not an array', { wedstrijden });
-    const totaalKeeperTelling: Record<number, number> = {};
-    spelers.forEach(s => { totaalKeeperTelling[s.id] = 0; });
-    return totaalKeeperTelling;
-  }
-
   const totaalKeeperTelling: Record<number, number> = {};
   spelers.forEach(s => { totaalKeeperTelling[s.id] = 0; });
   
   wedstrijden.forEach(w => {
-    // 🔒 DEFENSIVE: Check if w.kwarten exists
-    if (!Array.isArray(w.kwarten)) {
-      console.warn('⚠️ berekenTotaalKeeperBeurten: w.kwarten is undefined or not an array', { w });
-      return;
-    }
-
     w.kwarten.forEach(kwart => {
       const keeperId = kwart.opstelling['Keeper'];
       if (keeperId) {
@@ -106,12 +86,6 @@ export function berekenSpeelminutenDetail(
   wedstrijden: Wedstrijd[],
   spelers: Speler[]
 ) {
-  // 🔒 DEFENSIVE: Check if wedstrijden is array
-  if (!Array.isArray(wedstrijden)) {
-    console.warn('⚠️ berekenSpeelminutenDetail: wedstrijden is not an array', { wedstrijden });
-    return [];
-  }
-
   interface DetailStats {
     [key: number]: {
       naam: string;
@@ -138,12 +112,6 @@ export function berekenSpeelminutenDetail(
   });
 
   wedstrijden.forEach(wed => {
-    // 🔒 DEFENSIVE: Check if wed.kwarten exists
-    if (!Array.isArray(wed.kwarten)) {
-      console.warn('⚠️ berekenSpeelminutenDetail: wed.kwarten is undefined or not an array', { wed });
-      return;
-    }
-
     wed.kwarten.forEach(kwart => {
       const minutesPerKwart = kwart.minuten;
       const spelersThisKwart: Record<number, number> = {};

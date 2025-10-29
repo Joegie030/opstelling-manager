@@ -150,38 +150,13 @@ export default function WedstrijdOpstelling({
   };
 
   const getBeschikbareSpelers = (kwartIndex: number, huidigePositie: string) => {
-    console.log('🔵 getBeschikbareSpelers called:', { kwartIndex, huidigePositie });
-    console.log('📊 wedstrijd data:', { 
-      formatie: wedstrijd.formatie, 
-      kwartenLength: wedstrijd.kwarten?.length,
-      kwartenExists: !!wedstrijd.kwarten,
-      kwartenIsArray: Array.isArray(wedstrijd.kwarten)
-    });
-
     const gebruikt = getGebruikteSpelers(kwartIndex);
     const huidigeSid = wedstrijd.kwarten[kwartIndex].opstelling[huidigePositie];
     const keepers = getKeeperSpelers();
     const wisselBeurten = getWisselBeurten();
     const keeperBeurten = getKeeperBeurtenInWedstrijd();
-    
-    console.log('🧮 berekenTotaalKeeperBeurten called with:', { 
-      wedstrijdenLength: wedstrijden.length,
-      spelersLength: spelers.length
-    });
     const totaalKeeperBeurten = berekenTotaalKeeperBeurten(wedstrijden, spelers);
-    console.log('✅ berekenTotaalKeeperBeurten returned:', totaalKeeperBeurten);
-
-    console.log('🧮 berekenWedstrijdStats called with:', { 
-      wedstrijdId: wedstrijd.id,
-      kwartenLength: wedstrijd.kwarten?.length,
-      spelersLength: spelers.length
-    });
     const stats = berekenWedstrijdStats(wedstrijd, spelers);
-    console.log('✅ berekenWedstrijdStats returned:', { 
-      statsLength: stats.length,
-      stats 
-    });
-
     const isKeeperPositie = huidigePositie === 'Keeper';
     const afwezigeSpelers = wedstrijd.afwezigeSpelers || [];
     
@@ -957,10 +932,7 @@ export default function WedstrijdOpstelling({
                     </button>
                   )}
                   
-                  {(() => {
-                    try {
-                      const beschikbareSpelers = getBeschikbareSpelers(selectieModal.kwartIndex, selectieModal.positie);
-                      return beschikbareSpelers.map((speler) => {
+                  {getBeschikbareSpelers(selectieModal.kwartIndex, selectieModal.positie).map((speler) => {
                     const isBeschikbaar = !speler.isGebruikt;
                     const isKeeperPositie = selectieModal.positie === 'Keeper';
                     
@@ -1061,23 +1033,7 @@ export default function WedstrijdOpstelling({
                         </div>
                       </button>
                     );
-                      });
-                    } catch (error) {
-                      console.error('❌ ERROR in getBeschikbareSpelers:', error);
-                      return (
-                        <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-                          <h4 className="font-bold text-red-700 mb-2">⚠️ Fout bij laden spelers</h4>
-                          <p className="text-sm text-red-600 mb-3">{String(error)}</p>
-                          <details className="text-xs text-red-600">
-                            <summary>Details</summary>
-                            <pre className="mt-2 p-2 bg-white rounded overflow-auto max-h-40">
-                              {JSON.stringify({ error: error instanceof Error ? error.message : error }, null, 2)}
-                            </pre>
-                          </details>
-                        </div>
-                      );
-                    }
-                  })()}
+                  })}
                 </div>
               </div>
               
