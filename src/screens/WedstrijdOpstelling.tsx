@@ -20,6 +20,7 @@ interface Props {
   onUpdateWedstrijdType: (type: 'competitie' | 'oefenwedstrijd' | '') => void;
   onToggleAfwezig: (spelerId: number) => void;
   onUpdateOpstelling: (kwartIndex: number, positie: string, spelerId: string) => void;
+  onUpdateKwartOpstelling: (kwartIndex: number, opstelling: Record<string, string>) => void;
   onVoegWisselToe: (kwartIndex: number) => void;
   onUpdateWissel: (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => void;
   onVerwijderWissel: (kwartIndex: number, wisselIndex: number) => void;
@@ -45,6 +46,7 @@ export default function WedstrijdOpstelling({
   onUpdateWedstrijdType,
   onToggleAfwezig,
   onUpdateOpstelling,
+  onUpdateKwartOpstelling,
   onVoegWisselToe,
   onUpdateWissel,
   onVerwijderWissel,
