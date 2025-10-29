@@ -9,14 +9,13 @@ export interface Wissel {
   id: number;
   positie: string;
   wisselSpelerId: string;
-  minuten?: number;  // Op welk moment wisselde (6.25 of 12.5 per kwart)
 }
 
 // ✅ GECORRIGEERDE Doelpunt
 export interface Doelpunt {
   id: number;
-  type: 'eigen' | 'tegenstander';  // Wie scoorde
-  spelerId?: number;                // Speler die scoorde (optioneel)
+  thuisOf: 'thuis' | 'uit';      // ✅ CORRECT VELD NAAM
+  doelpuntenmaker?: string;      // ✅ String (speler id), niet number
 }
 
 export interface Kwart {
@@ -28,7 +27,6 @@ export interface Kwart {
   doelpunten?: Doelpunt[];
   themaBeoordelingen?: Record<string, 'goed' | 'beter' | null>;
   observaties?: string[];
-  regelCheckWarnings?: string[];  // Validator feedback (keeper-wissel, dubbele bank, etc)
 }
 
 export interface Wedstrijd {
@@ -43,20 +41,6 @@ export interface Wedstrijd {
   notities?: string;
   themas?: string[];
   isAfgelast?: boolean;
-  createdAt?: string;      // Firebase timestamp
-  updatedAt?: string;      // Firebase timestamp
-}
-
-export interface Statistieken {
-  doelpuntenMakers: Record<number, number>;      // { spelerId: aantal }
-  speelminuten: Record<number, number>;          // { spelerId: minuten }
-  keeperBeurten: Record<number, number>;         // { spelerId: aantal }
-  teamStats: {
-    won: number;
-    lost: number;
-    draw: number;
-    doelsaldo: number;
-  };
 }
 
 export const formaties: Record<'6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8', string[]> = {
