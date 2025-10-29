@@ -618,3 +618,80 @@ export const createTeam = async (uid: string, clubNaam: string, teamNaam: string
     throw error;
   }
 };
+
+// ✅ UPDATED: Delete team functie - verwijdert ALLES (spelers, wedstrijden, etc.)
+export const deleteTeam = async (uid: string, teamId: string): Promise<void> => {
+  try {
+    console.log('🔵 Deleting team and all subcollections:', teamId);
+
+    // Stap 1: Verwijder alle spelers
+    try {
+      const spelersSnapshot = await getDocs(collection(db, 'teams', teamId, 'spelers'));
+      const spelersDeletePromises = spelersSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(spelersDeletePromises);
+      console.log('✅ Alle spelers verwijderd');
+    } catch (error) {
+      console.warn('⚠️ Error deleting spelers:', error);
+    }
+
+    // Stap 2: Verwijder alle wedstrijden (met kwarten en statistieken erin)
+    try {
+      const wedstrijdenSnapshot = await getDocs(collection(db, 'teams', teamId, 'wedstrijden'));
+      
+      for (const wedstrijdDoc of wedstrijdenSnapshot.docs) {
+        const wedstrijdId = wedstrijdDoc.id;
+        
+        // Verwijder kwarten subcollection
+        try {
+          const kwartenSnapshot = await getDocs(
+            collection(db, 'teams', teamId, 'wedstrijden', wedstrijdId, 'kwarten')
+          );
+          const kwartenDeletePromises = kwartenSnapshot.docs.map(doc => deleteDoc(doc.ref));
+          await Promise.all(kwartenDeletePromises);
+        } catch (err) {
+          console.warn('⚠️ Error deleting kwarten:', err);
+        }
+
+        // Verwijder statistieken subcollection
+        try {
+          const statsSnapshot = await getDocs(
+            collection(db, 'teams', teamId, 'wedstrijden', wedstrijdId, 'statistieken')
+          );
+          const statsDeletePromises = statsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+          await Promise.all(statsDeletePromises);
+        } catch (err) {
+          console.warn('⚠️ Error deleting statistieken:', err);
+        }
+
+        // Verwijder het wedstrijd document zelf
+        await deleteDoc(wedstrijdDoc.ref);
+      }
+      console.log('✅ Alle wedstrijden en subcollections verwijderd');
+    } catch (error) {
+      console.warn('⚠️ Error deleting wedstrijden:', error);
+    }
+
+    // Stap 3: Verwijder team document zelf
+    await deleteDoc(doc(db, 'teams', teamId));
+    console.log('✅ Team document verwijderd');
+
+    // Stap 4: Verwijder team uit coach profiel
+    const coachRef = doc(db, 'coaches', uid);
+    const coachDoc = await getDoc(coachRef);
+    
+    if (coachDoc.exists()) {
+      const currentTeamIds = coachDoc.data().teamIds || [];
+      const updatedTeamIds = currentTeamIds.filter((tId: string) => tId !== teamId);
+      
+      await updateDoc(coachRef, {
+        teamIds: updatedTeamIds
+      });
+      console.log('✅ Coach profiel bijgewerkt - team verwijderd');
+    }
+
+    console.log('✅ Team volledig verwijderd (inclusief alle data)');
+  } catch (error) {
+    console.error('❌ Error deleting team:', error);
+    throw error;
+  }
+};
