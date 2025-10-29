@@ -62,18 +62,6 @@ export default function WedstrijdOpstelling({
   
   const [selectieModal, setSelectieModal] = useState<{ open: boolean; kwartIndex: number; positie: string }>({ open: false, kwartIndex: 0, positie: '' });
   
-  // 🛡️ DEFENSIVE: Log callbacks at mount
-  console.log('🟦 WedstrijdOpstelling mounted with props:', {
-    wedstrijdId: wedstrijd?.id,
-    kwartenLength: wedstrijd?.kwarten?.length,
-    onVoegDoelpuntToeType: typeof onVoegDoelpuntToe,
-    onVerwijderDoelpuntType: typeof onVerwijderDoelpunt,
-    callbacksAreValid: {
-      voegDoelpuntToe: typeof onVoegDoelpuntToe === 'function',
-      verwijderDoelpunt: typeof onVerwijderDoelpunt === 'function'
-    }
-  });
-  
   const posities = formaties[wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8'];
 
   const getPositieLayout = () => {
@@ -412,39 +400,6 @@ export default function WedstrijdOpstelling({
     setSelectieModal({ open: false, kwartIndex: 0, positie: '' });
   };
 
-  // 🛡️ DEFENSIVE: Safe handlers for doelpunten
-  const handleVoegDoelpuntToe = (kwartIdx: number, doelpunt: Omit<Doelpunt, 'id'>) => {
-    try {
-      console.log('📍 handleVoegDoelpuntToe called:', { kwartIdx, doelpunt });
-      if (typeof onVoegDoelpuntToe !== 'function') {
-        console.error('❌ ERROR: onVoegDoelpuntToe is not a function!', { onVoegDoelpuntToe });
-        alert('⚠️ Fout: Parent component callback niet beschikbaar');
-        return;
-      }
-      onVoegDoelpuntToe(kwartIdx, doelpunt);
-      console.log('✅ Doelpunt toegevoegd');
-    } catch (error) {
-      console.error('❌ ERROR in handleVoegDoelpuntToe:', error);
-      alert(`⚠️ Fout bij toevoegen doelpunt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
-    }
-  };
-
-  const handleVerwijderDoelpunt = (kwartIdx: number, doelpuntId: number) => {
-    try {
-      console.log('📍 handleVerwijderDoelpunt called:', { kwartIdx, doelpuntId });
-      if (typeof onVerwijderDoelpunt !== 'function') {
-        console.error('❌ ERROR: onVerwijderDoelpunt is not a function!', { onVerwijderDoelpunt });
-        alert('⚠️ Fout: Parent component callback niet beschikbaar');
-        return;
-      }
-      onVerwijderDoelpunt(kwartIdx, doelpuntId);
-      console.log('✅ Doelpunt verwijderd');
-    } catch (error) {
-      console.error('❌ ERROR in handleVerwijderDoelpunt:', error);
-      alert(`⚠️ Fout bij verwijderen doelpunt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
-    }
-  };
-
   const selecteerSpeler = (spelerId: string) => {
     // Update opstelling met de geselecteerde speler
     const huidigeOpstelling = wedstrijd.kwarten[selectieModal.kwartIndex].opstelling;
@@ -749,8 +704,8 @@ export default function WedstrijdOpstelling({
                       thuisUit={wedstrijd.thuisUit || 'thuis'}
                       teamNaam={teamNaam}
                       tegenstander={wedstrijd.tegenstander || 'Tegenstander'}
-                      onVoegDoelpuntToe={handleVoegDoelpuntToe}
-                      onVerwijderDoelpunt={handleVerwijderDoelpunt}
+                      onVoegDoelpuntToe={onVoegDoelpuntToe}
+                      onVerwijderDoelpunt={onVerwijderDoelpunt}
                     />
                   </div>
                 )}

@@ -24,91 +24,9 @@ export default function ScoreTracking({
   onVerwijderDoelpunt
 }: Props) {
   const [spelerSelectieModal, setSpelerSelectieModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // 🛡️ DEFENSIVE: Valideer inputs
-  console.log('🔵 ScoreTracking mounted with:', {
-    kwartIndex,
-    wedstrijdId: wedstrijd?.id,
-    kwartenLength: wedstrijd?.kwarten?.length,
-    spelersLength: spelers?.length,
-    callbacksExist: {
-      onVoegDoelpuntToe: typeof onVoegDoelpuntToe,
-      onVerwijderDoelpunt: typeof onVerwijderDoelpunt
-    }
-  });
-
-  // 🛡️ DEFENSIVE: Check of kwarten array bestaat en valid index
-  if (!wedstrijd || !Array.isArray(wedstrijd.kwarten)) {
-    console.error('❌ ERROR: wedstrijd.kwarten is undefined or not an array', { wedstrijd });
-    return (
-      <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-        <h4 className="font-bold text-red-700">⚠️ Fout: Geen kwarten data</h4>
-        <p className="text-sm text-red-600">Wedstrijd data is onvolledig geladen</p>
-      </div>
-    );
-  }
-
-  if (kwartIndex < 0 || kwartIndex >= wedstrijd.kwarten.length) {
-    console.error('❌ ERROR: kwartIndex out of bounds', { kwartIndex, kwartenLength: wedstrijd.kwarten.length });
-    return (
-      <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-        <h4 className="font-bold text-red-700">⚠️ Fout: Ongeldig kwart</h4>
-        <p className="text-sm text-red-600">Kwart {kwartIndex + 1} bestaat niet</p>
-      </div>
-    );
-  }
-
-  // 🛡️ DEFENSIVE: Get kwart safely
-  const kwart = wedstrijd.kwarten[kwartIndex];
-  
-  if (!kwart) {
-    console.error('❌ ERROR: kwart undefined at index', kwartIndex);
-    return (
-      <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-        <h4 className="font-bold text-red-700">⚠️ Fout: Kwart data ontbreekt</h4>
-        <p className="text-sm text-red-600">Kwart {kwartIndex + 1} data kon niet geladen worden</p>
-      </div>
-    );
-  }
-
-  // 🛡️ DEFENSIVE: Ensure doelpunten is always an array
-  const kwartDoelpunten = (kwart.doelpunten && Array.isArray(kwart.doelpunten)) 
-    ? kwart.doelpunten 
-    : [];
-  
-  console.log('📊 Doelpunten in kwart:', { 
-    kwartIndex, 
-    doelpuntenCount: kwartDoelpunten.length, 
-    doelpunten: kwartDoelpunten 
-  });
-
-  // 🛡️ DEFENSIVE: Check callbacks are functions
-  const isCallbackValid = (callback: any): callback is Function => {
-    return typeof callback === 'function';
-  };
-
-  if (!isCallbackValid(onVoegDoelpuntToe)) {
-    console.error('❌ ERROR: onVoegDoelpuntToe is not a function', { onVoegDoelpuntToe });
-    return (
-      <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-        <h4 className="font-bold text-red-700">⚠️ Fout: onVoegDoelpuntToe callback</h4>
-        <p className="text-sm text-red-600">Parent component heeft geen geldige callback doorgegeven</p>
-      </div>
-    );
-  }
-
-  if (!isCallbackValid(onVerwijderDoelpunt)) {
-    console.error('❌ ERROR: onVerwijderDoelpunt is not a function', { onVerwijderDoelpunt });
-    return (
-      <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-        <h4 className="font-bold text-red-700">⚠️ Fout: onVerwijderDoelpunt callback</h4>
-        <p className="text-sm text-red-600">Parent component heeft geen geldige callback doorgegeven</p>
-      </div>
-    );
-  }
 
   // Bereken score voor dit kwart (alleen dit kwart)
+  const kwartDoelpunten = wedstrijd.kwarten[kwartIndex].doelpunten || [];
   const eigenDoelpuntenKwart = kwartDoelpunten.filter(d => d.type === 'eigen').length;
   const tegenstanderDoelpuntenKwart = kwartDoelpunten.filter(d => d.type === 'tegenstander').length;
 
@@ -116,17 +34,12 @@ export default function ScoreTracking({
   let eigenDoelpuntenTotaal = 0;
   let tegenstanderDoelpuntenTotaal = 0;
   
-  try {
-    for (let i = 0; i <= kwartIndex; i++) {
-      const k = wedstrijd.kwarten[i];
-      if (k && k.doelpunten && Array.isArray(k.doelpunten)) {
-        eigenDoelpuntenTotaal += k.doelpunten.filter(d => d.type === 'eigen').length;
-        tegenstanderDoelpuntenTotaal += k.doelpunten.filter(d => d.type === 'tegenstander').length;
-      }
+  for (let i = 0; i <= kwartIndex; i++) {
+    const kwart = wedstrijd.kwarten[i];
+    if (kwart.doelpunten) {
+      eigenDoelpuntenTotaal += kwart.doelpunten.filter(d => d.type === 'eigen').length;
+      tegenstanderDoelpuntenTotaal += kwart.doelpunten.filter(d => d.type === 'tegenstander').length;
     }
-  } catch (error) {
-    console.error('❌ ERROR calculating total scores:', error);
-    setErrorMessage('Fout bij berekenen totaalscore');
   }
 
   // Bepaal volgorde op basis van thuis/uit
@@ -140,15 +53,9 @@ export default function ScoreTracking({
 
   // Voeg tegenstander doelpunt toe (zonder modal)
   const voegTegenstanderDoelpuntToe = () => {
-    try {
-      console.log('🔴 Calling onVoegDoelpuntToe for tegenstander doelpunt');
-      onVoegDoelpuntToe(kwartIndex, {
-        type: 'tegenstander'
-      });
-    } catch (error) {
-      console.error('❌ ERROR in voegTegenstanderDoelpuntToe:', error);
-      setErrorMessage(`Fout: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
-    }
+    onVoegDoelpuntToe(kwartIndex, {
+      type: 'tegenstander'
+    });
   };
 
   // Open modal voor speler selectie
@@ -158,56 +65,23 @@ export default function ScoreTracking({
 
   // Selecteer speler en voeg doelpunt toe
   const selecteerSpeler = (spelerId: number) => {
-    try {
-      console.log('🟢 Calling onVoegDoelpuntToe for player goal:', { spelerId });
-      onVoegDoelpuntToe(kwartIndex, {
-        type: 'eigen',
-        spelerId: spelerId
-      });
-      setSpelerSelectieModal(false);
-      setErrorMessage(null);
-    } catch (error) {
-      console.error('❌ ERROR in selecteerSpeler:', error);
-      setErrorMessage(`Fout: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
-    }
+    onVoegDoelpuntToe(kwartIndex, {
+      type: 'eigen',
+      spelerId: spelerId
+    });
+    setSpelerSelectieModal(false);
   };
 
   // Voeg anoniem eigen doelpunt toe
   const voegAnoniemDoelpuntToe = () => {
-    try {
-      console.log('⚪ Calling onVoegDoelpuntToe for anonymous goal');
-      onVoegDoelpuntToe(kwartIndex, {
-        type: 'eigen'
-      });
-      setSpelerSelectieModal(false);
-      setErrorMessage(null);
-    } catch (error) {
-      console.error('❌ ERROR in voegAnoniemDoelpuntToe:', error);
-      setErrorMessage(`Fout: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
-    }
-  };
-
-  // Safe delete handler
-  const handleDeleteDoelpunt = (doelpuntId: number) => {
-    try {
-      console.log('🗑️ Calling onVerwijderDoelpunt:', { kwartIndex, doelpuntId });
-      onVerwijderDoelpunt(kwartIndex, doelpuntId);
-      setErrorMessage(null);
-    } catch (error) {
-      console.error('❌ ERROR in handleDeleteDoelpunt:', error);
-      setErrorMessage(`Fout: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
-    }
+    onVoegDoelpuntToe(kwartIndex, {
+      type: 'eigen'
+    });
+    setSpelerSelectieModal(false);
   };
 
   return (
     <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
-      {/* Error Message */}
-      {errorMessage && (
-        <div className="p-3 bg-red-50 border-2 border-red-300 rounded-lg">
-          <p className="text-sm text-red-700 font-medium">⚠️ {errorMessage}</p>
-        </div>
-      )}
-
       {/* Score Display */}
       <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm">
         <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-3 text-center">⚽ Stand Wedstrijd</h4>
@@ -262,12 +136,6 @@ export default function ScoreTracking({
           <h5 className="text-xs font-semibold text-gray-700">Doelpunten dit kwart:</h5>
           <div className="space-y-2">
             {kwartDoelpunten.map((doelpunt) => {
-              // 🛡️ DEFENSIVE: Check doelpunt has valid id
-              if (!doelpunt.id) {
-                console.warn('⚠️ Doelpunt missing id:', doelpunt);
-                return null;
-              }
-
               const speler = doelpunt.spelerId 
                 ? spelers.find(s => s.id === doelpunt.spelerId)
                 : null;
@@ -293,7 +161,7 @@ export default function ScoreTracking({
                     </span>
                   </div>
                   <button
-                    onClick={() => handleDeleteDoelpunt(doelpunt.id)}
+                    onClick={() => onVerwijderDoelpunt(kwartIndex, doelpunt.id)}
                     className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors"
                     title="Verwijder doelpunt"
                   >
@@ -339,24 +207,18 @@ export default function ScoreTracking({
                 </div>
 
                 {/* Spelers lijst - alfabetisch */}
-                {spelers && spelers.length > 0 ? (
-                  spelers
-                    .slice()
-                    .sort((a, b) => a.naam.localeCompare(b.naam))
-                    .map((speler) => (
-                      <button
-                        key={speler.id}
-                        onClick={() => selecteerSpeler(speler.id)}
-                        className="w-full p-3 border-2 border-green-300 bg-green-50 rounded-lg hover:bg-green-100 transition-colors text-left"
-                      >
-                        <div className="font-semibold text-green-800">⚽ {speler.naam}</div>
-                      </button>
-                    ))
-                ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg text-center">
-                    <p className="text-sm text-gray-600">❌ Geen spelers beschikbaar</p>
-                  </div>
-                )}
+                {spelers
+                  .slice()
+                  .sort((a, b) => a.naam.localeCompare(b.naam))
+                  .map((speler) => (
+                    <button
+                      key={speler.id}
+                      onClick={() => selecteerSpeler(speler.id)}
+                      className="w-full p-3 border-2 border-green-300 bg-green-50 rounded-lg hover:bg-green-100 transition-colors text-left"
+                    >
+                      <div className="font-semibold text-green-800">⚽ {speler.naam}</div>
+                    </button>
+                  ))}
               </div>
             </div>
 
