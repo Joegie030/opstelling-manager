@@ -151,19 +151,6 @@ export default function WedstrijdOpstelling({
 
   const getBeschikbareSpelers = (kwartIndex: number, huidigePositie: string) => {
     console.log('🔵 getBeschikbareSpelers called:', { kwartIndex, huidigePositie });
-    
-    // 🛡️ DEFENSIVE: Check wedstrijden parameter
-    if (!Array.isArray(wedstrijden)) {
-      console.warn('⚠️ getBeschikbareSpelers: wedstrijden is not an array', { wedstrijden });
-      wedstrijden = []; // Fallback to empty array
-    }
-    
-    // 🛡️ DEFENSIVE: Check spelers parameter
-    if (!Array.isArray(spelers)) {
-      console.warn('⚠️ getBeschikbareSpelers: spelers is not an array', { spelers });
-      return []; // Geen spelers beschikbaar
-    }
-    
     console.log('📊 wedstrijd data:', { 
       formatie: wedstrijd.formatie, 
       kwartenLength: wedstrijd.kwarten?.length,
