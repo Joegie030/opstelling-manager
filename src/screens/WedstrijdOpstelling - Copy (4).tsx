@@ -399,13 +399,7 @@ export default function WedstrijdOpstelling({
   };
 
   const selecteerSpeler = (spelerId: string) => {
-    // Update opstelling met de geselecteerde speler
-    const huidigeOpstelling = wedstrijd.kwarten[selectieModal.kwartIndex].opstelling;
-    const nieuweOpstelling = {
-      ...huidigeOpstelling,
-      [selectieModal.positie]: spelerId
-    };
-    onUpdateKwartOpstelling(selectieModal.kwartIndex, nieuweOpstelling);
+    onUpdateOpstelling(selectieModal.kwartIndex, selectieModal.positie, spelerId);
     sluitSelectieModal();
   };
 
