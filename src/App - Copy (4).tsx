@@ -441,34 +441,6 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onVoegDoelpuntToe={(kwartIndex, doelpunt) => {
-            const newId = Date.now() + Math.random();
-            const updated = {
-              ...huidgeWedstrijd,
-              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
-                i === kwartIndex 
-                  ? { 
-                      ...k, 
-                      doelpunten: [...(k.doelpunten || []), { ...doelpunt, id: newId }] 
-                    }
-                  : k
-              )
-            };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
-          onVerwijderDoelpunt={(kwartIndex, doelpuntId) => {
-            const updated = {
-              ...huidgeWedstrijd,
-              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
-                i === kwartIndex
-                  ? { ...k, doelpunten: (k.doelpunten || []).filter(d => d.id !== doelpuntId) }
-                  : k
-              )
-            };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
           onSluiten={() => setHuidigScherm('wedstrijden')}
         />
       )}
