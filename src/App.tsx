@@ -329,7 +329,23 @@ function App() {
           spelers={spelers}
           clubNaam={clubNaam}
           teamNaam={teamNaam}
-          onUpdateWedstrijd={(updated) => {
+          onUpdateDatum={(datum) => {
+            const updated = { ...huidgeWedstrijd, datum };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateTegenstander={(tegenstander) => {
+            const updated = { ...huidgeWedstrijd, tegenstander };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateThuisUit={(thuisUit) => {
+            const updated = { ...huidgeWedstrijd, thuisUit };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateWedstrijdType={(type) => {
+            const updated = { ...huidgeWedstrijd, type };
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
@@ -343,18 +359,8 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onUpdateWedstrijdType={(type) => {
-            const updated = { ...huidgeWedstrijd, type };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
           onUpdateWedstrijdFormatie={(formatie) => {
             const updated = { ...huidgeWedstrijd, formatie };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
-          onUpdateThuisUit={(thuisUit) => {
-            const updated = { ...huidgeWedstrijd, thuisUit };
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
