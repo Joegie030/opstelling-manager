@@ -12,7 +12,7 @@ export interface Wissel {
   minuten?: number;  // Op welk moment wisselde (6.25 of 12.5 per kwart)
 }
 
-// ✅ GECORRIGEERDE Doelpunt
+// âœ… GECORRIGEERDE Doelpunt
 export interface Doelpunt {
   id: number;
   type: 'eigen' | 'tegenstander';  // Wie scoorde
@@ -67,22 +67,22 @@ export const formaties: Record<'6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8', stri
 
 export const WEDSTRIJD_THEMAS = {
   aanvallend: [
-    { id: 'aanvallen', label: 'Aanvallen opbouwen', emoji: '🎯' },
-    { id: 'afmaken', label: 'Kansen afmaken', emoji: '⚽' },
-    { id: 'vrijlopen', label: 'Vrijlopen zonder bal', emoji: '🏃' },
-    { id: 'touwtjes', label: 'Touwtjes maken', emoji: '🔗' }
+    { id: 'aanvallen', label: 'Aanvallen opbouwen', emoji: 'ðŸŽ¯' },
+    { id: 'afmaken', label: 'Kansen afmaken', emoji: 'âš½' },
+    { id: 'vrijlopen', label: 'Vrijlopen zonder bal', emoji: 'ðŸƒ' },
+    { id: 'touwtjes', label: 'Touwtjes maken', emoji: 'ðŸ”—' }
   ],
   verdedigend: [
-    { id: 'verdedigen', label: 'Verdedigen', emoji: '🛡️' },
-    { id: 'drukzetten', label: 'Druk zetten', emoji: '⚡' },
-    { id: 'compact', label: 'Compact blijven', emoji: '🧱' }
+    { id: 'verdedigen', label: 'Verdedigen', emoji: 'ðŸ›¡ï¸' },
+    { id: 'drukzetten', label: 'Druk zetten', emoji: 'âš¡' },
+    { id: 'compact', label: 'Compact blijven', emoji: 'ðŸ§±' }
   ],
   algemeen: [
-    { id: 'omschakelen', label: 'Snel omschakelen', emoji: '🔄' },
-    { id: 'balbezit', label: 'Balbezit houden', emoji: '🎾' },
-    { id: 'communicatie', label: 'Communicatie', emoji: '💬' },
-    { id: 'positiespel', label: 'Positiespel', emoji: '📍' },
-    { id: 'inzet', label: 'Inzet/Fighting spirit', emoji: '💪' }
+    { id: 'omschakelen', label: 'Snel omschakelen', emoji: 'ðŸ”„' },
+    { id: 'balbezit', label: 'Balbezit houden', emoji: 'ðŸŽ¾' },
+    { id: 'communicatie', label: 'Communicatie', emoji: 'ðŸ’¬' },
+    { id: 'positiespel', label: 'Positiespel', emoji: 'ðŸ“' },
+    { id: 'inzet', label: 'Inzet/Fighting spirit', emoji: 'ðŸ’ª' }
   ]
 };
 
@@ -93,9 +93,9 @@ export const ALLE_THEMAS = [
 ];
 
 export const KWART_OBSERVATIES = [
-  'Sterk kwart',
-  'Zwaar kwart',
-  'Veel kansen',
-  'Goed verdedigd',
-  'Goede inzet'
+  { id: 'sterkkwart', label: 'Sterk kwart', emoji: '⭐' },
+  { id: 'zwaarkwart', label: 'Zwaar kwart', emoji: '😰' },
+  { id: 'veelkansen', label: 'Veel kansen', emoji: '🎯' },
+  { id: 'goedverdedigd', label: 'Goed verdedigd', emoji: '🛡️' },
+  { id: 'goedeinzet', label: 'Goede inzet', emoji: '💪' }
 ];
