@@ -708,7 +708,7 @@ export default function WedstrijdOpstelling({
                           </div>
                         </div>
                       );
-                    }))}
+                    })}
                   </div>
                 ) : (
                       <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
