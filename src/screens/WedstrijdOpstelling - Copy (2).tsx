@@ -579,9 +579,9 @@ export default function WedstrijdOpstelling({
                       <Plus className="w-4 h-4" />
                       Wissel toevoegen
                     </button>
-                {kwart.wissels?.length ?? 0 > 0 ? (
+                {kwart.wissels && kwart.wissels.length > 0 ? (
                       <div className="space-y-3">
-                    {kwart.wissels?.map?.((wissel, wisselIndex) => {
+                    {kwart.wissels.map((wissel, wisselIndex) => {
                       const keepersDezeWedstrijd = new Set<string>();
                       wedstrijd.kwarten.forEach((k, ki) => {
                         if (ki > kwartIndex) return;
@@ -708,7 +708,7 @@ export default function WedstrijdOpstelling({
                           </div>
                         </div>
                       );
-                    }))}
+                    })}
                   </div>
                 ) : (
                       <p className="text-sm text-gray-500 text-center py-2">Geen wissels</p>
