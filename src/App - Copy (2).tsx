@@ -177,59 +177,6 @@ function App() {
     setSpelers([...spelers, newSpeler]);
   };
 
-  // ✨ WISSEL HANDLERS
-  const handleVoegWisselToe = (kwartIndex: number) => {
-    const updated = {
-      ...huidgeWedstrijd!,
-      kwarten: huidgeWedstrijd!.kwarten.map((k, i) => {
-        if (i === kwartIndex) {
-          const newId = Math.max(...k.wissels.map(w => w.id), 0) + 1;
-          return {
-            ...k,
-            wissels: [...k.wissels, { id: newId, positie: '', wisselSpelerId: '' }]
-          };
-        }
-        return k;
-      })
-    };
-    setHuidgeWedstrijd(updated);
-    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-  };
-
-  const handleUpdateWissel = (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => {
-    const updated = {
-      ...huidgeWedstrijd!,
-      kwarten: huidgeWedstrijd!.kwarten.map((k, i) => {
-        if (i === kwartIndex) {
-          return {
-            ...k,
-            wissels: k.wissels.map((w, idx) => idx === wisselIndex ? { ...w, [veld]: waarde } : w)
-          };
-        }
-        return k;
-      })
-    };
-    setHuidgeWedstrijd(updated);
-    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-  };
-
-  const handleVerwijderWissel = (kwartIndex: number, wisselIndex: number) => {
-    const updated = {
-      ...huidgeWedstrijd!,
-      kwarten: huidgeWedstrijd!.kwarten.map((k, i) => {
-        if (i === kwartIndex) {
-          return {
-            ...k,
-            wissels: k.wissels.filter((_, idx) => idx !== wisselIndex)
-          };
-        }
-        return k;
-      })
-    };
-    setHuidgeWedstrijd(updated);
-    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-  };
-
   // Maak nieuw team aan
   const handleCreateTeam = async (clubNaam: string, teamNaam: string) => {
     if (!currentCoach) return;
@@ -452,9 +399,6 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onVoegWisselToe={handleVoegWisselToe}
-          onUpdateWissel={handleUpdateWissel}
-          onVerwijderWissel={handleVerwijderWissel}
           onUpdateKwartDoelpunten={(kwartIndex, doelpunten) => {
             const updated = {
               ...huidgeWedstrijd,
