@@ -140,7 +140,7 @@ export default function WedstrijdOpstelling({
       if (keeperId) {
         keeperTeller[Number(keeperId)] += 1;
       }
-      kwart.wissels?.forEach?.(w => {
+      kwart.wissels?.forEach(w => {
         if (w.positie === 'Keeper' && w.wisselSpelerId) {
           keeperTeller[Number(w.wisselSpelerId)] += 1;
         }
@@ -277,25 +277,25 @@ export default function WedstrijdOpstelling({
     
     const speeltInKwart = (spelerIdStr: string, kwartObj: typeof kwart) => {
       const inBasis = Object.values(kwartObj.opstelling).includes(spelerIdStr);
-      const inWissel = kwartObj.wissels?.some?.(w => 
+      const inWissel = kwartObj.wissels?.some(w => 
         w.wisselSpelerId === spelerIdStr || 
         (w.positie && kwartObj.opstelling[w.positie] === spelerIdStr)
-      ) ?? false;
+      );
       return inBasis || inWissel;
     };
     
     const speeltAlsVeldspeler = (spelerIdStr: string, kwartObj: typeof kwart) => {
       const isKeeperInBasis = kwartObj.opstelling['Keeper'] === spelerIdStr;
-      const wordtKeeperViaWissel = kwartObj.wissels?.some?.(w => 
+      const wordtKeeperViaWissel = kwartObj.wissels?.some(w => 
         w.positie === 'Keeper' && w.wisselSpelerId === spelerIdStr
-      ) ?? false;
+      );
       const speelt = speeltInKwart(spelerIdStr, kwartObj);
       const isKeeper = isKeeperInBasis || wordtKeeperViaWissel;
       return speelt && !isKeeper;
     };
     
     const keeperId = kwart.opstelling['Keeper'];
-    const wisselNaarKeeper = kwart.wissels?.find?.(w => w.positie === 'Keeper');
+    const wisselNaarKeeper = kwart.wissels?.find(w => w.positie === 'Keeper');
     const keeperIds = [keeperId, wisselNaarKeeper?.wisselSpelerId].filter(Boolean);
     
     keeperIds.forEach(kId => {
@@ -303,9 +303,9 @@ export default function WedstrijdOpstelling({
       const keeperNaam = spelers.find(s => s.id.toString() === kId)?.naam;
       if (!keeperNaam) return;
       
-      const vrigKwart = kwartIndex > 0 ? wedstrijd.kwarten[kwartIndex - 1] : null;
+      const vorigKwart = kwartIndex > 0 ? wedstrijd.kwarten[kwartIndex - 1] : null;
       const volgendKwart = kwartIndex < 3 ? wedstrijd.kwarten[kwartIndex + 1] : null;
-      const speeltAlsVeldspelerInVorig = vrigKwart && speeltAlsVeldspeler(kId, vrigKwart);
+      const speeltAlsVeldspelerInVorig = vorigKwart && speeltAlsVeldspeler(kId, vorigKwart);
       const speeltAlsVeldspelerInVolgend = volgendKwart && speeltAlsVeldspeler(kId, volgendKwart);
       
       if (!speeltAlsVeldspelerInVorig && !speeltAlsVeldspelerInVolgend) {
@@ -364,7 +364,7 @@ export default function WedstrijdOpstelling({
           }
         });
         
-        kwart.wissels?.forEach?.(wissel => {
+        kwart.wissels?.forEach(wissel => {
           if (wissel.wisselSpelerId === afwezigId.toString()) {
             posities.push(`Wissel naar ${wissel.positie}`);
           }
@@ -394,7 +394,7 @@ export default function WedstrijdOpstelling({
         }
       });
       
-      kwart.wissels?.forEach?.((wissel, wisselIndex) => {
+      kwart.wissels?.forEach((wissel, wisselIndex) => {
         if (afwezigeIds.includes(Number(wissel.wisselSpelerId))) {
           onUpdateWissel(kwartIndex, wisselIndex, 'wisselSpelerId', '');
         }
@@ -579,15 +579,15 @@ export default function WedstrijdOpstelling({
                       <Plus className="w-4 h-4" />
                       Wissel toevoegen
                     </button>
-                {kwart.wissels?.length ?? 0 > 0 ? (
+                {kwart.wissels && kwart.wissels.length > 0 ? (
                       <div className="space-y-3">
-                    {kwart.wissels?.map?.((wissel, wisselIndex) => {
+                    {kwart.wissels.map((wissel, wisselIndex) => {
                       const keepersDezeWedstrijd = new Set<string>();
                       wedstrijd.kwarten.forEach((k, ki) => {
                         if (ki > kwartIndex) return;
                         const keeperId = k.opstelling['Keeper'];
                         if (keeperId) keepersDezeWedstrijd.add(keeperId);
-                        k.wissels?.forEach?.((w) => {
+                        k.wissels?.forEach(w => {
                           if (w.positie === 'Keeper' && w.wisselSpelerId) {
                             keepersDezeWedstrijd.add(w.wisselSpelerId);
                           }
@@ -595,8 +595,8 @@ export default function WedstrijdOpstelling({
                       });
                       
                       const reedsGewisseldePosities = kwart.wissels
-                        ?.filter?.((w, i) => i !== wisselIndex && w.positie)
-                        ?.map?.(w => w.positie) ?? [];
+                        .filter((w, i) => i !== wisselIndex && w.positie)
+                        .map(w => w.positie);
                       
                       const berekenMinutenTotNu = () => {
                         const minuten: Record<string, number> = {};
@@ -605,12 +605,12 @@ export default function WedstrijdOpstelling({
                           
                           Object.entries(k.opstelling).forEach(([pos, sid]) => {
                             if (!sid) return;
-                            const kwartWissel = k.wissels?.find?.(w => w.positie === pos);
+                            const kwartWissel = k.wissels?.find(w => w.positie === pos);
                             const min = kwartWissel && kwartWissel.wisselSpelerId ? 6.25 : k.minuten;
                             minuten[sid] = (minuten[sid] || 0) + min;
                           });
                           
-                          k.wissels?.forEach?.((w) => {
+                          k.wissels?.forEach(w => {
                             if (w.wisselSpelerId) {
                               minuten[w.wisselSpelerId] = (minuten[w.wisselSpelerId] || 0) + 6.25;
                             }
@@ -642,7 +642,7 @@ export default function WedstrijdOpstelling({
                       const beschikbareWisselSpelers = spelers
                         .filter(s => 
                           !Object.values(kwart.opstelling).includes(s.id.toString()) &&
-                          !kwart.wissels?.some?.((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString()) &&
+                          !kwart.wissels.some((w, i) => i !== wisselIndex && w.wisselSpelerId === s.id.toString()) &&
                           !afwezigeSpelerIds.includes(s.id)
                         )
                         .map(s => ({ ...s, minutenGespeeld: minutenTotNu[s.id.toString()] || 0 }))
