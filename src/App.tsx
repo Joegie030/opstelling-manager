@@ -357,6 +357,12 @@ function App() {
         }
       }}
       activeScreen={huidigScherm}
+            selectedTeamId={selectedTeamId}
+      teams={getTeamsForSelector()}
+      onSelectTeam={(newTeamId) => {
+        console.log('🔵 Team selected from header:', newTeamId);
+        setSelectedTeamId(newTeamId);
+      }}
     >
       {/* ✅ STAP 1: WEDSTRIJDEN SCHERM - FIXED PROPS */}
       {huidigScherm === 'wedstrijden' && (
