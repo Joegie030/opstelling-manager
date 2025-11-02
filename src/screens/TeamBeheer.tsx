@@ -3,7 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Speler } from '../types';
 import InviteCoaches from '../components/InviteCoaches';
 import { getTeam } from '../firebase/firebaseService';
-import { TeamSelectorDropdown, TeamInfo } from '../components/TeamSelectorDropdown';
+import { laadTeamInfo, TeamInfo } from '../utils/teamData';
 
 interface TeamBeheerProps {
   // Team Data
@@ -21,6 +21,7 @@ interface TeamBeheerProps {
   // Coach & Team Selection
   currentCoach?: any;
   teamIds?: string[];
+  teams?: TeamInfo[];  // ✨ NEW: From App.tsx (already loaded with team names)
   onSelectTeam?: (teamId: string) => void;
   onCreateTeam?: (clubNaam: string, teamNaam: string) => Promise<void>;
   onDeleteTeam?: (teamId: string) => Promise<void>;
@@ -37,6 +38,7 @@ export default function TeamBeheer({
   onVerwijderSpeler,
   currentCoach,
   teamIds = [],
+  teams = [],
   onSelectTeam,
   onCreateTeam,
   onDeleteTeam
@@ -45,15 +47,11 @@ export default function TeamBeheer({
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
   const [nieuwGastTeam, setNieuwGastTeam] = useState('');
   
-  // ✅ FIX 1: Modal mag NIET automatisch openen, alleen als user op knop klikt
+  // ✅ Modal state - controleer door user (geen auto-open)
   const [createTeamModal, setCreateTeamModal] = useState(false);
   const [newClubNaam, setNewClubNaam] = useState('');
   const [newTeamNaam, setNewTeamNaam] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-
-  // ✅ FIX 2: Team metadata caching - weet namen van andere teams
-  const [teamMetadata, setTeamMetadata] = useState<Record<string, { clubNaam: string; teamNaam: string }>>({});
-  const [metadataLoading, setMetadataLoading] = useState(false);
 
   // Filter spelers
   const vasteSpelers = spelers.filter(s => s.type !== 'gast');
@@ -66,39 +64,6 @@ export default function TeamBeheer({
       setCreateTeamModal(true);
     }
   }, [teamId, teamIds]);
-
-  // ✅ FIX 3: Load team metadata voor dropdown
-  useEffect(() => {
-    if (teamIds.length === 0) return;
-    
-    const loadTeamMetadata = async () => {
-      setMetadataLoading(true);
-      try {
-        for (const tId of teamIds) {
-          // Alleen laden als nog niet in cache
-          if (!teamMetadata[tId]) {
-            const teamData = await getTeam(tId);
-            if (teamData) {
-              setTeamMetadata(prev => ({
-                ...prev,
-                [tId]: {
-                  clubNaam: teamData.clubNaam || 'Onbekend',
-                  teamNaam: teamData.teamNaam || 'Onbekend'
-                }
-              }));
-              console.log('✅ Loaded team metadata:', tId, teamData.clubNaam, teamData.teamNaam);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error loading team metadata:', error);
-      } finally {
-        setMetadataLoading(false);
-      }
-    };
-
-    loadTeamMetadata();
-  }, [teamIds]);
 
   const handleVoegSpelerToe = () => {
     if (!nieuwSpelerNaam.trim()) return;
@@ -143,7 +108,7 @@ export default function TeamBeheer({
     }
   };
 
-  // ✅ FIX 4: Modal toont ALLEEN als user op "+ Nieuw Team" klikt
+  // ✅ Modal toont ALLEEN als user op "+ Nieuw Team" klikt
   if (createTeamModal) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -207,37 +172,82 @@ export default function TeamBeheer({
 
   return (
     <div className="space-y-6">
-      {/* ========== 0. TEAM SELECTOR (DROPDOWN) - Using Shared Component ========== */}
+      {/* ========== 0. TEAM SELECTOR SECTION ========== */}
       {teamIds.length > 0 && (
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <TeamSelectorDropdown
-              teams={teamIds.map((tId) => ({
-                teamId: tId,
-                teamNaam: teamMetadata[tId]?.teamNaam || `Team (${tId.substring(5, 10)})`
-              }))}
-              selectedTeamId={teamId}
-              onSelectTeam={(selectedTeamId) => {
-                console.log('🟢 Clicked team:', selectedTeamId);
-                if (onSelectTeam) {
-                  onSelectTeam(selectedTeamId);
-                }
-              }}
-              variant="full"
-              loading={metadataLoading}
-              showLabel={true}
-            />
-          </div>
+        <div className="border-2 border-purple-400 rounded-lg p-4 sm:p-6 bg-purple-50">
+          {/* Desktop Layout: Horizontal */}
+          <div className="hidden sm:flex items-end gap-3">
+            <div className="flex-1">
+              <label className="text-sm font-semibold text-gray-700 block mb-2">Selecteer Team:</label>
+              <div className="relative">
+                <select
+                  value={teamId || ''}
+                  onChange={(e) => {
+                    console.log('🟢 Selected team:', e.target.value);
+                    onSelectTeam?.(e.target.value);
+                  }}
+                  className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg bg-white hover:bg-purple-50 font-medium text-left transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="">-- Kies een team --</option>
+                  {teams.map(team => (
+                    <option key={team.teamId} value={team.teamId}>
+                      🏛️ {team.teamNaam}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute right-3 top-3 text-purple-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
-          {/* Nieuw Team Button */}
-          <div className="flex items-end">
+            {/* "Nieuw Team" Button - Desktop (Aligned to dropdown) */}
             <button
               onClick={() => setCreateTeamModal(true)}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold flex items-center gap-2 transition-colors"
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold flex items-center gap-2 transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
               title="Voeg nieuw team toe"
             >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Nieuw Team</span>
+              <Plus className="w-5 h-5" />
+              <span>Nieuw Team</span>
+            </button>
+          </div>
+
+          {/* Mobile Layout: Stacked */}
+          <div className="sm:hidden space-y-3">
+            <label className="text-sm font-semibold text-gray-700 block">Selecteer Team:</label>
+            <div className="relative">
+              <select
+                value={teamId || ''}
+                onChange={(e) => {
+                  console.log('🟢 Selected team (mobile):', e.target.value);
+                  onSelectTeam?.(e.target.value);
+                }}
+                className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg bg-white hover:bg-purple-50 font-medium text-left transition-colors appearance-none cursor-pointer"
+              >
+                <option value="">-- Kies een team --</option>
+                {teams.map(team => (
+                  <option key={team.teamId} value={team.teamId}>
+                    🏛️ {team.teamNaam}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 top-3 text-purple-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+            </div>
+
+            {/* "Nieuw Team" Button - Mobile (Full width) */}
+            <button
+              onClick={() => setCreateTeamModal(true)}
+              className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold flex items-center justify-center gap-2 transition-colors shadow-sm hover:shadow-md"
+              title="Voeg nieuw team toe"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Nieuw Team</span>
             </button>
           </div>
         </div>
