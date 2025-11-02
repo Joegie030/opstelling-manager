@@ -92,14 +92,14 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         data.percentage = totaal > 0 ? Math.round((data.count / totaal) * 100) : 0;
         data.successRate = data.count > 0 ? Math.round((data.wins / data.count) * 100) : 0;
         
-        if (data.successRate > bestSuccessRate && data.count >= 2) {
+        if (data.successRate > bestSuccessRate && data.count >= 2 && data.wins >= 1) {
           bestSuccessRate = data.successRate;
           bestPositie = pos;
         }
       });
 
       stat.bestPositie = bestPositie;
-      stat.successRateBest = bestSuccessRate >= 0 ? bestSuccessRate : 0;
+      stat.successRateBest = bestSuccessRate > 0 ? bestSuccessRate : 0;
     });
 
     return Object.values(stats);
