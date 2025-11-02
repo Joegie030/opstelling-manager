@@ -172,59 +172,22 @@ export default function TeamBeheer({
 
   return (
     <div className="space-y-6">
-      {/* ========== 0. TEAM SELECTOR SECTION ========== */}
+      {/* ========== 0. TEAM SELECTOR SECTION - COMPACT ========== */}
       {teamIds.length > 0 && (
         <div className="border-2 border-purple-400 rounded-lg p-4 sm:p-6 bg-purple-50">
-          {/* Desktop Layout: Horizontal */}
-          <div className="hidden sm:flex items-end gap-3">
-            <div className="flex-1">
-              <label className="text-sm font-semibold text-gray-700 block mb-2">Selecteer Team:</label>
-              <div className="relative">
-                <select
-                  value={teamId || ''}
-                  onChange={(e) => {
-                    console.log('🟢 Selected team:', e.target.value);
-                    onSelectTeam?.(e.target.value);
-                  }}
-                  className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg bg-white hover:bg-purple-50 font-medium text-left transition-colors appearance-none cursor-pointer"
-                >
-                  <option value="">-- Kies een team --</option>
-                  {teams.map(team => (
-                    <option key={team.teamId} value={team.teamId}>
-                      🏛️ {team.teamNaam}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute right-3 top-3 text-purple-600">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* "Nieuw Team" Button - Desktop (Aligned to dropdown) */}
-            <button
-              onClick={() => setCreateTeamModal(true)}
-              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold flex items-center gap-2 transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
-              title="Voeg nieuw team toe"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Nieuw Team</span>
-            </button>
-          </div>
-
-          {/* Mobile Layout: Stacked */}
-          <div className="sm:hidden space-y-3">
-            <label className="text-sm font-semibold text-gray-700 block">Selecteer Team:</label>
-            <div className="relative">
+          <label className="text-sm font-semibold text-gray-700 block mb-2">Selecteer Team:</label>
+          
+          {/* ✨ Uniform Layout: Dropdown + Button (compact on mobile & desktop) */}
+          <div className="flex items-center gap-2">
+            {/* Dropdown - flex-1 takes remaining space */}
+            <div className="relative flex-1">
               <select
                 value={teamId || ''}
                 onChange={(e) => {
-                  console.log('🟢 Selected team (mobile):', e.target.value);
+                  console.log('🟢 Selected team:', e.target.value);
                   onSelectTeam?.(e.target.value);
                 }}
-                className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg bg-white hover:bg-purple-50 font-medium text-left transition-colors appearance-none cursor-pointer"
+                className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg bg-white hover:bg-purple-50 font-medium text-left transition-colors appearance-none cursor-pointer pr-10"
               >
                 <option value="">-- Kies een team --</option>
                 {teams.map(team => (
@@ -240,14 +203,14 @@ export default function TeamBeheer({
               </div>
             </div>
 
-            {/* "Nieuw Team" Button - Mobile (Full width) */}
+            {/* ✨ "Nieuw Team" Button - Compact + button (mobile: only +, desktop: + Team) */}
             <button
               onClick={() => setCreateTeamModal(true)}
-              className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold flex items-center justify-center gap-2 transition-colors shadow-sm hover:shadow-md"
+              className="px-3 sm:px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold flex items-center justify-center gap-1 sm:gap-2 transition-colors shadow-sm hover:shadow-md"
               title="Voeg nieuw team toe"
             >
-              <Plus className="w-5 h-5" />
-              <span>Nieuw Team</span>
+              <Plus className="w-5 h-5 flex-shrink-0" />
+              <span className="hidden sm:inline whitespace-nowrap">Team</span>
             </button>
           </div>
         </div>
