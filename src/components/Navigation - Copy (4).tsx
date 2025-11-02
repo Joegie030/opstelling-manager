@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight } from 'lucide-react';
+import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { TeamSelectorDropdown, TeamInfo } from './TeamSelectorDropdown';
 
 interface MenuItem {
@@ -13,11 +13,6 @@ interface Coach {
   naam: string;
   email: string;
   teamIds?: string[];  // Multi-team support
-}
-
-interface TeamInfo {
-  teamId: string;
-  teamNaam: string;
 }
 
 interface NavigationProps {
@@ -74,6 +69,7 @@ export function Navigation({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileTeamSelectorOpen, setMobileTeamSelectorOpen] = useState(false);
 
   const handleMenuSelect = (id: string) => {
     onScreenChange(id);
@@ -201,7 +197,7 @@ export function Navigation({
                             className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-left"
                           >
                             <LogOut className="w-5 h-5" />
-                            <span className="font-medium">Uitloggen</span>
+                            <span className="font-medium">Log uit</span>
                           </button>
                         )}
                       </div>
@@ -210,21 +206,64 @@ export function Navigation({
                 </div>
               )}
 
-              {/* Mobile: Hamburger button */}
+              {/* Mobile: Team Selector Dropdown (alleen op mobiel, links van hamburger) */}
+              {teams.length > 1 && (
+                <div className="relative md:hidden">
+                  <button
+                    onClick={() => setMobileTeamSelectorOpen(!mobileTeamSelectorOpen)}
+                    className="p-2 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1.5"
+                    title="Selecteer team"
+                  >
+                    <span className="text-lg">🏛️</span>
+                    {mobileTeamSelectorOpen ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {/* Team Selector Dropdown Menu */}
+                  {mobileTeamSelectorOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white text-gray-800 rounded-lg shadow-xl z-50">
+                      <div className="py-2">
+                        {teams.map((team) => (
+                          <button
+                            key={team.teamId}
+                            onClick={() => {
+                              onSelectTeam?.(team.teamId);
+                              setMobileTeamSelectorOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between gap-2 px-4 py-3 transition-colors text-sm ${
+                              selectedTeamId === team.teamId
+                                ? 'bg-blue-50 text-blue-600 font-semibold'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>⚽</span>
+                              <span>{team.teamNaam}</span>
+                            </div>
+                            {selectedTeamId === team.teamId && (
+                              <span className="text-lg">✓</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mobile: Hamburger */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 hover:bg-blue-700 rounded-lg transition-colors md:hidden"
-                title="Menu"
+                className="md:hidden p-2 hover:bg-blue-700 rounded-lg transition-colors"
               >
-                {mobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
 
-            {/* Bottom row: Horizontal menu (desktop only) */}
+            {/* Desktop Menu Bar */}
             <div className="hidden md:flex items-center gap-1">
               {visibleItems.map((item) => (
                 <button
@@ -333,34 +372,7 @@ export function Navigation({
                   </div>
                 </div>
 
-                {/* Mobile: Team selector */}
-                {teams.length > 1 && (
-                  <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                    <p className="text-xs font-semibold text-gray-600 mb-2">Selecteer Team:</p>
-                    <div className="space-y-1">
-                      {teams.map((team) => (
-                        <button
-                          key={team.teamId}
-                          onClick={() => {
-                            onSelectTeam?.(team.teamId);
-                            setMobileMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-2 px-3 py-2 rounded transition-colors text-sm ${
-                            selectedTeamId === team.teamId
-                              ? 'bg-blue-100 text-blue-600 font-medium'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <span>🏛️</span>
-                          <span>{team.teamNaam}</span>
-                          {selectedTeamId === team.teamId && (
-                            <span className="ml-auto">✓</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Mobile: Team selector is nu OUT of burger menu, in navbar! */}
               </>
             )}
 

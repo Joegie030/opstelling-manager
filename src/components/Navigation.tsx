@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight, ChevronDown, ChevronUp, Shirt } from 'lucide-react';
 import { TeamSelectorDropdown, TeamInfo } from './TeamSelectorDropdown';
 
 interface MenuItem {
@@ -206,25 +206,28 @@ export function Navigation({
                 </div>
               )}
 
-              {/* Mobile: Team Selector Dropdown (alleen op mobiel, links van hamburger) */}
+              {/* Mobile: Team Selector (prominent, boven burger menu met teamnaam) */}
               {teams.length > 1 && (
                 <div className="relative md:hidden">
                   <button
                     onClick={() => setMobileTeamSelectorOpen(!mobileTeamSelectorOpen)}
-                    className="p-2 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1.5"
+                    className="px-3 py-2 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 bg-blue-500 hover:bg-blue-700"
                     title="Selecteer team"
                   >
-                    <span className="text-lg">🏛️</span>
+                    <Shirt className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-semibold text-sm truncate max-w-[100px]">
+                      {teams.find(t => t.teamId === selectedTeamId)?.teamNaam || 'Team'}
+                    </span>
                     {mobileTeamSelectorOpen ? (
-                      <ChevronUp className="w-4 h-4" />
+                      <ChevronUp className="w-4 h-4 flex-shrink-0" />
                     ) : (
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-4 h-4 flex-shrink-0" />
                     )}
                   </button>
 
                   {/* Team Selector Dropdown Menu */}
                   {mobileTeamSelectorOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-56 bg-white text-gray-800 rounded-lg shadow-xl z-50">
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-white text-gray-800 rounded-lg shadow-xl z-50">
                       <div className="py-2">
                         {teams.map((team) => (
                           <button
@@ -235,12 +238,12 @@ export function Navigation({
                             }}
                             className={`w-full flex items-center justify-between gap-2 px-4 py-3 transition-colors text-sm ${
                               selectedTeamId === team.teamId
-                                ? 'bg-blue-50 text-blue-600 font-semibold'
+                                ? 'bg-blue-50 text-blue-600 font-semibold border-l-4 border-blue-600'
                                 : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
                             <div className="flex items-center gap-2">
-                              <span>⚽</span>
+                              <Shirt className="w-4 h-4 text-blue-600" />
                               <span>{team.teamNaam}</span>
                             </div>
                             {selectedTeamId === team.teamId && (
