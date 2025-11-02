@@ -127,9 +127,6 @@ export function Navigation({
                   <p className="text-xs text-blue-200 truncate">
                     🏆 {clubNaam}
                   </p>
-                  <p className="text-xs text-blue-200 truncate">
-                    {teamNaam}
-                  </p>
                 </div>
               </div>
 
