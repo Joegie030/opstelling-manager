@@ -343,6 +343,18 @@ function App() {
     return <AuthScreen />;
   }
 
+  // ✨ Bouw teams list voor header selector
+  const getTeamsForSelector = () => {
+    if (!currentCoach?.teamIds || currentCoach.teamIds.length === 0) {
+      return [];
+    }
+    
+    return currentCoach.teamIds.map(teamId => ({
+      teamId,
+      teamNaam: teamId === selectedTeamId ? teamNaam : `Team (${teamId})`
+    }));
+  };
+
   // Main app with navigation
   return (
     <Navigation
