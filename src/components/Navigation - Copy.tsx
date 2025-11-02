@@ -1,6 +1,5 @@
 import { ReactNode, useState } from 'react';
 import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight } from 'lucide-react';
-import { TeamSelectorDropdown, TeamInfo } from './TeamSelectorDropdown';
 
 interface MenuItem {
   id: string;
@@ -12,12 +11,7 @@ interface MenuItem {
 interface Coach {
   naam: string;
   email: string;
-  teamIds?: string[];  // Multi-team support
-}
-
-interface TeamInfo {
   teamId: string;
-  teamNaam: string;
 }
 
 interface NavigationProps {
@@ -29,9 +23,6 @@ interface NavigationProps {
   menuItems?: MenuItem[];
   onLogout?: () => void;
   currentCoach?: Coach | null;
-  selectedTeamId?: string | null;
-  teams?: TeamInfo[];
-  onSelectTeam?: (teamId: string) => void;
 }
 
 export const DEFAULT_MENU_ITEMS: MenuItem[] = [
@@ -65,10 +56,7 @@ export function Navigation({
   children,
   menuItems = DEFAULT_MENU_ITEMS,
   onLogout,
-  currentCoach,
-  selectedTeamId,
-  teams = [],
-  onSelectTeam
+  currentCoach
 }: NavigationProps) {
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -132,17 +120,6 @@ export function Navigation({
                   </p>
                 </div>
               </div>
-
-              {/* Team Selector (Desktop) - Using Shared Component */}
-              <TeamSelectorDropdown
-                teams={teams}
-                selectedTeamId={selectedTeamId}
-                onSelectTeam={onSelectTeam}
-                variant="compact"
-                showLabel={false}
-              />
-              
-              {/* Rest of header */}
               
               {/* Desktop: User button */}
               {currentCoach && (
@@ -335,35 +312,6 @@ export function Navigation({
                     </div>
                   </div>
                 </div>
-
-                {/* Mobile: Team selector */}
-                {teams.length > 1 && (
-                  <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                    <p className="text-xs font-semibold text-gray-600 mb-2">Selecteer Team:</p>
-                    <div className="space-y-1">
-                      {teams.map((team) => (
-                        <button
-                          key={team.teamId}
-                          onClick={() => {
-                            onSelectTeam?.(team.teamId);
-                            setMobileMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-2 px-3 py-2 rounded transition-colors text-sm ${
-                            selectedTeamId === team.teamId
-                              ? 'bg-blue-100 text-blue-600 font-medium'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <span>🏛️</span>
-                          <span>{team.teamNaam}</span>
-                          {selectedTeamId === team.teamId && (
-                            <span className="ml-auto">✓</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </>
             )}
 
