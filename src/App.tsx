@@ -149,7 +149,6 @@ function App() {
         ...kwart,
         doelpunten: [],
         wissels: [],
-        aantekeningen: '',
         themaBeoordelingen: {},
         observaties: []
       }))
@@ -465,16 +464,6 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onUpdateKwartAantekeningen={(kwartIndex, aantekeningen) => {
-            const updated = {
-              ...huidgeWedstrijd,
-              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
-                i === kwartIndex ? { ...k, aantekeningen } : k
-              )
-            };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
           onUpdateKwartThemaBeoordeling={(kwartIndex, themaId, beoordeling) => {
             const updated = {
               ...huidgeWedstrijd,
@@ -623,7 +612,6 @@ function App() {
                             ),
                             wissels: [],
                             doelpunten: [],
-                            aantekeningen: '',
                             themaBeoordelingen: {},
                             observaties: []
                           }))

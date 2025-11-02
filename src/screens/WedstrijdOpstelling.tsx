@@ -28,7 +28,6 @@ interface Props {
   onVerwijderDoelpunt: (kwartIndex: number, doelpuntId: number) => void;
   onUpdateWedstrijdNotities: (notities: string) => void;
   onUpdateWedstrijdThemas: (themas: string[]) => void;
-  onUpdateKwartAantekeningen: (kwartIndex: number, aantekeningen: string) => void;
   onUpdateKwartThemaBeoordeling: (kwartIndex: number, themaId: string, beoordeling: 'goed' | 'beter' | null) => void;
   onUpdateKwartObservaties: (kwartIndex: number, observaties: string[]) => void;
   onSluiten: () => void;
@@ -54,7 +53,6 @@ export default function WedstrijdOpstelling({
   onVerwijderDoelpunt,
   onUpdateWedstrijdNotities,
   onUpdateWedstrijdThemas,
-  onUpdateKwartAantekeningen,
   onUpdateKwartThemaBeoordeling,
   onUpdateKwartObservaties,
   onSluiten
@@ -513,7 +511,6 @@ export default function WedstrijdOpstelling({
     onVerwijderDoelpunt,
     onUpdateWedstrijdNotities,
     onUpdateWedstrijdThemas,
-    onUpdateKwartAantekeningen,
     onUpdateKwartThemaBeoordeling,
     onUpdateKwartObservaties,
     onSluiten,
@@ -883,20 +880,7 @@ export default function WedstrijdOpstelling({
                           );
                         })}
                       </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-xs font-semibold text-gray-700 block mb-1">
-                        💬 Extra opmerkingen (optioneel)
-                      </label>
-                      <textarea
-                        value={kwart.aantekeningen || ''}
-                        onChange={(e) => onUpdateKwartAantekeningen(kwartIndex, e.target.value)}
-                        placeholder="Aanvullende notities voor dit kwart..."
-                        className="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        rows={2}
-                      />
-                    </div>
+                    </div>                  
                   </div>
                 )}
               </div>
