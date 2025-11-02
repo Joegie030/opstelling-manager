@@ -420,6 +420,9 @@ export function Navigation({
                   </div>
                 )}
 
+              </>
+            )}
+
             {menuItems.map((item) => (
               <button
                 key={item.id}
