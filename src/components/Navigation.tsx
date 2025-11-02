@@ -133,6 +133,11 @@ export function Navigation({
                 </div>
               </div>
 
+              {/* DEBUG: Check props */}
+              <div style={{ color: 'red', padding: '10px', backgroundColor: 'yellow' }}>
+                DEBUG: teams={JSON.stringify(teams)} | selectedTeamId={selectedTeamId}
+              </div>
+
               {/* Team Selector (Desktop) - Using Shared Component */}
               <TeamSelectorDropdown
                 teams={teams}
