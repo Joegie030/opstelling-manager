@@ -206,6 +206,54 @@ export function Navigation({
                 </div>
               )}
 
+              {/* Mobile: Team Selector Dropdown (alleen op mobiel, links van hamburger) */}
+              {teams.length > 1 && (
+                <div className="relative md:hidden">
+                  <button
+                    onClick={() => setMobileTeamSelectorOpen(!mobileTeamSelectorOpen)}
+                    className="p-2 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1.5"
+                    title="Selecteer team"
+                  >
+                    <span className="text-lg">🏛️</span>
+                    {mobileTeamSelectorOpen ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {/* Team Selector Dropdown Menu */}
+                  {mobileTeamSelectorOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white text-gray-800 rounded-lg shadow-xl z-50">
+                      <div className="py-2">
+                        {teams.map((team) => (
+                          <button
+                            key={team.teamId}
+                            onClick={() => {
+                              onSelectTeam?.(team.teamId);
+                              setMobileTeamSelectorOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between gap-2 px-4 py-3 transition-colors text-sm ${
+                              selectedTeamId === team.teamId
+                                ? 'bg-blue-50 text-blue-600 font-semibold'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>⚽</span>
+                              <span>{team.teamNaam}</span>
+                            </div>
+                            {selectedTeamId === team.teamId && (
+                              <span className="text-lg">✓</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Mobile: Hamburger */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -324,57 +372,7 @@ export function Navigation({
                   </div>
                 </div>
 
-                {/* Mobile: Team selector - COLLAPSIBLE VERSION */}
-                {teams.length > 1 && (
-                  <div className="border-b border-gray-200">
-                    {/* Team Selector Header Button */}
-                    <button
-                      onClick={() => setMobileTeamSelectorOpen(!mobileTeamSelectorOpen)}
-                      className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">🏛️</span>
-                        <div className="text-left">
-                          <p className="text-xs font-semibold text-gray-600">Team</p>
-                          <p className="text-sm font-medium text-gray-800">
-                            {teams.find(t => t.teamId === selectedTeamId)?.teamNaam || 'Selecteer team'}
-                          </p>
-                        </div>
-                      </div>
-                      {mobileTeamSelectorOpen ? (
-                        <ChevronUp className="w-5 h-5 text-gray-600 transition-transform" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-600 transition-transform" />
-                      )}
-                    </button>
-
-                    {/* Team Selector Options - Collapsible */}
-                    {mobileTeamSelectorOpen && (
-                      <div className="px-4 py-3 bg-white space-y-1 border-t border-gray-200">
-                        {teams.map((team) => (
-                          <button
-                            key={team.teamId}
-                            onClick={() => {
-                              onSelectTeam?.(team.teamId);
-                              setMobileTeamSelectorOpen(false);
-                            }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded transition-colors text-sm ${
-                              selectedTeamId === team.teamId
-                                ? 'bg-blue-100 text-blue-600 font-semibold'
-                                : 'text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            <span>⚽</span>
-                            <span className="flex-1 text-left">{team.teamNaam}</span>
-                            {selectedTeamId === team.teamId && (
-                              <span className="text-lg">✓</span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+                {/* Mobile: Team selector is nu OUT of burger menu, in navbar! */}
               </>
             )}
 
