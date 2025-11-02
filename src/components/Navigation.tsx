@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight, ChevronDown, ChevronUp, Shirt } from 'lucide-react';
+import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight, ChevronDown, ChevronUp, Users2 } from 'lucide-react';
 import { TeamSelectorDropdown, TeamInfo } from './TeamSelectorDropdown';
 
 interface MenuItem {
@@ -127,7 +127,7 @@ export function Navigation({
                 </div>
               </div>
 
-              {/* Team Selector (Desktop) - Using Shirt Icon (consistent met mobiel) */}
+              {/* Team Selector (Desktop) - Using Users2 Icon (consistent met mobiel) */}
               {teams.length > 1 && (
                 <div className="relative hidden md:block">
                   <button
@@ -135,7 +135,7 @@ export function Navigation({
                     className="px-3 py-2 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 text-white"
                     title="Selecteer team"
                   >
-                    <Shirt className="w-5 h-5" />
+                    <Users2 className="w-5 h-5" />
                     <span className="font-medium text-sm">
                       {teams.find(t => t.teamId === selectedTeamId)?.teamNaam || 'Team'}
                     </span>
@@ -160,7 +160,7 @@ export function Navigation({
                             }`}
                           >
                             <div className="flex items-center gap-2">
-                              <Shirt className="w-4 h-4 text-blue-600" />
+                              <Users2 className="w-4 h-4 text-blue-600" />
                               <span>{team.teamNaam}</span>
                             </div>
                             {selectedTeamId === team.teamId && (
@@ -245,11 +245,11 @@ export function Navigation({
                 </div>
               )}
 
-              {/* Mobile: Team naam (klein, gewoon text naast burger) */}
+              {/* Mobile: Team naam (twee-regel layout, volledig zichtbaar) */}
               {teams.length > 1 && (
-                <div className="flex items-center gap-1 mr-2">
-                  <Shirt className="w-4 h-4 flex-shrink-0" />
-                  <span className="font-medium text-xs truncate max-w-[50px]">
+                <div className="flex flex-col items-center gap-0.5 mr-2">
+                  <Users2 className="w-4 h-4 flex-shrink-0" />
+                  <span className="font-medium text-xs text-center" style={{ lineHeight: '1.1' }}>
                     {teams.find(t => t.teamId === selectedTeamId)?.teamNaam || 'Team'}
                   </span>
                 </div>
@@ -382,7 +382,7 @@ export function Navigation({
                       className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
-                        <Shirt className="w-5 h-5 text-blue-600" />
+                        <Users2 className="w-5 h-5 text-blue-600" />
                         <span className="font-semibold text-gray-800">Teams</span>
                       </div>
                       {mobileTeamSelectorOpen ? (
@@ -408,7 +408,7 @@ export function Navigation({
                                 : 'text-gray-700 hover:bg-gray-100'
                             }`}
                           >
-                            <span>⚽</span>
+                            <Users2 className="w-4 h-4 text-blue-600" />
                             <span className="flex-1 text-left">{team.teamNaam}</span>
                             {selectedTeamId === team.teamId && (
                               <span className="text-lg">✓</span>
