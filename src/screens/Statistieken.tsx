@@ -96,6 +96,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
           bestSuccessRate = data.successRate;
           bestPositie = pos;
         }
+      });
 
       stat.bestPositie = bestPositie;
       stat.successRateBest = bestSuccessRate > 0 ? bestSuccessRate : 0;

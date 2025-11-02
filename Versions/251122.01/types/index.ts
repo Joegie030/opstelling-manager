@@ -93,9 +93,9 @@ export const ALLE_THEMAS = [
 ];
 
 export const KWART_OBSERVATIES = [
-  'Sterk kwart',
-  'Zwaar kwart',
-  'Veel kansen',
-  'Goed verdedigd',
-  'Goede inzet'
+  { id: 'sterkkwart', label: 'Sterk kwart', emoji: '⭐' },
+  { id: 'zwaarkwart', label: 'Zwaar kwart', emoji: '😰' },
+  { id: 'veelkansen', label: 'Veel kansen', emoji: '🎯' },
+  { id: 'goedverdedigd', label: 'Goed verdedigd', emoji: '🛡️' },
+  { id: 'goedeinzet', label: 'Goede inzet', emoji: '💪' }
 ];
