@@ -44,7 +44,7 @@ export function TeamSelectorDropdown({
       <div className="relative hidden md:block mr-4">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="px-3 py-2 text-sm flex items-center gap-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors text-white border-2 border-blue-300 font-semibold shadow-md"
+          className="px-3 py-2 text-sm flex items-center gap-2 hover:bg-blue-700 rounded-lg transition-colors text-blue-100"
           title="Wissel team"
         >
           <span className="text-lg">🏛️</span>
