@@ -23,7 +23,6 @@ import {
   deleteTeam
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
-import { laadTeamInfo, TeamInfo } from './utils/teamData';
 
 function App() {
   // Auth state
@@ -32,10 +31,6 @@ function App() {
 
   // ✨ Team selectie (seizoenen verwijderd)
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  
-  // ✨ NEW: Teams list with team names (for dropdown)
-  const [teams, setTeams] = useState<TeamInfo[]>([]);
-  const [teamsLoading, setTeamsLoading] = useState(false);
 
   // App state
   const [spelers, setSpelers] = useState<Speler[]>([]);
@@ -72,34 +67,14 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // ✨ EFFECT 2: Load all team info when coach changes
-  // 🎯 This populates the teams dropdown with team names
-  useEffect(() => {
-    if (currentCoach?.teamIds && currentCoach.teamIds.length > 0) {
-      setTeamsLoading(true);
-      laadTeamInfo(currentCoach.teamIds, getTeam)
-        .then(loadedTeams => {
-          console.log('✅ Teams loaded in App:', loadedTeams);
-          setTeams(loadedTeams);
-          setTeamsLoading(false);
-        })
-        .catch(error => {
-          console.error('❌ Error loading teams:', error);
-          setTeamsLoading(false);
-        });
-    } else {
-      setTeams([]);
-    }
-  }, [currentCoach?.teamIds]);
-
-  // ✨ EFFECT 3: Load team data when team selected (seizoenen verwijderd!)
+  // ✨ EFFECT 2: Load team data when team selected (seizoenen verwijderd!)
   useEffect(() => {
     if (selectedTeamId) {
       loadTeamData(selectedTeamId);
     }
   }, [selectedTeamId]);
 
-  // ✨ EFFECT 4: Auto-save spelers naar Firestore (teamId nodig)
+  // ✨ EFFECT 3: Auto-save spelers naar Firestore (teamId nodig)
   useEffect(() => {
     if (selectedTeamId && spelers.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -109,7 +84,7 @@ function App() {
     }
   }, [spelers, selectedTeamId]);
 
-  // ✨ EFFECT 5: Auto-save wedstrijden naar Firestore (seizoenId verwijderd!)
+  // ✨ EFFECT 4: Auto-save wedstrijden naar Firestore (seizoenId verwijderd!)
   useEffect(() => {
     if (selectedTeamId && wedstrijden.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -119,7 +94,7 @@ function App() {
     }
   }, [wedstrijden, selectedTeamId]);
 
-  // ✨ EFFECT 6: Auto-save team info naar Firestore (teamId nodig)
+  // ✨ EFFECT 5: Auto-save team info naar Firestore (teamId nodig)
   useEffect(() => {
     if (selectedTeamId) {
       const saveTimeout = setTimeout(() => {
@@ -174,7 +149,6 @@ function App() {
         ...kwart,
         doelpunten: [],
         wissels: [],
-        aantekeningen: '',
         themaBeoordelingen: {},
         observaties: []
       }))
@@ -265,15 +239,10 @@ function App() {
       console.log('✅ Team created:', newTeamId);
       
       // Update current coach state
-      const updatedCoach = {
+      setCurrentCoach({
         ...currentCoach,
         teamIds: [...currentCoach.teamIds, newTeamId]
-      };
-      setCurrentCoach(updatedCoach);
-      
-      // Reload teams (will be done automatically by EFFECT 2)
-      // But manually add to avoid delay
-      setTeams([...teams, { teamId: newTeamId, teamNaam }]);
+      });
       
       // Selecteer nieuwe team
       setSelectedTeamId(newTeamId);
@@ -314,9 +283,6 @@ function App() {
         teamIds: remainingTeamIds
       });
 
-      // Update teams list
-      setTeams(teams.filter(t => t.teamId !== teamIdToDelete));
-
       // Als teams over zijn, selecteer volgende. Anders: terug naar team beheer scherm
       if (remainingTeamIds.length > 0) {
         // Nog teams over? Select eerste
@@ -353,7 +319,6 @@ function App() {
       await logoutCoach();
       setCurrentCoach(null);
       setSelectedTeamId(null);
-      setTeams([]);
       setSpelers([]);
       setWedstrijden([]);
     } catch (error) {
@@ -378,6 +343,18 @@ function App() {
     return <AuthScreen />;
   }
 
+  // ✨ Bouw teams list voor header selector
+  const getTeamsForSelector = () => {
+    if (!currentCoach?.teamIds || currentCoach.teamIds.length === 0) {
+      return [];
+    }
+    
+    return currentCoach.teamIds.map(teamId => ({
+      teamId,
+      teamNaam: teamId === selectedTeamId ? teamNaam : `Team (${teamId})`
+    }));
+  };
+
   // Main app with navigation
   return (
     <Navigation
@@ -392,11 +369,10 @@ function App() {
         }
       }}
       activeScreen={huidigScherm}
-      // ✨ PASS TEAMS AND TEAM SELECTOR
-      teams={teams}
-      selectedTeamId={selectedTeamId}
+            selectedTeamId={selectedTeamId}
+      teams={getTeamsForSelector()}
       onSelectTeam={(newTeamId) => {
-        console.log('🔵 User selected team:', newTeamId);
+        console.log('🔵 Team selected from header:', newTeamId);
         setSelectedTeamId(newTeamId);
       }}
     >
@@ -506,16 +482,6 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onUpdateKwartAantekeningen={(kwartIndex, aantekeningen) => {
-            const updated = {
-              ...huidgeWedstrijd,
-              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
-                i === kwartIndex ? { ...k, aantekeningen } : k
-              )
-            };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
           onUpdateKwartThemaBeoordeling={(kwartIndex, themaId, beoordeling) => {
             const updated = {
               ...huidgeWedstrijd,
@@ -600,9 +566,8 @@ function App() {
             onCreateTeam={handleCreateTeam}
             currentCoach={currentCoach}
             teamIds={currentCoach?.teamIds || []}
-            teams={teams}
             onSelectTeam={(newTeamId) => {
-              console.log('🔵 TeamBeheer: user selected team:', newTeamId);
+              console.log('🔵 User selected team:', newTeamId);
               setSelectedTeamId(newTeamId);
             }}
             onDeleteTeam={handleDeleteTeam}
@@ -665,7 +630,6 @@ function App() {
                             ),
                             wissels: [],
                             doelpunten: [],
-                            aantekeningen: '',
                             themaBeoordelingen: {},
                             observaties: []
                           }))

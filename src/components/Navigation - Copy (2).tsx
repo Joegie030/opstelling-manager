@@ -15,6 +15,11 @@ interface Coach {
   teamIds?: string[];  // Multi-team support
 }
 
+interface TeamInfo {
+  teamId: string;
+  teamNaam: string;
+}
+
 interface NavigationProps {
   clubNaam: string;
   teamNaam: string;
@@ -196,7 +201,7 @@ export function Navigation({
                             className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-left"
                           >
                             <LogOut className="w-5 h-5" />
-                            <span className="font-medium">Log uit</span>
+                            <span className="font-medium">Uitloggen</span>
                           </button>
                         )}
                       </div>
@@ -205,16 +210,21 @@ export function Navigation({
                 </div>
               )}
 
-              {/* Mobile: Hamburger */}
+              {/* Mobile: Hamburger button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 hover:bg-blue-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-blue-700 rounded-lg transition-colors md:hidden"
+                title="Menu"
               >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </button>
             </div>
 
-            {/* Desktop Menu Bar */}
+            {/* Bottom row: Horizontal menu (desktop only) */}
             <div className="hidden md:flex items-center gap-1">
               {visibleItems.map((item) => (
                 <button
