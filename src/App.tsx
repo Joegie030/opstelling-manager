@@ -20,7 +20,7 @@ import {
   saveWedstrijden, 
   saveTeamInfo,
   createTeam,
-  deleteTeam
+  deleteTeam,
   deleteWedstrijd
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
