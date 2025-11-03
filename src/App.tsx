@@ -107,7 +107,7 @@ function App() {
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [spelers, selectedTeamId]);
+  }, [spelers]);
 
   // ✨ EFFECT 5: Auto-save wedstrijden naar Firestore (seizoenId verwijderd!)
   useEffect(() => {
@@ -117,7 +117,7 @@ function App() {
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [wedstrijden, selectedTeamId]);
+  }, [wedstrijden]);
 
   // ✨ EFFECT 6: Auto-save team info naar Firestore (teamId nodig)
   useEffect(() => {
@@ -127,7 +127,7 @@ function App() {
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [clubNaam, teamNaam, selectedTeamId]);
+  }, [clubNaam, teamNaam]);
 
   // ✨ Laad team data van Firestore (seizoenId verwijderd!)
   const loadTeamData = async (teamId: string) => {
