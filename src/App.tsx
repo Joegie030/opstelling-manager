@@ -21,6 +21,7 @@ import {
   saveTeamInfo,
   createTeam,
   deleteTeam
+  deleteWedstrijd
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
 import { laadTeamInfo, TeamInfo } from './utils/teamData';
@@ -186,9 +187,26 @@ function App() {
     setHuidigScherm('wedstrijden');
   };
 
-  // Verwijder wedstrijd
-  const verwijderWedstrijd = (id: number) => {
-    setWedstrijden(wedstrijden.filter(w => w.id !== id));
+// Verwijder wedstrijd
+  const verwijderWedstrijd = async (id: number) => {
+    try {
+      // 1. Verwijder lokaal uit state
+      const updatedWedstrijden = wedstrijden.filter(w => w.id !== id);
+      setWedstrijden(updatedWedstrijden);
+      
+      // 2. Verwijder uit Firebase
+      if (selectedTeamId) {
+        const wedstrijdId = `wedstrijd_${id}`;
+        await deleteWedstrijd(selectedTeamId, wedstrijdId);
+        console.log('✅ Wedstrijd verwijderd uit Firebase:', wedstrijdId);
+      }
+    } catch (error) {
+      console.error('❌ Error deleting wedstrijd:', error);
+      // Reload als het mislukt
+      if (selectedTeamId) {
+        await loadTeamData(selectedTeamId);
+      }
+    }
   };
 
   // Voeg speler toe
