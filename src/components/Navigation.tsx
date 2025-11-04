@@ -122,7 +122,7 @@ export function Navigation({
                 {/* Club info */}
                 <div className="ml-auto flex flex-col text-right hidden sm:flex">
                   <p className="text-xs text-blue-200 truncate">
-                    🏆 {clubNaam}
+                    {clubNaam}
                   </p>
                 </div>
               </div>
