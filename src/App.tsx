@@ -20,9 +20,12 @@ import {
   saveWedstrijden, 
   saveTeamInfo,
   createTeam,
-  deleteTeam
+  deleteTeam,
+  deleteWedstrijd,
+  deleteSpeler
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
+import { laadTeamInfo, TeamInfo } from './utils/teamData';
 
 function App() {
   // Auth state
@@ -31,6 +34,10 @@ function App() {
 
   // ✨ Team selectie (seizoenen verwijderd)
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  
+  // ✨ NEW: Teams list with team names (for dropdown)
+  const [teams, setTeams] = useState<TeamInfo[]>([]);
+  const [teamsLoading, setTeamsLoading] = useState(false);
 
   // App state
   const [spelers, setSpelers] = useState<Speler[]>([]);
@@ -67,14 +74,34 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // ✨ EFFECT 2: Load team data when team selected (seizoenen verwijderd!)
+  // ✨ EFFECT 2: Load all team info when coach changes
+  // 🎯 This populates the teams dropdown with team names
+  useEffect(() => {
+    if (currentCoach?.teamIds && currentCoach.teamIds.length > 0) {
+      setTeamsLoading(true);
+      laadTeamInfo(currentCoach.teamIds, getTeam)
+        .then(loadedTeams => {
+          console.log('✅ Teams loaded in App:', loadedTeams);
+          setTeams(loadedTeams);
+          setTeamsLoading(false);
+        })
+        .catch(error => {
+          console.error('❌ Error loading teams:', error);
+          setTeamsLoading(false);
+        });
+    } else {
+      setTeams([]);
+    }
+  }, [currentCoach?.teamIds]);
+
+  // ✨ EFFECT 3: Load team data when team selected (seizoenen verwijderd!)
   useEffect(() => {
     if (selectedTeamId) {
       loadTeamData(selectedTeamId);
     }
   }, [selectedTeamId]);
 
-  // ✨ EFFECT 3: Auto-save spelers naar Firestore (teamId nodig)
+  // ✨ EFFECT 4: Auto-save spelers naar Firestore (teamId nodig)
   useEffect(() => {
     if (selectedTeamId && spelers.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -82,9 +109,9 @@ function App() {
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [spelers, selectedTeamId]);
+  }, [spelers]);
 
-  // ✨ EFFECT 4: Auto-save wedstrijden naar Firestore (seizoenId verwijderd!)
+  // ✨ EFFECT 5: Auto-save wedstrijden naar Firestore (seizoenId verwijderd!)
   useEffect(() => {
     if (selectedTeamId && wedstrijden.length > 0) {
       const saveTimeout = setTimeout(() => {
@@ -92,9 +119,9 @@ function App() {
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [wedstrijden, selectedTeamId]);
+  }, [wedstrijden]);
 
-  // ✨ EFFECT 5: Auto-save team info naar Firestore (teamId nodig)
+  // ✨ EFFECT 6: Auto-save team info naar Firestore (teamId nodig)
   useEffect(() => {
     if (selectedTeamId) {
       const saveTimeout = setTimeout(() => {
@@ -102,7 +129,7 @@ function App() {
       }, 1000);
       return () => clearTimeout(saveTimeout);
     }
-  }, [clubNaam, teamNaam, selectedTeamId]);
+  }, [clubNaam, teamNaam]);
 
   // ✨ Laad team data van Firestore (seizoenId verwijderd!)
   const loadTeamData = async (teamId: string) => {
@@ -161,9 +188,26 @@ function App() {
     setHuidigScherm('wedstrijden');
   };
 
-  // Verwijder wedstrijd
-  const verwijderWedstrijd = (id: number) => {
-    setWedstrijden(wedstrijden.filter(w => w.id !== id));
+// Verwijder wedstrijd
+  const verwijderWedstrijd = async (id: number) => {
+    try {
+      // 1. Verwijder lokaal uit state
+      const updatedWedstrijden = wedstrijden.filter(w => w.id !== id);
+      setWedstrijden(updatedWedstrijden);
+      
+      // 2. Verwijder uit Firebase
+      if (selectedTeamId) {
+        const wedstrijdId = `wedstrijd_${id}`;
+        await deleteWedstrijd(selectedTeamId, wedstrijdId);
+        console.log('✅ Wedstrijd verwijderd uit Firebase:', wedstrijdId);
+      }
+    } catch (error) {
+      console.error('❌ Error deleting wedstrijd:', error);
+      // Reload als het mislukt
+      if (selectedTeamId) {
+        await loadTeamData(selectedTeamId);
+      }
+    }
   };
 
   // Voeg speler toe
@@ -240,10 +284,15 @@ function App() {
       console.log('✅ Team created:', newTeamId);
       
       // Update current coach state
-      setCurrentCoach({
+      const updatedCoach = {
         ...currentCoach,
         teamIds: [...currentCoach.teamIds, newTeamId]
-      });
+      };
+      setCurrentCoach(updatedCoach);
+      
+      // Reload teams (will be done automatically by EFFECT 2)
+      // But manually add to avoid delay
+      setTeams([...teams, { teamId: newTeamId, teamNaam }]);
       
       // Selecteer nieuwe team
       setSelectedTeamId(newTeamId);
@@ -284,6 +333,9 @@ function App() {
         teamIds: remainingTeamIds
       });
 
+      // Update teams list
+      setTeams(teams.filter(t => t.teamId !== teamIdToDelete));
+
       // Als teams over zijn, selecteer volgende. Anders: terug naar team beheer scherm
       if (remainingTeamIds.length > 0) {
         // Nog teams over? Select eerste
@@ -309,9 +361,37 @@ function App() {
     }
   };
 
-  // Verwijder speler
-  const removeSpeler = (id: number) => {
-    setSpelers(spelers.filter(s => s.id !== id));
+// Verwijder speler
+  const removeSpeler = async (id: number) => {
+    try {
+      const speler = spelers.find(s => s.id === id);
+      
+      // 1. Verwijder lokaal
+      const updatedSpelers = spelers.filter(s => s.id !== id);
+      setSpelers(updatedSpelers);
+      
+      // 2. Bij gast-speler: verwijder ook uit wedstrijden (afwezigeSpelers)
+      if (speler?.type === 'gast') {
+        const updatedWedstrijden = wedstrijden.map(w => ({
+          ...w,
+          afwezigeSpelers: (w.afwezigeSpelers || []).filter(sid => sid !== id)
+        }));
+        setWedstrijden(updatedWedstrijden);
+      }
+      
+      // 3. Verwijder uit Firebase (JUISTE IMPORT NAAM!)
+      if (selectedTeamId) {
+        const spelerId = `speler_${id}`;
+        await deleteSpeler(selectedTeamId, spelerId);  // ← deleteSpeler (de import!)
+        console.log('✅ Speler verwijderd uit Firebase:', spelerId);
+      }
+    } catch (error) {
+      console.error('❌ Error deleting speler:', error);
+      // Reload op error
+      if (selectedTeamId) {
+        await loadTeamData(selectedTeamId);
+      }
+    }
   };
 
   // Logout handler
@@ -320,6 +400,7 @@ function App() {
       await logoutCoach();
       setCurrentCoach(null);
       setSelectedTeamId(null);
+      setTeams([]);
       setSpelers([]);
       setWedstrijden([]);
     } catch (error) {
@@ -358,6 +439,13 @@ function App() {
         }
       }}
       activeScreen={huidigScherm}
+      // ✨ PASS TEAMS AND TEAM SELECTOR
+      teams={teams}
+      selectedTeamId={selectedTeamId}
+      onSelectTeam={(newTeamId) => {
+        console.log('🔵 User selected team:', newTeamId);
+        setSelectedTeamId(newTeamId);
+      }}
     >
       {/* ✅ STAP 1: WEDSTRIJDEN SCHERM - FIXED PROPS */}
       {huidigScherm === 'wedstrijden' && (
@@ -559,8 +647,9 @@ function App() {
             onCreateTeam={handleCreateTeam}
             currentCoach={currentCoach}
             teamIds={currentCoach?.teamIds || []}
+            teams={teams}
             onSelectTeam={(newTeamId) => {
-              console.log('🔵 User selected team:', newTeamId);
+              console.log('🔵 TeamBeheer: user selected team:', newTeamId);
               setSelectedTeamId(newTeamId);
             }}
             onDeleteTeam={handleDeleteTeam}

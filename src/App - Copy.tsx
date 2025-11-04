@@ -149,7 +149,6 @@ function App() {
         ...kwart,
         doelpunten: [],
         wissels: [],
-        aantekeningen: '',
         themaBeoordelingen: {},
         observaties: []
       }))
@@ -175,6 +174,59 @@ function App() {
       team: team || undefined
     };
     setSpelers([...spelers, newSpeler]);
+  };
+
+  // ✨ WISSEL HANDLERS
+  const handleVoegWisselToe = (kwartIndex: number) => {
+    const updated = {
+      ...huidgeWedstrijd!,
+      kwarten: huidgeWedstrijd!.kwarten.map((k, i) => {
+        if (i === kwartIndex) {
+          const newId = Math.max(...k.wissels.map(w => w.id), 0) + 1;
+          return {
+            ...k,
+            wissels: [...k.wissels, { id: newId, positie: '', wisselSpelerId: '' }]
+          };
+        }
+        return k;
+      })
+    };
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  const handleUpdateWissel = (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => {
+    const updated = {
+      ...huidgeWedstrijd!,
+      kwarten: huidgeWedstrijd!.kwarten.map((k, i) => {
+        if (i === kwartIndex) {
+          return {
+            ...k,
+            wissels: k.wissels.map((w, idx) => idx === wisselIndex ? { ...w, [veld]: waarde } : w)
+          };
+        }
+        return k;
+      })
+    };
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+  };
+
+  const handleVerwijderWissel = (kwartIndex: number, wisselIndex: number) => {
+    const updated = {
+      ...huidgeWedstrijd!,
+      kwarten: huidgeWedstrijd!.kwarten.map((k, i) => {
+        if (i === kwartIndex) {
+          return {
+            ...k,
+            wissels: k.wissels.filter((_, idx) => idx !== wisselIndex)
+          };
+        }
+        return k;
+      })
+    };
+    setHuidgeWedstrijd(updated);
+    setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
   };
 
   // Maak nieuw team aan
@@ -291,6 +343,18 @@ function App() {
     return <AuthScreen />;
   }
 
+  // ✨ Bouw teams list voor header selector
+  const getTeamsForSelector = () => {
+    if (!currentCoach?.teamIds || currentCoach.teamIds.length === 0) {
+      return [];
+    }
+    
+    return currentCoach.teamIds.map(teamId => ({
+      teamId,
+      teamNaam: teamId === selectedTeamId ? teamNaam : `Team (${teamId})`
+    }));
+  };
+
   // Main app with navigation
   return (
     <Navigation
@@ -305,6 +369,12 @@ function App() {
         }
       }}
       activeScreen={huidigScherm}
+            selectedTeamId={selectedTeamId}
+      teams={getTeamsForSelector()}
+      onSelectTeam={(newTeamId) => {
+        console.log('🔵 Team selected from header:', newTeamId);
+        setSelectedTeamId(newTeamId);
+      }}
     >
       {/* ✅ STAP 1: WEDSTRIJDEN SCHERM - FIXED PROPS */}
       {huidigScherm === 'wedstrijden' && (
@@ -329,7 +399,23 @@ function App() {
           spelers={spelers}
           clubNaam={clubNaam}
           teamNaam={teamNaam}
-          onUpdateWedstrijd={(updated) => {
+          onUpdateDatum={(datum) => {
+            const updated = { ...huidgeWedstrijd, datum };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateTegenstander={(tegenstander) => {
+            const updated = { ...huidgeWedstrijd, tegenstander };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateThuisUit={(thuisUit) => {
+            const updated = { ...huidgeWedstrijd, thuisUit };
+            setHuidgeWedstrijd(updated);
+            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
+          }}
+          onUpdateWedstrijdType={(type) => {
+            const updated = { ...huidgeWedstrijd, type };
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
@@ -343,18 +429,8 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onUpdateWedstrijdType={(type) => {
-            const updated = { ...huidgeWedstrijd, type };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
           onUpdateWedstrijdFormatie={(formatie) => {
             const updated = { ...huidgeWedstrijd, formatie };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
-          onUpdateThuisUit={(thuisUit) => {
-            const updated = { ...huidgeWedstrijd, thuisUit };
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
@@ -393,21 +469,14 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
+          onVoegWisselToe={handleVoegWisselToe}
+          onUpdateWissel={handleUpdateWissel}
+          onVerwijderWissel={handleVerwijderWissel}
           onUpdateKwartDoelpunten={(kwartIndex, doelpunten) => {
             const updated = {
               ...huidgeWedstrijd,
               kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
                 i === kwartIndex ? { ...k, doelpunten } : k
-              )
-            };
-            setHuidgeWedstrijd(updated);
-            setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
-          }}
-          onUpdateKwartAantekeningen={(kwartIndex, aantekeningen) => {
-            const updated = {
-              ...huidgeWedstrijd,
-              kwarten: huidgeWedstrijd.kwarten.map((k, i) =>
-                i === kwartIndex ? { ...k, aantekeningen } : k
               )
             };
             setHuidgeWedstrijd(updated);
@@ -561,7 +630,6 @@ function App() {
                             ),
                             wissels: [],
                             doelpunten: [],
-                            aantekeningen: '',
                             themaBeoordelingen: {},
                             observaties: []
                           }))

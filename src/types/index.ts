@@ -24,7 +24,6 @@ export interface Kwart {
   opstelling: Record<string, string>;
   wissels: Wissel[];
   minuten: number;
-  aantekeningen?: string;
   doelpunten?: Doelpunt[];
   themaBeoordelingen?: Record<string, 'goed' | 'beter' | null>;
   observaties?: string[];
