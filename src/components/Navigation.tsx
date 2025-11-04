@@ -122,7 +122,7 @@ export function Navigation({
                 {/* Club info */}
                 <div className="ml-auto flex flex-col text-right hidden sm:flex">
                   <p className="text-xs text-blue-200 truncate">
-                    🏆 {clubNaam}
+                    {clubNaam}
                   </p>
                 </div>
               </div>
@@ -242,16 +242,6 @@ export function Navigation({
                       </div>
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* Mobile: Team naam (twee-regel layout, volledig zichtbaar) */}
-              {teams.length > 1 && (
-                <div className="flex flex-col items-center gap-0.5 mr-2">
-                  <Users2 className="w-4 h-4 flex-shrink-0" />
-                  <span className="font-medium text-xs text-center" style={{ lineHeight: '1.1' }}>
-                    {teams.find(t => t.teamId === selectedTeamId)?.teamNaam || 'Team'}
-                  </span>
                 </div>
               )}
 
