@@ -21,7 +21,8 @@ import {
   saveTeamInfo,
   createTeam,
   deleteTeam,
-  deleteWedstrijd
+  deleteWedstrijd,
+  deleteSpeler
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
 import { laadTeamInfo, TeamInfo } from './utils/teamData';
@@ -360,9 +361,37 @@ function App() {
     }
   };
 
-  // Verwijder speler
-  const removeSpeler = (id: number) => {
-    setSpelers(spelers.filter(s => s.id !== id));
+// Verwijder speler
+  const removeSpeler = async (id: number) => {
+    try {
+      const speler = spelers.find(s => s.id === id);
+      
+      // 1. Verwijder lokaal
+      const updatedSpelers = spelers.filter(s => s.id !== id);
+      setSpelers(updatedSpelers);
+      
+      // 2. Bij gast-speler: verwijder ook uit wedstrijden (afwezigeSpelers)
+      if (speler?.type === 'gast') {
+        const updatedWedstrijden = wedstrijden.map(w => ({
+          ...w,
+          afwezigeSpelers: (w.afwezigeSpelers || []).filter(sid => sid !== id)
+        }));
+        setWedstrijden(updatedWedstrijden);
+      }
+      
+      // 3. Verwijder uit Firebase (JUISTE IMPORT NAAM!)
+      if (selectedTeamId) {
+        const spelerId = `speler_${id}`;
+        await deleteSpeler(selectedTeamId, spelerId);  // ← deleteSpeler (de import!)
+        console.log('✅ Speler verwijderd uit Firebase:', spelerId);
+      }
+    } catch (error) {
+      console.error('❌ Error deleting speler:', error);
+      // Reload op error
+      if (selectedTeamId) {
+        await loadTeamData(selectedTeamId);
+      }
+    }
   };
 
   // Logout handler
