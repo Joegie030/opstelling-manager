@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Users2 } from 'lucide-react';
 import { Speler } from '../types';
 import InviteCoaches from '../components/InviteCoaches';
 import { getTeam } from '../firebase/firebaseService';
@@ -175,7 +175,10 @@ export default function TeamBeheer({
       {/* ========== 0. TEAM SELECTOR SECTION - COMPACT ========== */}
       {teamIds.length > 0 && (
         <div className="border-2 border-purple-400 rounded-lg p-4 sm:p-6 bg-purple-50">
-          <label className="text-sm font-semibold text-gray-700 block mb-2">Selecteer Team:</label>
+          <label className="text-sm font-semibold text-gray-700 block mb-2 flex items-center gap-2">
+            <Users2 className="w-5 h-5 text-purple-600" />
+            Selecteer Team:
+          </label>
           
           {/* ✨ Uniform Layout: Dropdown + Button (compact on mobile & desktop) */}
           <div className="flex items-center gap-2">
@@ -190,11 +193,11 @@ export default function TeamBeheer({
                 className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg bg-white hover:bg-purple-50 font-medium text-left transition-colors appearance-none cursor-pointer pr-10"
               >
                 <option value="">-- Kies een team --</option>
-                {teams.map(team => (
-                  <option key={team.teamId} value={team.teamId}>
-                    🏛️ {team.teamNaam}
-                  </option>
-                ))}
+                  {teams.map(team => (
+                    <option key={team.teamId} value={team.teamId}>
+                      {team.teamNaam}
+                    </option>
+                  ))}
               </select>
               <div className="pointer-events-none absolute right-3 top-3 text-purple-600">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
