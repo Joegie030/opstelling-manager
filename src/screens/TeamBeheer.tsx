@@ -462,6 +462,7 @@ export default function TeamBeheer({
             </>
           )}
         </div>
+      </div>
 
       {/* ========== 3. COACHES MANAGEMENT ========== */}
       <div className="border-2 border-blue-400 rounded-lg p-6 bg-blue-50 mt-6">
@@ -476,7 +477,6 @@ export default function TeamBeheer({
           onRevokeInvite={onRevokeInvite || (async () => {})}
           onRemoveCoach={onRemoveCoach || (async () => {})}
         />
-      </div>
       </div>
     </div>
   );
