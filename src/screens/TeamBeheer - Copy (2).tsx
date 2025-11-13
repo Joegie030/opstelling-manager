@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Users2 } from 'lucide-react';
-import { Speler, CoachInvite } from '../types';
-import CoachBeheer from './CoachBeheer';
+import { Speler } from '../types';
+import InviteCoaches from '../components/InviteCoaches';
 import { getTeam } from '../firebase/firebaseService';
 import { laadTeamInfo, TeamInfo } from '../utils/teamData';
 
@@ -25,12 +25,6 @@ interface TeamBeheerProps {
   onSelectTeam?: (teamId: string) => void;
   onCreateTeam?: (clubNaam: string, teamNaam: string) => Promise<void>;
   onDeleteTeam?: (teamId: string) => Promise<void>;
-
-  // ✨ NEW: Coach Beheer props (v3.1)
-  pendingInvites?: CoachInvite[];
-  teamCoaches?: any[];
-  onRevokeInvite?: (inviteId: string) => Promise<void>;
-  onRemoveCoach?: (coachUid: string) => Promise<void>;
 }
 
 export default function TeamBeheer({
@@ -47,14 +41,9 @@ export default function TeamBeheer({
   teams = [],
   onSelectTeam,
   onCreateTeam,
-  onDeleteTeam,
-  // ✨ NEW destructuring:
-  pendingInvites = [],
-  teamCoaches = [],
-  onRevokeInvite,
-  onRemoveCoach
+  onDeleteTeam
 }: TeamBeheerProps) {
-  const [activeTab, setActiveTab] = useState<'vast' | 'gast' | 'coaches'>('vast');
+  const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
   const [nieuwGastTeam, setNieuwGastTeam] = useState('');
   
@@ -333,16 +322,6 @@ export default function TeamBeheer({
           >
             👤 Gastspelers ({gastSpelers.length})
           </button>
-          <button
-            onClick={() => setActiveTab('coaches')}
-            className={`px-6 py-3 font-bold text-lg transition-colors ${
-              activeTab === 'coaches'
-                ? 'border-b-4 border-blue-600 text-blue-700'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            🏆 Coaches
-          </button>
         </div>
 
         {/* INPUT FORM */}
@@ -470,25 +449,12 @@ export default function TeamBeheer({
             </>
           )}
         </div>
-
-        {/* COACHES TAB */}
-        {activeTab === 'coaches' && (
-          <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-            <CoachBeheer
-              teamId={teamId || ''}
-              teamNaam={teamNaam}
-              clubNaam={clubNaam}
-              currentCoach={currentCoach}
-              pendingInvites={pendingInvites}
-              teamCoaches={teamCoaches}
-              onRevokeInvite={onRevokeInvite || (async () => {})}
-              onRemoveCoach={onRemoveCoach || (async () => {})}
-            />
-          </div>
-        )}
       </div>
 
-      {/* ========== OLD: COACHES SECTION (REMOVED - now in tab) ========== */}
+      {/* ========== 3. COACHES BEHEREN ========== */}
+      {teamId && currentCoach && (
+        <InviteCoaches teamId={teamId} currentCoach={currentCoach} />
+      )}
     </div>
   );
 }
