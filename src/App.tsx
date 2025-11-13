@@ -99,6 +99,15 @@ function App() {
     }
   }, []); 
 
+  // ✨ EFFECT: Auto-accept invite after auth if URL has inviteId
+  useEffect(() => {
+    if (currentCoach && inviteIdFromUrl && !authLoading) {
+      console.log('🔄 Auto-accepting invite for:', inviteIdFromUrl);
+      handleAcceptInvite(inviteIdFromUrl);
+    }
+  }, [currentCoach, inviteIdFromUrl, authLoading]);
+
+  
   // ✨ EFFECT 2: Load all team info when coach changes
   // 🎯 This populates the teams dropdown with team names
   useEffect(() => {
