@@ -510,6 +510,35 @@ export const getPendingInvites = async (email: string): Promise<CoachInvite[]> =
   }
 };
 
+/**
+ * Get invite by ID and check if expired
+ */
+export const getInviteById = async (inviteId: string): Promise<CoachInvite | null> => {
+  try {
+    const inviteDoc = await getDoc(doc(db, 'invites', inviteId));
+    
+    if (!inviteDoc.exists()) {
+      return null;
+    }
+
+    const invite = inviteDoc.data() as CoachInvite;
+    
+    // Check if expired
+    const now = new Date();
+    const expiresAt = new Date(invite.expiresAt);
+    
+    if (now > expiresAt) {
+      console.log('⏰ Invite expired');
+      return null; // Return null if expired
+    }
+
+    return invite;
+  } catch (error: any) {
+    console.error('❌ Error getting invite:', error);
+    throw new Error(error.message);
+  }
+};
+
 export const acceptInvite = async (inviteId: string, userUid: string, teamId: string): Promise<void> => {
   try {
     await updateDoc(doc(db, 'invites', inviteId), {
