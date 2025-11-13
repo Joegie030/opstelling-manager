@@ -755,8 +755,14 @@ export const revokeInvite = async (inviteId: string): Promise<void> => {
  */
 export const getTeamCoaches = async (teamId: string): Promise<Coach[]> => {
   try {
-    const team = await getTeam(teamId);
-    if (!team || !team.coaches || team.coaches.length === 0) {
+    const teamDoc = await getDoc(doc(db, 'teams', teamId));
+    if (!teamDoc.exists()) {
+      console.log('⚠️ Team not found');
+      return [];
+    }
+
+    const team = teamDoc.data() as Team;
+    if (!team.coaches || team.coaches.length === 0) {
       return [];
     }
 
@@ -768,10 +774,11 @@ export const getTeamCoaches = async (teamId: string): Promise<Coach[]> => {
       }
     }
 
+    console.log('✅ Loaded coaches:', coaches.length);
     return coaches;
   } catch (error: any) {
     console.error('❌ Error getting team coaches:', error);
-    throw new Error(error.message);
+    return []; // Return empty instead of throwing
   }
 };
 
