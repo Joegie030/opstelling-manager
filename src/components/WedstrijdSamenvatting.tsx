@@ -314,7 +314,7 @@ export function WedstrijdSamenvatting() {
 
         {/* ========== STATISTIEKEN ========== */}
         <div className="border-b-2 border-gray-200">
-          <SectionButton section="statistieken" label="Spelaers Statistieken" icon="📋" />
+          <SectionButton section="statistieken" label="Spelers Statistieken" icon="📋" />
           {sections.statistieken && (
             <div className="p-4 bg-gray-50 overflow-x-auto">
               <table className="w-full text-sm">
