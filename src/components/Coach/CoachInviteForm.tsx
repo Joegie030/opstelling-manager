@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCode } from 'qrcode.react';
 import { Copy, Check, Loader } from 'lucide-react';
 import { inviteCoach, Coach } from '../../firebase/firebaseService';
 
