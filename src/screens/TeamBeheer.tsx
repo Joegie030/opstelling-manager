@@ -473,24 +473,22 @@ export default function TeamBeheer({
           )}
         </div>
 
-        {/* COACHES TAB */}
-        {activeTab === 'coaches' && (
-          <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-            <CoachBeheer
-              teamId={teamId || ''}
-              teamNaam={teamNaam}
-              clubNaam={clubNaam}
-              currentCoach={currentCoach}
-              pendingInvites={pendingInvites}
-              teamCoaches={teamCoaches}
-              onRevokeInvite={onRevokeInvite || (async () => {})}
-              onRemoveCoach={onRemoveCoach || (async () => {})}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ========== OLD: COACHES SECTION (REMOVED - now in tab) ========== */}
+      {/* ========== 3. COACHES MANAGEMENT ========== */}
+      {activeTab === 'coaches' && (
+        <div className="border-2 border-blue-400 rounded-lg p-6 bg-blue-50">
+          <h2 className="text-3xl font-bold mb-4">🏆 Coach Management</h2>
+          <CoachBeheer
+            teamId={teamId || ''}
+            teamNaam={teamNaam}
+            clubNaam={clubNaam}
+            currentCoach={currentCoach}
+            pendingInvites={pendingInvites}
+            teamCoaches={teamCoaches}
+            onRevokeInvite={onRevokeInvite || (async () => {})}
+            onRemoveCoach={onRemoveCoach || (async () => {})}
+          />
+        </div>
+      )}
     </div>
   );
 }
