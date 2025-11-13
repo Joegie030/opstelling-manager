@@ -29,27 +29,52 @@ export default function CoachBeheer({
   isLoading = false
 }: CoachBeheerProps) {
   const [invites, setInvites] = useState<CoachInvite[]>(pendingInvites);
+  const [loadingInvites, setLoadingInvites] = useState(false);
 
-  // Update local state when prop changes
+  // Load invites on mount and when teamId changes
   useEffect(() => {
-    setInvites(pendingInvites);
-  }, [pendingInvites]);
+    const loadInvites = async () => {
+      if (!teamId) return;
+      
+      setLoadingInvites(true);
+      try {
+        console.log('📥 Loading pending invites for team:', teamId);
+        const updated = await getPendingInvitesByTeam(teamId);
+        console.log('✅ Loaded invites:', updated);
+        setInvites(updated);
+      } catch (error) {
+        console.error('❌ Error loading invites:', error);
+      } finally {
+        setLoadingInvites(false);
+      }
+    };
+
+    loadInvites();
+  }, [teamId]);
 
   // Refresh pending invites after new invite created
   const handleInviteSent = async () => {
     try {
+      console.log('🔄 Refreshing pending invites after new invite...');
       const updated = await getPendingInvitesByTeam(teamId);
+      console.log('✅ Refreshed invites:', updated);
       setInvites(updated);
     } catch (error) {
-      console.error('Error refreshing pending invites:', error);
+      console.error('❌ Error refreshing pending invites:', error);
     }
   };
+
   return (
     <div className="space-y-6">
       {/* Title */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">🏆 Coach Management</h2>
         <p className="text-gray-600">Beheer en nodig coaches uit voor dit team</p>
+      </div>
+
+      {/* Debug info */}
+      <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800">
+        <p>🔍 Debug: teamId={teamId}, pendingInvites count={invites.length}, loading={loadingInvites}</p>
       </div>
 
       {/* Section 1: Invite form */}
