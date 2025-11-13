@@ -489,6 +489,7 @@ export default function TeamBeheer({
           />
         </div>
       )}
+      </div>
     </div>
   );
 }
