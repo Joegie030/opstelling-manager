@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
 import CoachInviteForm from '../components/Coach/CoachInviteForm';
 import PendingInvitesList from '../components/Coach/PendingInvitesList';
 import ActiveCoachesList from '../screens/ActiveCoachesList';
 import { Coach, CoachInvite } from '../types';
-import { getPendingInvitesByTeam } from '../../firebase/firebaseService';
 
 interface CoachBeheerProps {
   teamId: string;
@@ -28,22 +26,6 @@ export default function CoachBeheer({
   onRemoveCoach,
   isLoading = false
 }: CoachBeheerProps) {
-  const [invites, setInvites] = useState<CoachInvite[]>(pendingInvites);
-
-  // Update local state when prop changes
-  useEffect(() => {
-    setInvites(pendingInvites);
-  }, [pendingInvites]);
-
-  // Refresh pending invites after new invite created
-  const handleInviteSent = async () => {
-    try {
-      const updated = await getPendingInvitesByTeam(teamId);
-      setInvites(updated);
-    } catch (error) {
-      console.error('Error refreshing pending invites:', error);
-    }
-  };
   return (
     <div className="space-y-6">
       {/* Title */}
@@ -58,7 +40,6 @@ export default function CoachBeheer({
         teamNaam={teamNaam}
         clubNaam={clubNaam}
         currentCoach={currentCoach}
-        onInviteSent={handleInviteSent}
       />
 
       {/* Divider */}
@@ -67,7 +48,7 @@ export default function CoachBeheer({
       {/* Section 2: Pending invites */}
       <div>
         <PendingInvitesList
-          pendingInvites={invites}
+          pendingInvites={pendingInvites}
           onRevoke={onRevokeInvite}
           isLoading={isLoading}
         />
