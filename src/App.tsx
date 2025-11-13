@@ -185,8 +185,14 @@ function App() {
   useEffect(() => {
     if (selectedTeamId) {
       getTeamCoaches(selectedTeamId)
-        .then(setTeamCoaches)
-        .catch(error => console.error('❌ Error loading team coaches:', error));
+        .then(coaches => {
+          console.log('✅ Loaded coaches:', coaches.length);
+          setTeamCoaches(coaches);
+        })
+        .catch(error => {
+          console.error('⚠️ Error loading team coaches (non-blocking):', error);
+          setTeamCoaches([]); // Set empty list on error
+        });
     }
   }, [selectedTeamId]);
 
