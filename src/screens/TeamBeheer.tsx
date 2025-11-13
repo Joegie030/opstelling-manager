@@ -345,9 +345,10 @@ export default function TeamBeheer({
           </button>
         </div>
 
-        {/* INPUT FORM */}
-        <div className="mb-6 p-4 bg-white rounded-lg border-2 border-green-200">
-          {activeTab === 'vast' ? (
+        {/* INPUT FORM - Only show for vast and gast tabs */}
+        {(activeTab === 'vast' || activeTab === 'gast') && (
+          <div className="mb-6 p-4 bg-white rounded-lg border-2 border-green-200">
+            {activeTab === 'vast' ? (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Speler Naam</label>
               <div className="flex gap-2">
