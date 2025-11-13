@@ -3,7 +3,7 @@ import CoachInviteForm from '../components/Coach/CoachInviteForm';
 import PendingInvitesList from '../components/Coach/PendingInvitesList';
 import ActiveCoachesList from '../screens/ActiveCoachesList';
 import { Coach, CoachInvite } from '../types';
-import { getPendingInvitesByTeam } from '../../firebase/firebaseService';
+import { getPendingInvitesByTeam } from '../firebase/firebaseService';
 
 interface CoachBeheerProps {
   teamId: string;
