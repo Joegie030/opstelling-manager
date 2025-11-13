@@ -73,6 +73,13 @@ function App() {
       setCurrentCoach(coach);
       setAuthLoading(false);
 
+      // Check if we have an invite to accept
+      if (inviteIdFromUrl) {
+        console.log('🎯 Invite found - show AcceptInviteScreen');
+        setHuidigScherm('accept-invite');
+        return; // Don't create/select team yet
+      }
+
       // Selecteer eerste team automatisch, ANDERS toon TeamBeheer
       if (coach && coach.teamIds.length > 0) {
         setSelectedTeamId(coach.teamIds[0]);
@@ -82,10 +89,10 @@ function App() {
         setHuidigScherm('team');
         console.log('ℹ️ Geen team gevonden - toon TeamBeheer');
       }
-    });
+  });
 
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, [inviteIdFromUrl]);
 
   // ✨ EFFECT 1.5: Parse invite from URL on mount
   useEffect(() => {
