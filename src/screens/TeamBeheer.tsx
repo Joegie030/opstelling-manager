@@ -404,6 +404,7 @@ export default function TeamBeheer({
             </div>
           )}
         </div>
+        )}
 
         {/* SPELERSLIJST DISPLAY */}
         <div className="space-y-2">
