@@ -59,27 +59,14 @@ export function WedstrijdSamenvatting() {
   };
 
   const berekenWedstrijdStats = () => {
-    const stats: Record<number, { 
-      naam: string; 
-      minuten: number; 
-      keeperBeurten: number; 
-      wisselMinuten: number;
-      positiesPerKwart: { [kwartNum: number]: string[] }
-    }> = {};
+    const stats: Record<number, { naam: string; minuten: number; keeperBeurten: number; wisselMinuten: number }> = {};
     
     spelers.forEach(s => {
-      stats[s.id] = { 
-        naam: s.naam, 
-        minuten: 0, 
-        keeperBeurten: 0, 
-        wisselMinuten: 0,
-        positiesPerKwart: { 1: [], 2: [], 3: [], 4: [] }
-      };
+      stats[s.id] = { naam: s.naam, minuten: 0, keeperBeurten: 0, wisselMinuten: 0 };
     });
 
     wedstrijd.kwarten.forEach(kwart => {
       const spelersMetMinuten: Record<string, number> = {};
-      const spelersPositiesInKwart: Record<number, Set<string>> = {};
       
       Object.entries(kwart.opstelling).forEach(([pos, sid]) => {
         if (sid && stats[Number(sid)]) {
@@ -87,13 +74,6 @@ export function WedstrijdSamenvatting() {
           const min = wissel && wissel.wisselSpelerId ? 6.25 : kwart.minuten;
           stats[Number(sid)].minuten += min;
           spelersMetMinuten[sid] = (spelersMetMinuten[sid] || 0) + min;
-          
-          // Track positie per kwart
-          if (!spelersPositiesInKwart[Number(sid)]) {
-            spelersPositiesInKwart[Number(sid)] = new Set();
-          }
-          spelersPositiesInKwart[Number(sid)].add(pos);
-          
           if (pos === 'Keeper') stats[Number(sid)].keeperBeurten += 1;
         }
       });
@@ -102,13 +82,6 @@ export function WedstrijdSamenvatting() {
         if (w.wisselSpelerId && stats[Number(w.wisselSpelerId)]) {
           stats[Number(w.wisselSpelerId)].minuten += 6.25;
           spelersMetMinuten[w.wisselSpelerId] = (spelersMetMinuten[w.wisselSpelerId] || 0) + 6.25;
-          
-          // Track positie van wissels
-          if (!spelersPositiesInKwart[Number(w.wisselSpelerId)]) {
-            spelersPositiesInKwart[Number(w.wisselSpelerId)] = new Set();
-          }
-          spelersPositiesInKwart[Number(w.wisselSpelerId)].add(w.positie);
-          
           if (w.positie === 'Keeper') stats[Number(w.wisselSpelerId)].keeperBeurten += 1;
         }
       });
@@ -118,39 +91,9 @@ export function WedstrijdSamenvatting() {
         const wissel = kwart.minuten - gespeeld;
         if (wissel > 0) stats[s.id].wisselMinuten += wissel;
       });
-
-      // Store posities per kwart
-      Object.entries(spelersPositiesInKwart).forEach(([spelerId, posities]) => {
-        stats[Number(spelerId)].positiesPerKwart[kwart.nummer] = Array.from(posities);
-      });
     });
 
     return Object.values(stats).filter(s => s.minuten > 0).sort((a, b) => b.minuten - a.minuten);
-  };
-
-  const getPositieEmoji = (positie: string): string => {
-    const emojiMap: Record<string, string> = {
-      'Keeper': '🥅',
-      'Achter': '🛡️',
-      'Links': '👈',
-      'Rechts': '👉',
-      'Midden': '🎯',
-      'Voor': '⚽',
-      'Links achter': '🛡️',
-      'Rechts achter': '🛡️',
-      'Links midden': '🎯',
-      'Rechts midden': '🎯',
-      'Links voor': '⚽',
-      'Rechts voor': '⚽'
-    };
-    return emojiMap[positie] || '●';
-  };
-
-  const formatPosities = (posities: string[]): string => {
-    if (posities.length === 0) return '-';
-    return posities
-      .map(pos => `${getPositieEmoji(pos)} ${pos}`)
-      .join(' • ');
   };
 
   const eindstand = berekenEindstand();
@@ -236,10 +179,10 @@ export function WedstrijdSamenvatting() {
           )}
         </div>
 
-        {/* ========== THEMA'S ========== */}
+        {/* ========== THEMA EVALUATIE ========== */}
         {wedstrijd.themas && wedstrijd.themas.length > 0 && (
           <div className="border-b-2 border-gray-200">
-            <SectionButton section="thema" label="Thema Evaluaties" icon="🎬" />
+            <SectionButton section="thema" label="Thema Evaluatie" icon="🎯" />
             {sections.thema && (
               <div className="p-4 space-y-3 bg-gray-50">
                 {wedstrijd.themas.map(themaId => {
@@ -381,10 +324,6 @@ export function WedstrijdSamenvatting() {
                     <th className="text-right py-2 px-2 font-bold text-gray-700">Gespeeld</th>
                     <th className="text-right py-2 px-2 font-bold text-gray-700">Wissel</th>
                     <th className="text-right py-2 px-2 font-bold text-gray-700">Keeper</th>
-                    <th className="text-left py-2 px-2 font-bold text-gray-700">Kwart 1</th>
-                    <th className="text-left py-2 px-2 font-bold text-gray-700">Kwart 2</th>
-                    <th className="text-left py-2 px-2 font-bold text-gray-700">Kwart 3</th>
-                    <th className="text-left py-2 px-2 font-bold text-gray-700">Kwart 4</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -394,10 +333,6 @@ export function WedstrijdSamenvatting() {
                       <td className="text-right py-2 px-2 text-gray-700">{stat.minuten.toFixed(1)} min</td>
                       <td className="text-right py-2 px-2 text-gray-700">{stat.wisselMinuten.toFixed(1)} min</td>
                       <td className="text-right py-2 px-2 text-gray-700 font-semibold text-blue-600">{stat.keeperBeurten}x</td>
-                      <td className="py-2 px-2 text-gray-700 text-xs">{formatPosities(stat.positiesPerKwart[1])}</td>
-                      <td className="py-2 px-2 text-gray-700 text-xs">{formatPosities(stat.positiesPerKwart[2])}</td>
-                      <td className="py-2 px-2 text-gray-700 text-xs">{formatPosities(stat.positiesPerKwart[3])}</td>
-                      <td className="py-2 px-2 text-gray-700 text-xs">{formatPosities(stat.positiesPerKwart[4])}</td>
                     </tr>
                   ))}
                 </tbody>
