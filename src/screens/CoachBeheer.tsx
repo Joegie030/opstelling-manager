@@ -72,11 +72,6 @@ export default function CoachBeheer({
         <p className="text-gray-600">Beheer en nodig coaches uit voor dit team</p>
       </div>
 
-      {/* Debug info */}
-      <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800">
-        <p>🔍 Debug: teamId={teamId}, pendingInvites count={invites.length}, loading={loadingInvites}</p>
-      </div>
-
       {/* Section 1: Invite form */}
       <CoachInviteForm
         teamId={teamId}
