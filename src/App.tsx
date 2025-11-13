@@ -97,7 +97,7 @@ function App() {
       setInviteIdFromUrl(inviteId);
       setHuidigScherm('accept-invite');
     }
-  }, []);
+  }, []); 
 
   // ✨ EFFECT 2: Load all team info when coach changes
   // 🎯 This populates the teams dropdown with team names
