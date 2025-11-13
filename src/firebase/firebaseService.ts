@@ -723,6 +723,120 @@ export const deleteTeam = async (uid: string, teamId: string): Promise<void> => 
     console.error('❌ Error deleting team:', error);
     throw error;
   }
+
+/**
+ * Revoke/delete an invite
+ */
+export const revokeInvite = async (inviteId: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(db, 'invites', inviteId));
+    console.log('✅ Invite revoked');
+  } catch (error: any) {
+    console.error('❌ Error revoking invite:', error);
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Get all coaches for a team
+ */
+export const getTeamCoaches = async (teamId: string): Promise<Coach[]> => {
+  try {
+    const team = await getTeam(teamId);
+    if (!team || !team.coaches || team.coaches.length === 0) {
+      return [];
+    }
+
+    const coaches: Coach[] = [];
+    for (const coachUid of team.coaches) {
+      const coachDoc = await getDoc(doc(db, 'coaches', coachUid));
+      if (coachDoc.exists()) {
+        coaches.push(coachDoc.data() as Coach);
+      }
+    }
+
+    return coaches;
+  } catch (error: any) {
+    console.error('❌ Error getting team coaches:', error);
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Remove a coach from a team
+ * Prevents self-removal
+ */
+export const removeCoachFromTeam = async (
+  teamId: string,
+  coachUid: string,
+  currentUserUid: string
+): Promise<void> => {
+  try {
+    // Prevent self-removal
+    if (coachUid === currentUserUid) {
+      throw new Error('Je kan jezelf niet uit het team verwijderen');
+    }
+
+    const batch = writeBatch(db);
+
+    // 1. Remove from team.coaches
+    const teamDoc = await getDoc(doc(db, 'teams', teamId));
+    if (teamDoc.exists()) {
+      const team = teamDoc.data() as Team;
+      const updatedCoaches = team.coaches.filter(uid => uid !== coachUid);
+      batch.update(doc(db, 'teams', teamId), {
+        coaches: updatedCoaches
+      });
+    }
+
+    // 2. Remove from coach.teamIds
+    const coachDoc = await getDoc(doc(db, 'coaches', coachUid));
+    if (coachDoc.exists()) {
+      const coach = coachDoc.data() as Coach;
+      const updatedTeamIds = coach.teamIds.filter(id => id !== teamId);
+      batch.update(doc(db, 'coaches', coachUid), {
+        teamIds: updatedTeamIds
+      });
+    }
+
+    await batch.commit();
+    console.log('✅ Coach removed from team');
+  } catch (error: any) {
+    console.error('❌ Error removing coach:', error);
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Get all pending invites for a team
+ */
+export const getPendingInvitesByTeam = async (teamId: string): Promise<CoachInvite[]> => {
+  try {
+    const q = query(
+      collection(db, 'invites'),
+      where('teamId', '==', teamId),
+      where('status', '==', 'pending')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const invites: CoachInvite[] = [];
+    
+    querySnapshot.forEach(doc => {
+      const invite = doc.data() as CoachInvite;
+      // Only include if not expired
+      const now = new Date();
+      const expiresAt = new Date(invite.expiresAt);
+      if (now < expiresAt) {
+        invites.push(invite);
+      }
+    });
+
+    return invites;
+  } catch (error: any) {
+    console.error('❌ Error getting pending invites:', error);
+    throw new Error(error.message);
+  }
+};
 };
 
 // ============================================
