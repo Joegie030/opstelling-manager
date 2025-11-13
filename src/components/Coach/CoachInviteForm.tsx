@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { QRCode } from 'qrcode.react';
 import { Copy, Check, Loader } from 'lucide-react';
 import { inviteCoach, Coach } from '../../firebase/firebaseService';
 
@@ -23,9 +22,7 @@ export default function CoachInviteForm({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
-  const [inviteId, setInviteId] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
-  const [copiedQR, setCopiedQR] = useState(false);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +45,6 @@ export default function CoachInviteForm({
       const newInviteId = await inviteCoach(teamId, email, currentCoach.uid);
       const link = `${window.location.origin}/accept-invite/${newInviteId}`;
       
-      setInviteId(newInviteId);
       setInviteLink(link);
       setSuccess(true);
       setEmail('');
@@ -69,27 +65,10 @@ export default function CoachInviteForm({
     }
   };
 
-  const copyToClipboard = (text: string, type: 'link' | 'qr') => {
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    
-    if (type === 'link') {
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    } else {
-      setCopiedQR(true);
-      setTimeout(() => setCopiedQR(false), 2000);
-    }
-  };
-
-  const downloadQR = () => {
-    const canvas = document.querySelector('canvas');
-    if (canvas) {
-      const url = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `invite-${teamNaam}.png`;
-      link.click();
-    }
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   return (
@@ -137,17 +116,17 @@ export default function CoachInviteForm({
         {/* Info message */}
         <div className="bg-blue-50 border-l-4 border-blue-600 p-3 rounded">
           <p className="text-blue-700 text-sm">
-            💡 De uitnodiging is 7 dagen geldig. Stuur de link of QR code naar de coach.
+            💡 De uitnodiging is 7 dagen geldig. Stuur de link naar de coach.
           </p>
         </div>
       </form>
 
-      {/* Success state - Show invite link and QR code */}
+      {/* Success state - Show invite link */}
       {success && inviteLink && (
-        <div className="space-y-6 bg-green-50 border-2 border-green-200 rounded-lg p-6">
+        <div className="space-y-4 bg-green-50 border-2 border-green-200 rounded-lg p-6">
           <div className="text-center">
             <p className="text-green-700 font-semibold mb-2">✅ Invite succesvol aangemaakt!</p>
-            <p className="text-green-600 text-sm">Deel deze link of QR code met de coach</p>
+            <p className="text-green-600 text-sm">Deel deze link met de coach</p>
           </div>
 
           {/* Invite link section */}
@@ -158,11 +137,11 @@ export default function CoachInviteForm({
                 type="text"
                 value={inviteLink}
                 readOnly
-                className="flex-1 bg-transparent text-sm text-gray-600 outline-none"
+                className="flex-1 bg-transparent text-sm text-gray-600 outline-none overflow-hidden"
               />
               <button
-                onClick={() => copyToClipboard(inviteLink, 'link')}
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-all"
+                onClick={() => copyToClipboard(inviteLink)}
+                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-all whitespace-nowrap"
               >
                 {copiedLink ? (
                   <Check className="w-4 h-4" />
@@ -170,43 +149,6 @@ export default function CoachInviteForm({
                   <Copy className="w-4 h-4" />
                 )}
               </button>
-            </div>
-          </div>
-
-          {/* QR code section */}
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700">QR Code:</label>
-            <div className="flex flex-col items-center gap-3 bg-white p-4 rounded-lg border-2 border-green-200">
-              <QRCode
-                value={inviteLink}
-                size={200}
-                level="H"
-                includeMargin={true}
-                fgColor="#000000"
-                bgColor="#ffffff"
-              />
-              <div className="flex gap-2 w-full">
-                <button
-                  onClick={() => copyToClipboard(inviteLink, 'qr')}
-                  className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
-                >
-                  {copiedQR ? (
-                    <>
-                      <Check className="w-4 h-4" /> Gekopieerd!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" /> Kopieer Link
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={downloadQR}
-                  className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-all"
-                >
-                  📥 Download QR
-                </button>
-              </div>
             </div>
           </div>
 
