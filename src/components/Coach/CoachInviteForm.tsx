@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import QRCode from 'qrcode.react';
 import { Copy, Check, Loader } from 'lucide-react';
-import { inviteCoach, Coach } from '../firebase/firebaseService';
+import { inviteCoach, Coach } from '../../firebase/firebaseService';
 
 interface CoachInviteFormProps {
   teamId: string;
