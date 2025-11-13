@@ -477,21 +477,33 @@ export const getStatistieken = async (teamId: string): Promise<any> => {
 
 export const inviteCoach = async (teamId: string, email: string, invitedByUid: string): Promise<string> => {
   try {
+    const team = await getTeam(teamId);
+    if (!team) throw new Error('Team not found');
+
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+    
     const inviteId = `invite_${Date.now()}`;
+    
     const invite: CoachInvite = {
       inviteId,
       teamId,
       email,
       invitedBy: invitedByUid,
-      createdAt: new Date().toISOString(),
-      status: 'pending'
+      createdAt: now,
+      expiresAt,
+      status: 'pending',
+      teamNaam: team.teamNaam,
+      clubNaam: team.clubNaam
     };
 
     await setDoc(doc(db, 'invites', inviteId), invite);
+    console.log('✅ Invite created:', inviteId);
+    
     return inviteId;
-  } catch (error) {
-    console.error('Error inviting coach:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Error creating invite:', error);
+    throw new Error(error.message);
   }
 };
 
