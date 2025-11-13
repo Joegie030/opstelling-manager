@@ -87,6 +87,18 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  // ✨ EFFECT 1.5: Parse invite from URL on mount
+  useEffect(() => {
+    const path = window.location.pathname;
+    const match = path.match(/\/accept-invite\/(.+)$/);
+    if (match) {
+      const inviteId = match[1];
+      console.log('📥 Found invite in URL:', inviteId);
+      setInviteIdFromUrl(inviteId);
+      setHuidigScherm('accept-invite');
+    }
+  }, []);
+
   // ✨ EFFECT 2: Load all team info when coach changes
   // 🎯 This populates the teams dropdown with team names
   useEffect(() => {
