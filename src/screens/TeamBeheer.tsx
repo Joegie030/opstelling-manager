@@ -466,7 +466,6 @@ export default function TeamBeheer({
 
       {/* ========== 3. COACHES MANAGEMENT ========== */}
       <div className="border-2 border-blue-400 rounded-lg p-6 bg-blue-50 mt-6">
-        <h2 className="text-3xl font-bold mb-4">🏆 Coach Management</h2>
         <CoachBeheer
           teamId={teamId || ''}
           teamNaam={teamNaam}
