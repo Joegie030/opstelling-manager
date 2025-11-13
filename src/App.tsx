@@ -99,7 +99,7 @@ function App() {
     }
   }, []); 
 
-  // ✨ EFFECT: Auto-accept invite after auth if URL has inviteId
+  // ✨ EFFECT: 1.6: Auto-accept invite after auth if URL has inviteId
   useEffect(() => {
     if (currentCoach && inviteIdFromUrl && !authLoading) {
       console.log('🔄 Auto-accepting invite for:', inviteIdFromUrl);
