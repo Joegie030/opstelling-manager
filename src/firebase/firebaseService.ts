@@ -838,7 +838,7 @@ export const getPendingInvitesByTeam = async (teamId: string): Promise<CoachInvi
     throw new Error(error.message);
   }
 };
-};
+
 
 // ============================================
 // COACH INVITES FUNCTIES (v3.1)
