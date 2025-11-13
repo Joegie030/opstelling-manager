@@ -1,6 +1,6 @@
-import CoachInviteForm from './Coach/CoachInviteForm';
-import PendingInvitesList from './Coach/PendingInvitesList';
-import ActiveCoachesList from './Coach/ActiveCoachesList';
+import CoachInviteForm from './components/Coach/CoachInviteForm';
+import PendingInvitesList from './components/Coach/PendingInvitesList';
+import ActiveCoachesList from './components/Coach/ActiveCoachesList';
 import { Coach, CoachInvite } from '../types';
 
 interface CoachBeheerProps {
