@@ -723,6 +723,7 @@ export const deleteTeam = async (uid: string, teamId: string): Promise<void> => 
     console.error('❌ Error deleting team:', error);
     throw error;
   }
+};
 
 /**
  * Revoke/delete an invite
