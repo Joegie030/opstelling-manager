@@ -56,7 +56,7 @@ export default function CoachInviteForm({
       // Auto-hide success after 5 seconds
       setTimeout(() => {
         setSuccess(false);
-      }, 5000);
+      }, 300000);
     } catch (err: any) {
       setError(err.message || 'Fout bij aanmaken invite');
       console.error('Error creating invite:', err);
