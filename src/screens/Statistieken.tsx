@@ -201,7 +201,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       });
     });
 
-    const aantalWedstrijden = wedstrijden.length || 1;
+    const aantalWedstrijden = wedstrijden.filter(w => !w.isAfgelast).length || 1;
     kwartStats.forEach(stat => {
       stat.gemiddeldEigen = Math.round((stat.eigenDoelpunten / aantalWedstrijden) * 10) / 10;
       stat.gemiddeldTegenstander = Math.round((stat.tegenstanderDoelpunten / aantalWedstrijden) * 10) / 10;
