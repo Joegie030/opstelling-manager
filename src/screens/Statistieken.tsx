@@ -306,11 +306,13 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         }, 0);
       };
 
-      // Reverse stats voor trending (omdat visueel VVJ bovenaan = nieuwste)
-      const reversedStats = [...stats].reverse();
-      const midpoint = Math.ceil(reversedStats.length / 2);
-      const recentPunten = berekenPunten(reversedStats.slice(0, midpoint));
-      const olderPunten = berekenPunten(reversedStats.slice(Math.max(0, midpoint - 1)));
+      // Stats is chronologisch (oud→nieuw): [UVV, Kampong, PVC, J011-8, VVJ]
+      // We willen vergelijken:
+      // - Oudste helft: UVV, Kampong, PVC = 3+0+1 = 4 punten
+      // - Nieuwste helft: PVC, J011-8, VVJ = 1+1+3 = 5 punten
+      const midpoint = Math.ceil(stats.length / 2);
+      const olderPunten = berekenPunten(stats.slice(0, midpoint));
+      const recentPunten = berekenPunten(stats.slice(Math.max(0, midpoint - 1)));
 
       if (recentPunten > olderPunten) trend = 'improving';
       else if (recentPunten < olderPunten) trend = 'declining';
