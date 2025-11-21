@@ -178,37 +178,25 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       tegenstanderDoelpunten: number;
       gemiddeldEigen: number;
       gemiddeldTegenstander: number;
-      totaalDoelpunten: number;
-      maxEigen: number;
-      maxTegenstander: number;
     }
 
     const kwartStats: KwartStats[] = [
-      { kwartNummer: 1, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0, totaalDoelpunten: 0, maxEigen: 0, maxTegenstander: 0 },
-      { kwartNummer: 2, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0, totaalDoelpunten: 0, maxEigen: 0, maxTegenstander: 0 },
-      { kwartNummer: 3, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0, totaalDoelpunten: 0, maxEigen: 0, maxTegenstander: 0 },
-      { kwartNummer: 4, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0, totaalDoelpunten: 0, maxEigen: 0, maxTegenstander: 0 }
+      { kwartNummer: 1, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
+      { kwartNummer: 2, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
+      { kwartNummer: 3, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
+      { kwartNummer: 4, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 }
     ];
 
     wedstrijden.forEach(wed => {
       wed.kwarten.forEach(kwart => {
         if (kwart.doelpunten) {
-          let kwartEigen = 0;
-          let kwartTegenstander = 0;
-          
           kwart.doelpunten.forEach(doelpunt => {
             if (doelpunt.type === 'eigen') {
               kwartStats[kwart.nummer - 1].eigenDoelpunten++;
-              kwartEigen++;
             } else {
               kwartStats[kwart.nummer - 1].tegenstanderDoelpunten++;
-              kwartTegenstander++;
             }
           });
-          
-          // Track maximum per wedstrijd
-          kwartStats[kwart.nummer - 1].maxEigen = Math.max(kwartStats[kwart.nummer - 1].maxEigen, kwartEigen);
-          kwartStats[kwart.nummer - 1].maxTegenstander = Math.max(kwartStats[kwart.nummer - 1].maxTegenstander, kwartTegenstander);
         }
       });
     });
@@ -217,7 +205,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     kwartStats.forEach(stat => {
       stat.gemiddeldEigen = Math.round((stat.eigenDoelpunten / aantalWedstrijden) * 10) / 10;
       stat.gemiddeldTegenstander = Math.round((stat.tegenstanderDoelpunten / aantalWedstrijden) * 10) / 10;
-      stat.totaalDoelpunten = stat.eigenDoelpunten + stat.tegenstanderDoelpunten;
     });
 
     return kwartStats;
@@ -659,26 +646,12 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                   <h4 className="font-bold text-sm text-center mb-2">Kwart {kwart.kwartNummer}</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-xs">Wij (gem):</span>
+                      <span className="text-xs">Wij:</span>
                       <span className="font-bold text-green-600">{kwart.gemiddeldEigen}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-xs">Zij (gem):</span>
+                      <span className="text-xs">Zij:</span>
                       <span className="font-bold text-red-600">{kwart.gemiddeldTegenstander}</span>
-                    </div>
-                    <div className="border-t pt-2 mt-2">
-                      <div className="flex justify-between">
-                        <span className="text-xs font-semibold">Totaal doelpunten:</span>
-                        <span className="font-bold text-indigo-600">{kwart.totaalDoelpunten}</span>
-                      </div>
-                      <div className="flex justify-between text-xs mt-1">
-                        <span>Meeste voor:</span>
-                        <span className="font-semibold text-green-600">{kwart.maxEigen}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span>Meeste tegen:</span>
-                        <span className="font-semibold text-red-600">{kwart.maxTegenstander}</span>
-                      </div>
                     </div>
                   </div>
                 </div>
