@@ -718,6 +718,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                     <h4 className="font-bold text-sm mb-2">{stat.naam}</h4>
                     <div className="space-y-1 text-xs">
                       {Object.entries(stat.posities)
+                        .filter(([pos, data]) => data.totalGoals > 0)
                         .sort((a, b) => b[1].totalGoals - a[1].totalGoals)
                         .map(([pos, data]) => (
                           <div key={pos} className="flex justify-between items-center">
