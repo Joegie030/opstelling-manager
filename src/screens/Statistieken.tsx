@@ -25,7 +25,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         naam: string;
         posities: Record<string, { 
           count: number; 
-          wins: number; 
+          wins: number;
+          draws: number;
           successRate: number;
           percentage: number;
         }>;
