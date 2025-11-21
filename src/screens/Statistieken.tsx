@@ -707,7 +707,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
           {/* ========== POSITIE SCORING RATE ========== */}
           <div className="border-2 border-yellow-400 rounded-lg p-4 bg-yellow-50">
             <h3 className="text-lg font-bold mb-2 flex items-center gap-2">⚽ Positie Scoring Rate</h3>
-            <p className="text-xs text-gray-600 mb-3">Doelpunten per positie per kwart</p>
+            <p className="text-xs text-gray-600 mb-3">Doelpunten per positie per speler</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {positieScoringRate.sort((a, b) => a.naam.localeCompare(b.naam)).map(stat => {
                 const totalPosities = Object.values(stat.posities).reduce((sum, p) => sum + p.totalCount, 0);
@@ -716,22 +716,13 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                 return (
                   <div key={stat.naam} className="border rounded-lg p-3 bg-white">
                     <h4 className="font-bold text-sm mb-2">{stat.naam}</h4>
-                    <div className="space-y-2 text-xs">
+                    <div className="space-y-1 text-xs">
                       {Object.entries(stat.posities)
                         .sort((a, b) => b[1].totalGoals - a[1].totalGoals)
                         .map(([pos, data]) => (
-                          <div key={pos} className="border-l-4 border-yellow-400 pl-2">
-                            <div className="font-semibold text-gray-700">{pos}</div>
-                            <div className="text-gray-600 mb-1">
-                              <span className="text-xs">Totaal: {data.totalGoals} goal(s) van {data.totalCount}x</span>
-                            </div>
-                            {Object.entries(data.kwarten)
-                              .sort()
-                              .map(([kwart, kwartData]) => (
-                                <div key={kwart} className="text-gray-500 text-xs pl-2">
-                                  {kwart}: {kwartData.goals} goal(s) van {kwartData.count}x
-                                </div>
-                              ))}
+                          <div key={pos} className="flex justify-between items-center">
+                            <span className="text-gray-700">{pos}: {data.totalCount}x</span>
+                            <span className="font-semibold text-yellow-600">{data.totalGoals} ⚽</span>
                           </div>
                         ))}
                     </div>
