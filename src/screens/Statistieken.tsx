@@ -306,12 +306,26 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         }, 0);
       };
 
-      // Bij 5 wedstrijden: 
-      // Vorige 3: indices 0, 1, 2 (eerste 3)
-      // Laatste 3: indices 2, 3, 4 (laatste 3) - overlappen op index 2!
-      const midpoint = Math.ceil(stats.length / 2);
-      const olderPunten = berekenPunten(stats.slice(0, midpoint));
-      const recentPunten = berekenPunten(stats.slice(midpoint - 1));
+    let trend = 'stable';
+    if (stats.length >= 3) {
+      // Voetbalpunten: Win=3, Gelijk=1, Verlies=0
+      const berekenPunten = (wedstrijdenArray: Laatste3Stat[]) => {
+        return wedstrijdenArray.reduce((total, w) => {
+          if (w.resultaat === 'gewonnen') return total + 3;
+          if (w.resultaat === 'gelijkspel') return total + 1;
+          return total; // verlies = 0
+        }, 0);
+      };
+
+      // Reverse stats voor trending (omdat visueel VVJ bovenaan = nieuwste)
+      const reversedStats = [...stats].reverse();
+      
+      // Visueel:
+      // Bovenaan (indices 0-2) = Nieuwste 3 wedstrijden (VVJ, J011-8, PVC)
+      // Onderaan (indices 2-4) = Oudste 3 wedstrijden (Kampong, UVV)
+      const midpoint = Math.ceil(reversedStats.length / 2);
+      const recentPunten = berekenPunten(reversedStats.slice(0, midpoint));
+      const olderPunten = berekenPunten(reversedStats.slice(Math.max(0, midpoint - 1)));
 
       if (recentPunten > olderPunten) trend = 'improving';
       else if (recentPunten < olderPunten) trend = 'declining';
