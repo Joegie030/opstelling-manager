@@ -306,11 +306,12 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         }, 0);
       };
 
-      // Laatste 3 wedstrijden
-      const recentPunten = berekenPunten(stats.slice(-3));
-      
-      // Vorige 3 wedstrijden (of minder als minder beschikbaar)
-      const olderPunten = berekenPunten(stats.slice(0, Math.max(0, stats.length - 3)));
+      // Bij 5 wedstrijden: 
+      // Vorige 3: indices 0, 1, 2 (eerste 3)
+      // Laatste 3: indices 2, 3, 4 (laatste 3) - overlappen op index 2!
+      const midpoint = Math.ceil(stats.length / 2);
+      const olderPunten = berekenPunten(stats.slice(0, midpoint));
+      const recentPunten = berekenPunten(stats.slice(midpoint - 1));
 
       if (recentPunten > olderPunten) trend = 'improving';
       else if (recentPunten < olderPunten) trend = 'declining';
