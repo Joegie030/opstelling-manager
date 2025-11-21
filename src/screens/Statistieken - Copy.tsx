@@ -572,14 +572,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                         <div className="border-t pt-2 mt-2">
                           <div className="text-xs font-semibold text-gray-700 mb-1">Alle posities:</div>
                           {Object.entries(stat.posities)
-                            .sort((a, b) => {
-                              // Eerst op success rate (descending)
-                              if (b[1].successRate !== a[1].successRate) {
-                                return b[1].successRate - a[1].successRate;
-                              }
-                              // Daarna op count (descending - meest gespeeld bovenaan)
-                              return b[1].count - a[1].count;
-                            })
+                            .sort((a, b) => b[1].successRate - a[1].successRate)
                             .map(([pos, data]) => (
                               <div key={pos} className="flex justify-between text-xs text-gray-600 mb-1">
                                 <span>{pos}: {data.count}x</span>
