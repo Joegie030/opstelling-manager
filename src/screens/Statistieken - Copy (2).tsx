@@ -296,24 +296,21 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     });
 
     let trend = 'stable';
-    if (stats.length >= 3) {
-      // Voetbalpunten: Win=3, Gelijk=1, Verlies=0
-      const berekenPunten = (wedstrijdenArray: Laatste5Stat[]) => {
-        return wedstrijdenArray.reduce((total, w) => {
-          if (w.resultaat === 'gewonnen') return total + 3;
-          if (w.resultaat === 'gelijkspel') return total + 1;
-          return total; // verlies = 0
-        }, 0);
-      };
+    if (stats.length >= 2) {
+      const recentWins = stats.slice(-2).filter(s => s.resultaat === 'gewonnen').length;
+      const olderWins = wedstrijden.filter(w => !w.isAfgelast).slice(-5, -2).filter(w => {
+        let eigen = 0, tegen = 0;
+        w.kwarten.forEach(k => {
+          k.doelpunten?.forEach(d => {
+            if (d.type === 'eigen') eigen++;
+            else tegen++;
+          });
+        });
+        return eigen > tegen;
+      }).length;
 
-      // Laatste 3 wedstrijden
-      const recentPunten = berekenPunten(stats.slice(-3));
-      
-      // Vorige 3 wedstrijden (of minder als minder beschikbaar)
-      const olderPunten = berekenPunten(stats.slice(0, Math.max(0, stats.length - 3)));
-
-      if (recentPunten > olderPunten) trend = 'improving';
-      else if (recentPunten < olderPunten) trend = 'declining';
+      if (recentWins > olderWins) trend = 'improving';
+      else if (recentWins < olderWins) trend = 'declining';
     }
 
     return {
