@@ -307,12 +307,15 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       };
 
       // Stats is chronologisch (oud→nieuw): [UVV, Kampong, PVC, J011-8, VVJ]
-      // We willen vergelijken:
-      // - Oudste helft: UVV, Kampong, PVC = 3+0+1 = 4 punten
-      // - Nieuwste helft: PVC, J011-8, VVJ = 1+1+3 = 5 punten
-      const midpoint = Math.ceil(stats.length / 2);
-      const olderPunten = berekenPunten(stats.slice(0, midpoint));
-      const recentPunten = berekenPunten(stats.slice(Math.max(0, midpoint - 1)));
+      // Maar op scherm zien we OMGEKEERD: VVJ bovenaan, UVV onderaan
+      // Reverse zodat we kunnen vergelijken wat je ZIET
+      const reversedStats = [...stats].reverse(); // Nu: [VVJ, J011-8, PVC, Kampong, UVV]
+      
+      // Bovenaan (nieuwste 3): VVJ + J011-8 + PVC
+      const recentPunten = berekenPunten(reversedStats.slice(0, 3));
+      
+      // Onderaan (oudste 3): PVC + Kampong + UVV (overlap op PVC)
+      const olderPunten = berekenPunten(reversedStats.slice(-3));
 
       if (recentPunten > olderPunten) trend = 'improving';
       else if (recentPunten < olderPunten) trend = 'declining';
