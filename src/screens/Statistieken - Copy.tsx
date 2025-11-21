@@ -254,8 +254,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     };
   };
 
-  const berekenLaatste5 = () => {
-    const laatste5 = wedstrijden.filter(w => !w.isAfgelast).slice(-5);
+  const berekenLaatste3 = () => {
+    const laatste3 = wedstrijden.slice(-3);
     
     interface Laatste3Stat {
       datum: string;
@@ -268,7 +268,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     
     const stats: Laatste3Stat[] = [];
 
-    laatste5.forEach(wed => {
+    laatste3.forEach(wed => {
       let eigenDoelpunten = 0;
       let tegenstanderDoelpunten = 0;
 
@@ -297,8 +297,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
 
     let trend = 'stable';
     if (stats.length >= 2) {
-      const recentWins = stats.slice(-2).filter(s => s.resultaat === 'gewonnen').length;
-      const olderWins = wedstrijden.filter(w => !w.isAfgelast).slice(-5, -2).filter(w => {
+      const recentWins = stats.filter(s => s.resultaat === 'gewonnen').length;
+      const olderWins = wedstrijden.slice(-6, -3).filter(w => {
         let eigen = 0, tegen = 0;
         w.kwarten.forEach(k => {
           k.doelpunten?.forEach(d => {
@@ -368,7 +368,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   const themaSucces = berekenThemaSucces();
   const doelpuntenPerKwart = berekenDoelpuntenPerKwart();
   const thuisUitTrend = berekenThuisUitTrend();
-  const laatste5 = berekenLaatste5();
+  const laatste3 = berekenLaatste3();
   const waarschuwingen = berekenWaarschuwingen();
   const teamPrestaties = berekenTeamPrestaties(wedstrijden);
   const topscorers = berekenTopscorers(wedstrijden, spelers);
@@ -686,21 +686,21 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
             </div>
           </div>
 
-          {/* ========== LAATSTE 5 WEDSTRIJDEN ========== */}
+          {/* ========== LAATSTE 3 WEDSTRIJDEN ========== */}
           <div className="border-2 border-cyan-400 rounded-lg p-4 bg-cyan-50">
-            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">📋 Laatste {Math.min(5, wedstrijden.filter(w => !w.isAfgelast).length)} Wedstrijden</h3>
+            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">📋 Laatste {Math.min(3, wedstrijden.length)} Wedstrijden</h3>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs text-gray-600">Trend:</span>
               <span className={`font-bold text-sm ${
-                laatste5.trend === 'improving' ? 'text-green-600' : 
-                laatste5.trend === 'declining' ? 'text-red-600' : 'text-gray-600'
+                laatste3.trend === 'improving' ? 'text-green-600' : 
+                laatste3.trend === 'declining' ? 'text-red-600' : 'text-gray-600'
               }`}>
-                {laatste5.trend === 'improving' ? '📈 Verbetert!' : 
-                 laatste5.trend === 'declining' ? '📉 Verslechtert' : '➡️ Stabiel'}
+                {laatste3.trend === 'improving' ? '📈 Verbetert!' : 
+                 laatste3.trend === 'declining' ? '📉 Verslechtert' : '➡️ Stabiel'}
               </span>
             </div>
             <div className="space-y-2">
-              {laatste5.wedstrijden.map((wed, idx) => {
+              {laatste3.wedstrijden.map((wed, idx) => {
                 const result = formatResultaat(wed.eigenDoelpunten, wed.tegenstanderDoelpunten);
                 const resultaatColor = result.color;
                 const resultaatEmoji = result.emoji;
