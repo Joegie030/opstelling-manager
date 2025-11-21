@@ -308,10 +308,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
 
       // Reverse stats voor trending (omdat visueel VVJ bovenaan = nieuwste)
       const reversedStats = [...stats].reverse();
-      
-      // Visueel:
-      // Bovenaan (indices 0-2) = Nieuwste 3 wedstrijden (VVJ, J011-8, PVC)
-      // Onderaan (indices 2-4) = Oudste 3 wedstrijden (Kampong, UVV)
       const midpoint = Math.ceil(reversedStats.length / 2);
       const recentPunten = berekenPunten(reversedStats.slice(0, midpoint));
       const olderPunten = berekenPunten(reversedStats.slice(Math.max(0, midpoint - 1)));
@@ -731,7 +727,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
           </div>
         </>
       )}
-    </div>
     </div>
   );
 }
