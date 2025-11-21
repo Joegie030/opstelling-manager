@@ -312,13 +312,13 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       const reversedStats = [...stats].reverse(); // Nu: [VVJ, J011-8, PVC, Kampong, UVV]
       
       // Bovenaan (nieuwste 3): VVJ + J011-8 + PVC
-      const recentPunten = berekenPunten(reversedStats.slice(0, 3));
+      const nieuwstePunten = berekenPunten(reversedStats.slice(0, 3));
       
       // Onderaan (oudste 3): PVC + Kampong + UVV (overlap op PVC)
-      const olderPunten = berekenPunten(reversedStats.slice(-3));
+      const oudstePunten = berekenPunten(reversedStats.slice(-3));
 
-      if (recentPunten > olderPunten) trend = 'improving';
-      else if (recentPunten < olderPunten) trend = 'declining';
+      if (nieuwstePunten < oudstePunten) trend = 'improving';
+      else if (nieuwstePunten > oudstePunten) trend = 'declining';
     }
 
     return {
