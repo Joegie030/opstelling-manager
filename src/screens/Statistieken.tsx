@@ -46,7 +46,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
 
     wedstrijden.forEach((wed, wedIdx) => {
       wed.kwarten.forEach(k => {
-        // Bereken winst PER KWART (niet voor hele wedstrijd)
+        // Bereken kwart resultaat (win/draw/loss)
         let eigenDoelpunten = 0;
         let tegenstanderDoelpunten = 0;
         
@@ -58,26 +58,31 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         }
         
         const kwartWon = eigenDoelpunten > tegenstanderDoelpunten;
+        const kwartDraw = eigenDoelpunten === tegenstanderDoelpunten;
 
         Object.entries(k.opstelling).forEach(([pos, sid]) => {
           if (sid && stats[Number(sid)]) {
             if (!stats[Number(sid)].posities[pos]) {
-              stats[Number(sid)].posities[pos] = { count: 0, wins: 0, successRate: 0, percentage: 0 };
+              stats[Number(sid)].posities[pos] = { count: 0, wins: 0, draws: 0, successRate: 0, percentage: 0 };
             }
             stats[Number(sid)].posities[pos].count += 1;
             if (kwartWon) {
               stats[Number(sid)].posities[pos].wins += 1;
+            } else if (kwartDraw) {
+              stats[Number(sid)].posities[pos].draws += 1;
             }
           }
         });
         k.wissels?.forEach(w => {
           if (w.wisselSpelerId && stats[Number(w.wisselSpelerId)]) {
             if (!stats[Number(w.wisselSpelerId)].posities[w.positie]) {
-              stats[Number(w.wisselSpelerId)].posities[w.positie] = { count: 0, wins: 0, successRate: 0, percentage: 0 };
+              stats[Number(w.wisselSpelerId)].posities[w.positie] = { count: 0, wins: 0, draws: 0, successRate: 0, percentage: 0 };
             }
             stats[Number(w.wisselSpelerId)].posities[w.positie].count += 1;
             if (kwartWon) {
               stats[Number(w.wisselSpelerId)].posities[w.positie].wins += 1;
+            } else if (kwartDraw) {
+              stats[Number(w.wisselSpelerId)].posities[w.positie].draws += 1;
             }
           }
         });
@@ -91,7 +96,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
 
       Object.entries(stat.posities).forEach(([pos, data]) => {
         data.percentage = totaal > 0 ? Math.round((data.count / totaal) * 100) : 0;
-        data.successRate = data.count > 0 ? Math.round((data.wins / data.count) * 100) : 0;
+        const successCount = (data.wins || 0) + (data.draws || 0);
+        data.successRate = data.count > 0 ? Math.round((successCount / data.count) * 100) : 0;
         
         if (data.successRate > bestSuccessRate && data.count >= 2 && data.wins >= 1) {
           bestSuccessRate = data.successRate;
@@ -544,7 +550,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
           {/* ========== POSITIE SUCCESS RATE ========== */}
           <div className="border-2 border-green-400 rounded-lg p-4 bg-green-50">
             <h3 className="text-lg font-bold mb-2 flex items-center gap-2">🏆 Positie Success Rate</h3>
-            <p className="text-xs text-gray-600 mb-3">Meest succesvolle positie per speler (% wins als team)</p>
+            <p className="text-xs text-gray-600 mb-3">Meest succesvolle positie per speler (% kwarten gewonnen of gelijkgespeeld)</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {positieSuccessRate.sort((a, b) => a.naam.localeCompare(b.naam)).map(stat => {
                 const totalPosities = Object.values(stat.posities).reduce((sum, p) => sum + p.count, 0);
