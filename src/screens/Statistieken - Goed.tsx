@@ -254,8 +254,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     };
   };
 
-  const berekenLaatste3 = () => {
-    const laatste3 = wedstrijden.slice(-3);
+  const berekenLaatste5 = () => {
+    const gefilterdWedstrijden = wedstrijden.filter(w => !w.isAfgelast).slice(-5);
     
     interface Laatste3Stat {
       datum: string;
@@ -268,7 +268,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     
     const stats: Laatste3Stat[] = [];
 
-    laatste3.forEach(wed => {
+    gefilterdWedstrijden.forEach(wed => {
       let eigenDoelpunten = 0;
       let tegenstanderDoelpunten = 0;
 
@@ -296,21 +296,29 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     });
 
     let trend = 'stable';
-    if (stats.length >= 2) {
-      const recentWins = stats.filter(s => s.resultaat === 'gewonnen').length;
-      const olderWins = wedstrijden.slice(-6, -3).filter(w => {
-        let eigen = 0, tegen = 0;
-        w.kwarten.forEach(k => {
-          k.doelpunten?.forEach(d => {
-            if (d.type === 'eigen') eigen++;
-            else tegen++;
-          });
-        });
-        return eigen > tegen;
-      }).length;
+    if (stats.length >= 3) {
+      // Voetbalpunten: Win=3, Gelijk=1, Verlies=0
+      const berekenPunten = (wedstrijdenArray: Laatste3Stat[]) => {
+        return wedstrijdenArray.reduce((total, w) => {
+          if (w.resultaat === 'gewonnen') return total + 3;
+          if (w.resultaat === 'gelijkspel') return total + 1;
+          return total; // verlies = 0
+        }, 0);
+      };
 
-      if (recentWins > olderWins) trend = 'improving';
-      else if (recentWins < olderWins) trend = 'declining';
+      // Stats is chronologisch (oud→nieuw): [UVV, Kampong, PVC, J011-8, VVJ]
+      // Maar op scherm zien we OMGEKEERD: VVJ bovenaan, UVV onderaan
+      // Reverse zodat we kunnen vergelijken wat je ZIET
+      const reversedStats = [...stats].reverse(); // Nu: [VVJ, J011-8, PVC, Kampong, UVV]
+      
+      // Bovenaan (nieuwste 3): VVJ + J011-8 + PVC
+      const nieuwstePunten = berekenPunten(reversedStats.slice(0, 3));
+      
+      // Onderaan (oudste 3): PVC + Kampong + UVV (overlap op PVC)
+      const oudstePunten = berekenPunten(reversedStats.slice(-3));
+
+      if (nieuwstePunten < oudstePunten) trend = 'improving';
+      else if (nieuwstePunten > oudstePunten) trend = 'declining';
     }
 
     return {
@@ -368,7 +376,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   const themaSucces = berekenThemaSucces();
   const doelpuntenPerKwart = berekenDoelpuntenPerKwart();
   const thuisUitTrend = berekenThuisUitTrend();
-  const laatste3 = berekenLaatste3();
+  const laatste5 = berekenLaatste5();
   const waarschuwingen = berekenWaarschuwingen();
   const teamPrestaties = berekenTeamPrestaties(wedstrijden);
   const topscorers = berekenTopscorers(wedstrijden, spelers);
@@ -686,21 +694,21 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
             </div>
           </div>
 
-          {/* ========== LAATSTE 3 WEDSTRIJDEN ========== */}
+          {/* ========== LAATSTE 5 WEDSTRIJDEN ========== */}
           <div className="border-2 border-cyan-400 rounded-lg p-4 bg-cyan-50">
-            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">📋 Laatste {Math.min(3, wedstrijden.length)} Wedstrijden</h3>
+            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">📋 Laatste {Math.min(5, wedstrijden.filter(w => !w.isAfgelast).length)} Wedstrijden</h3>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs text-gray-600">Trend:</span>
               <span className={`font-bold text-sm ${
-                laatste3.trend === 'improving' ? 'text-green-600' : 
-                laatste3.trend === 'declining' ? 'text-red-600' : 'text-gray-600'
+                laatste5.trend === 'improving' ? 'text-green-600' : 
+                laatste5.trend === 'declining' ? 'text-red-600' : 'text-gray-600'
               }`}>
-                {laatste3.trend === 'improving' ? '📈 Verbetert!' : 
-                 laatste3.trend === 'declining' ? '📉 Verslechtert' : '➡️ Stabiel'}
+                {laatste5.trend === 'improving' ? '📈 Verbetert!' : 
+                 laatste5.trend === 'declining' ? '📉 Verslechtert' : '➡️ Stabiel'}
               </span>
             </div>
             <div className="space-y-2">
-              {laatste3.wedstrijden.map((wed, idx) => {
+              {laatste5.wedstrijden.map((wed, idx) => {
                 const result = formatResultaat(wed.eigenDoelpunten, wed.tegenstanderDoelpunten);
                 const resultaatColor = result.color;
                 const resultaatEmoji = result.emoji;

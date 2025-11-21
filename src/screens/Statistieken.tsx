@@ -45,26 +45,27 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     });
 
     wedstrijden.forEach((wed, wedIdx) => {
-      let eigenDoelpunten = 0;
-      let tegenstanderDoelpunten = 0;
-      wed.kwarten.forEach(kwart => {
-        if (kwart.doelpunten) {
-          kwart.doelpunten.forEach(doelpunt => {
+      wed.kwarten.forEach(k => {
+        // Bereken winst PER KWART (niet voor hele wedstrijd)
+        let eigenDoelpunten = 0;
+        let tegenstanderDoelpunten = 0;
+        
+        if (k.doelpunten) {
+          k.doelpunten.forEach(doelpunt => {
             if (doelpunt.type === 'eigen') eigenDoelpunten++;
             else tegenstanderDoelpunten++;
           });
         }
-      });
-      const teamWon = eigenDoelpunten > tegenstanderDoelpunten;
+        
+        const kwartWon = eigenDoelpunten > tegenstanderDoelpunten;
 
-      wed.kwarten.forEach(k => {
         Object.entries(k.opstelling).forEach(([pos, sid]) => {
           if (sid && stats[Number(sid)]) {
             if (!stats[Number(sid)].posities[pos]) {
               stats[Number(sid)].posities[pos] = { count: 0, wins: 0, successRate: 0, percentage: 0 };
             }
             stats[Number(sid)].posities[pos].count += 1;
-            if (teamWon) {
+            if (kwartWon) {
               stats[Number(sid)].posities[pos].wins += 1;
             }
           }
@@ -75,7 +76,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
               stats[Number(w.wisselSpelerId)].posities[w.positie] = { count: 0, wins: 0, successRate: 0, percentage: 0 };
             }
             stats[Number(w.wisselSpelerId)].posities[w.positie].count += 1;
-            if (teamWon) {
+            if (kwartWon) {
               stats[Number(w.wisselSpelerId)].posities[w.positie].wins += 1;
             }
           }
