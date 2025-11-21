@@ -255,7 +255,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   };
 
   const berekenLaatste5 = () => {
-    const laatste5 = wedstrijden.filter(w => !w.isAfgelast).slice(-5);
+    const gefilterdWedstrijden = wedstrijden.filter(w => !w.isAfgelast).slice(-5);
     
     interface Laatste3Stat {
       datum: string;
@@ -268,7 +268,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     
     const stats: Laatste3Stat[] = [];
 
-    laatste5.forEach(wed => {
+    gefilterdWedstrijden.forEach(wed => {
       let eigenDoelpunten = 0;
       let tegenstanderDoelpunten = 0;
 
@@ -294,17 +294,6 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         resultaat
       });
     });
-
-    let trend = 'stable';
-    if (stats.length >= 3) {
-      // Voetbalpunten: Win=3, Gelijk=1, Verlies=0
-      const berekenPunten = (wedstrijdenArray: Laatste5Stat[]) => {
-        return wedstrijdenArray.reduce((total, w) => {
-          if (w.resultaat === 'gewonnen') return total + 3;
-          if (w.resultaat === 'gelijkspel') return total + 1;
-          return total; // verlies = 0
-        }, 0);
-      };
 
     let trend = 'stable';
     if (stats.length >= 3) {
@@ -742,6 +731,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
           </div>
         </>
       )}
+    </div>
     </div>
   );
 }
