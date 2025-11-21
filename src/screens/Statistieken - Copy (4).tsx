@@ -114,6 +114,98 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   };
 
   // ============================================
+  // POSITIE SCORING RATE (goals per position per quarter)
+  // ============================================
+  const berekenPositieScoringRate = () => {
+    interface PositieScoring {
+      [key: number]: {
+        naam: string;
+        posities: Record<string, { 
+          kwarten: Record<string, {
+            count: number;
+            goals: number;
+          }>;
+          totalCount: number;
+          totalGoals: number;
+        }>;
+      }
+    }
+
+    const stats: PositieScoring = {};
+    spelers.forEach(s => {
+      stats[s.id] = {
+        naam: s.naam,
+        posities: {}
+      };
+    });
+
+    // Loop through wedstrijden en kwarten
+    wedstrijden.forEach((wed) => {
+      wed.kwarten.forEach((kwart) => {
+        // Collect goals scored in this quarter
+        const goalsInKwart: Record<number, number> = {};
+        if (kwart.doelpunten) {
+          kwart.doelpunten.forEach(doelpunt => {
+            if (doelpunt.type === 'eigen' && doelpunt.spelerId) {
+              goalsInKwart[doelpunt.spelerId] = (goalsInKwart[doelpunt.spelerId] || 0) + 1;
+            }
+          });
+        }
+
+        // Track player positions and goals
+        Object.entries(kwart.opstelling).forEach(([pos, sid]) => {
+          if (sid && stats[Number(sid)]) {
+            const spelerId = Number(sid);
+            if (!stats[spelerId].posities[pos]) {
+              stats[spelerId].posities[pos] = { 
+                kwarten: {},
+                totalCount: 0,
+                totalGoals: 0
+              };
+            }
+            
+            const kwartKey = `Kwart ${kwart.nummer}`;
+            if (!stats[spelerId].posities[pos].kwarten[kwartKey]) {
+              stats[spelerId].posities[pos].kwarten[kwartKey] = { count: 0, goals: 0 };
+            }
+            
+            stats[spelerId].posities[pos].kwarten[kwartKey].count += 1;
+            stats[spelerId].posities[pos].kwarten[kwartKey].goals += (goalsInKwart[spelerId] || 0);
+            stats[spelerId].posities[pos].totalCount += 1;
+            stats[spelerId].posities[pos].totalGoals += (goalsInKwart[spelerId] || 0);
+          }
+        });
+
+        // Also track substitutes (wissels)
+        kwart.wissels?.forEach(wissel => {
+          if (wissel.wisselSpelerId && stats[Number(wissel.wisselSpelerId)]) {
+            const spelerId = Number(wissel.wisselSpelerId);
+            if (!stats[spelerId].posities[wissel.positie]) {
+              stats[spelerId].posities[wissel.positie] = { 
+                kwarten: {},
+                totalCount: 0,
+                totalGoals: 0
+              };
+            }
+            
+            const kwartKey = `Kwart ${kwart.nummer}`;
+            if (!stats[spelerId].posities[wissel.positie].kwarten[kwartKey]) {
+              stats[spelerId].posities[wissel.positie].kwarten[kwartKey] = { count: 0, goals: 0 };
+            }
+            
+            stats[spelerId].posities[wissel.positie].kwarten[kwartKey].count += 1;
+            stats[spelerId].posities[wissel.positie].kwarten[kwartKey].goals += (goalsInKwart[spelerId] || 0);
+            stats[spelerId].posities[wissel.positie].totalCount += 1;
+            stats[spelerId].posities[wissel.positie].totalGoals += (goalsInKwart[spelerId] || 0);
+          }
+        });
+      });
+    });
+
+    return Object.values(stats);
+  };
+
+  // ============================================
   // PRIORITY 2: THEMA SUCCESS %
   // ============================================
   const berekenThemaSucces = () => {
@@ -394,6 +486,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
 
   const speelminutenDetail = berekenSpeelminutenDetail(wedstrijden, spelers);
   const positieSuccessRate = berekenPositieSuccessRate();
+  const positieScoringRate = berekenPositieScoringRate();
   const themaSucces = berekenThemaSucces();
   const doelpuntenPerKwart = berekenDoelpuntenPerKwart();
   const thuisUitTrend = berekenThuisUitTrend();
@@ -605,6 +698,35 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                     ) : (
                       <p className="text-xs text-gray-500">Nog onvoldoende data</p>
                     )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ========== POSITIE SCORING RATE ========== */}
+          <div className="border-2 border-yellow-400 rounded-lg p-4 bg-yellow-50">
+            <h3 className="text-lg font-bold mb-2 flex items-center gap-2">⚽ Positie Scoring Rate</h3>
+            <p className="text-xs text-gray-600 mb-3">Doelpunten per positie per speler</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {positieScoringRate.sort((a, b) => a.naam.localeCompare(b.naam)).map(stat => {
+                const totalPosities = Object.values(stat.posities).reduce((sum, p) => sum + p.totalCount, 0);
+                if (totalPosities === 0) return null;
+
+                return (
+                  <div key={stat.naam} className="border rounded-lg p-3 bg-white">
+                    <h4 className="font-bold text-sm mb-2">{stat.naam}</h4>
+                    <div className="space-y-1 text-xs">
+                      {Object.entries(stat.posities)
+                        .filter(([pos, data]) => data.totalGoals > 0)
+                        .sort((a, b) => b[1].totalGoals - a[1].totalGoals)
+                        .map(([pos, data]) => (
+                          <div key={pos} className="flex justify-between items-center">
+                            <span className="text-gray-700">{pos}: {data.totalCount}x</span>
+                            <span className="font-semibold text-yellow-600">{data.totalGoals} ⚽</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 );
               })}

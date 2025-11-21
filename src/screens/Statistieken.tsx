@@ -790,8 +790,12 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                     </div>
                     <div className="border-t pt-2 mt-2">
                       <div className="flex justify-between">
-                        <span className="text-xs font-semibold">Totaal doelpunten:</span>
-                        <span className="font-bold text-indigo-600">{kwart.totaalDoelpunten}</span>
+                        <span className="text-xs font-semibold">Totaal voor:</span>
+                        <span className="font-bold text-green-600">{kwart.eigenDoelpunten}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs font-semibold">Totaal tegen:</span>
+                        <span className="font-bold text-red-600">{kwart.tegenstanderDoelpunten}</span>
                       </div>
                       <div className="flex justify-between text-xs mt-1">
                         <span>Meeste voor:</span>
