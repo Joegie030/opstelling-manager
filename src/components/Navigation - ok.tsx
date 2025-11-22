@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight, ChevronDown, ChevronUp, Users2 } from 'lucide-react';
+import { Menu, X, User, Calendar, BarChart3, Users, Settings, LogOut, HelpCircle, ChevronRight, ChevronDown, ChevronUp, Shirt } from 'lucide-react';
 import { TeamSelectorDropdown, TeamInfo } from './TeamSelectorDropdown';
 
 interface MenuItem {
@@ -70,7 +70,6 @@ export function Navigation({
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileTeamSelectorOpen, setMobileTeamSelectorOpen] = useState(false);
-  const [desktopTeamSelectorOpen, setDesktopTeamSelectorOpen] = useState(false);
 
   const handleMenuSelect = (id: string) => {
     onScreenChange(id);
@@ -122,57 +121,19 @@ export function Navigation({
                 {/* Club info */}
                 <div className="ml-auto flex flex-col text-right hidden sm:flex">
                   <p className="text-xs text-blue-200 truncate">
-                    {clubNaam}
+                    🏆 {clubNaam}
                   </p>
                 </div>
               </div>
 
-              {/* Team Selector (Desktop) - Using Users2 Icon (consistent met mobiel) */}
-              {teams.length > 1 && (
-                <div className="relative hidden md:block">
-                  <button
-                    onClick={() => setDesktopTeamSelectorOpen(!desktopTeamSelectorOpen)}
-                    className="px-3 py-2 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 text-white"
-                    title="Selecteer team"
-                  >
-                    <Users2 className="w-5 h-5" />
-                    <span className="font-medium text-sm">
-                      {teams.find(t => t.teamId === selectedTeamId)?.teamNaam || 'Team'}
-                    </span>
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-
-                  {/* Team Selector Dropdown Menu */}
-                  {desktopTeamSelectorOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-56 bg-white text-gray-800 rounded-lg shadow-xl z-50">
-                      <div className="py-2">
-                        {teams.map((team) => (
-                          <button
-                            key={team.teamId}
-                            onClick={() => {
-                              onSelectTeam?.(team.teamId);
-                              setDesktopTeamSelectorOpen(false);
-                            }}
-                            className={`w-full flex items-center justify-between gap-2 px-4 py-3 transition-colors text-sm ${
-                              selectedTeamId === team.teamId
-                                ? 'bg-blue-50 text-blue-600 font-semibold border-l-4 border-blue-600'
-                                : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <Users2 className="w-4 h-4 text-blue-600" />
-                              <span>{team.teamNaam}</span>
-                            </div>
-                            {selectedTeamId === team.teamId && (
-                              <span className="text-lg">✓</span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Team Selector (Desktop) - Using Shared Component */}
+              <TeamSelectorDropdown
+                teams={teams}
+                selectedTeamId={selectedTeamId}
+                onSelectTeam={onSelectTeam}
+                variant="compact"
+                showLabel={false}
+              />
               
               {/* Rest of header */}
               
@@ -239,6 +200,57 @@ export function Navigation({
                             <span className="font-medium">Log uit</span>
                           </button>
                         )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mobile: Team Selector (compact variant - optie 3) */}
+              {teams.length > 1 && (
+                <div className="relative md:hidden">
+                  <button
+                    onClick={() => setMobileTeamSelectorOpen(!mobileTeamSelectorOpen)}
+                    className="px-2 py-1.5 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1 bg-blue-500 hover:bg-blue-700"
+                    title="Selecteer team"
+                  >
+                    <Shirt className="w-4 h-4 flex-shrink-0" />
+                    <span className="font-medium text-xs truncate max-w-[60px]">
+                      {teams.find(t => t.teamId === selectedTeamId)?.teamNaam || 'Team'}
+                    </span>
+                    {mobileTeamSelectorOpen ? (
+                      <ChevronUp className="w-3 h-3 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-3 h-3 flex-shrink-0" />
+                    )}
+                  </button>
+
+                  {/* Team Selector Dropdown Menu */}
+                  {mobileTeamSelectorOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-white text-gray-800 rounded-lg shadow-xl z-50">
+                      <div className="py-2">
+                        {teams.map((team) => (
+                          <button
+                            key={team.teamId}
+                            onClick={() => {
+                              onSelectTeam?.(team.teamId);
+                              setMobileTeamSelectorOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between gap-2 px-4 py-3 transition-colors text-sm ${
+                              selectedTeamId === team.teamId
+                                ? 'bg-blue-50 text-blue-600 font-semibold border-l-4 border-blue-600'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Shirt className="w-4 h-4 text-blue-600" />
+                              <span>{team.teamNaam}</span>
+                            </div>
+                            {selectedTeamId === team.teamId && (
+                              <span className="text-lg">✓</span>
+                            )}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -363,53 +375,7 @@ export function Navigation({
                   </div>
                 </div>
 
-                {/* Mobile: Team selector - COLLAPSIBLE in burger menu */}
-                {teams.length > 1 && (
-                  <div className="border-b border-gray-200">
-                    {/* Team Selector Header Button */}
-                    <button
-                      onClick={() => setMobileTeamSelectorOpen(!mobileTeamSelectorOpen)}
-                      className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Users2 className="w-5 h-5 text-blue-600" />
-                        <span className="font-semibold text-gray-800">Teams</span>
-                      </div>
-                      {mobileTeamSelectorOpen ? (
-                        <ChevronUp className="w-5 h-5 text-gray-600" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-600" />
-                      )}
-                    </button>
-
-                    {/* Team Selector Options - Collapsible */}
-                    {mobileTeamSelectorOpen && (
-                      <div className="px-4 py-3 bg-white space-y-1 border-t border-gray-200">
-                        {teams.map((team) => (
-                          <button
-                            key={team.teamId}
-                            onClick={() => {
-                              onSelectTeam?.(team.teamId);
-                              setMobileTeamSelectorOpen(false);
-                            }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded transition-colors text-sm ${
-                              selectedTeamId === team.teamId
-                                ? 'bg-blue-100 text-blue-600 font-semibold'
-                                : 'text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            <Users2 className="w-4 h-4 text-blue-600" />
-                            <span className="flex-1 text-left">{team.teamNaam}</span>
-                            {selectedTeamId === team.teamId && (
-                              <span className="text-lg">✓</span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
+                {/* Mobile: Team selector is nu OUT of burger menu, in navbar! */}
               </>
             )}
 

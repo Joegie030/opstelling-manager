@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Users2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Speler } from '../types';
 import InviteCoaches from '../components/InviteCoaches';
 import { getTeam } from '../firebase/firebaseService';
@@ -175,10 +175,7 @@ export default function TeamBeheer({
       {/* ========== 0. TEAM SELECTOR SECTION - COMPACT ========== */}
       {teamIds.length > 0 && (
         <div className="border-2 border-purple-400 rounded-lg p-4 sm:p-6 bg-purple-50">
-          <label className="text-sm font-semibold text-gray-700 block mb-2 flex items-center gap-2">
-            <Users2 className="w-5 h-5 text-purple-600" />
-            Selecteer Team:
-          </label>
+          <label className="text-sm font-semibold text-gray-700 block mb-2">Selecteer Team:</label>
           
           {/* ✨ Uniform Layout: Dropdown + Button (compact on mobile & desktop) */}
           <div className="flex items-center gap-2">
@@ -193,11 +190,11 @@ export default function TeamBeheer({
                 className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg bg-white hover:bg-purple-50 font-medium text-left transition-colors appearance-none cursor-pointer pr-10"
               >
                 <option value="">-- Kies een team --</option>
-                  {teams.map(team => (
-                    <option key={team.teamId} value={team.teamId}>
-                      {team.teamNaam}
-                    </option>
-                  ))}
+                {teams.map(team => (
+                  <option key={team.teamId} value={team.teamId}>
+                    🏛️ {team.teamNaam}
+                  </option>
+                ))}
               </select>
               <div className="pointer-events-none absolute right-3 top-3 text-purple-600">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,25 +203,15 @@ export default function TeamBeheer({
               </div>
             </div>
 
-            {/* Create Team Button - WITH 3-TEAM LIMIT CHECK */}
-            {(() => {
-              const canCreateTeam = teamIds.length < 3;
-              return (
-                <button
-                  onClick={() => setCreateTeamModal(true)}
-                  disabled={!canCreateTeam}
-                  title={!canCreateTeam ? "Je hebt het maximum van 3 teams bereikt" : "Maak nieuw team"}
-                  className={`px-4 py-3 rounded-lg font-bold flex items-center gap-2 transition-colors whitespace-nowrap ${
-                    canCreateTeam
-                      ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
-                      : 'bg-gray-400 text-gray-600 opacity-60 cursor-not-allowed'
-                  }`}
-                >
-                  <Plus className="w-5 h-5" />
-                  Nieuw
-                </button>
-              );
-            })()}
+            {/* ✨ "Nieuw Team" Button - Compact + button (mobile: only +, desktop: + Team) */}
+            <button
+              onClick={() => setCreateTeamModal(true)}
+              className="px-3 sm:px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold flex items-center justify-center gap-1 sm:gap-2 transition-colors shadow-sm hover:shadow-md"
+              title="Voeg nieuw team toe"
+            >
+              <Plus className="w-5 h-5 flex-shrink-0" />
+              <span className="hidden sm:inline whitespace-nowrap">Team</span>
+            </button>
           </div>
         </div>
       )}
@@ -275,24 +262,21 @@ export default function TeamBeheer({
           </div>
         </div>
 
-        {/* ✅ DELETE TEAM SECTION - Warning duidelijk, button subtiel rechts */}
+        {/* ✅ DELETE TEAM BUTTON - ALTIJD ZICHTBAAR */}
         <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-sm text-gray-700">
-              ⚠️ Wil je dit team verwijderen? Dit kan niet ongedaan gemaakt worden.
-            </p>
-            <button
-              onClick={() => {
-                if (teamId && onDeleteTeam) {
-                  onDeleteTeam(teamId);
-                }
-              }}
-              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition-colors text-sm whitespace-nowrap flex-shrink-0"
-              title="Verwijder dit team"
-            >
-              🗑️ Verwijder
-            </button>
-          </div>
+          <p className="text-sm text-gray-700 mb-3">
+            ⚠️ Wil je dit team verwijderen? Dit kan niet ongedaan gemaakt worden.
+          </p>
+          <button
+            onClick={() => {
+              if (teamId && onDeleteTeam) {
+                onDeleteTeam(teamId);
+              }
+            }}
+            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold transition-colors"
+          >
+            🗑️ Verwijder Dit Team
+          </button>
         </div>
       </div>
 
