@@ -25,7 +25,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
         naam: string;
         posities: Record<string, { 
           count: number; 
-          wins: number; 
+          wins: number;
+          draws: number;
           successRate: number;
           percentage: number;
         }>;
@@ -45,38 +46,44 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     });
 
     wedstrijden.forEach((wed, wedIdx) => {
-      let eigenDoelpunten = 0;
-      let tegenstanderDoelpunten = 0;
-      wed.kwarten.forEach(kwart => {
-        if (kwart.doelpunten) {
-          kwart.doelpunten.forEach(doelpunt => {
+      wed.kwarten.forEach(k => {
+        // Bereken kwart resultaat (win/draw/loss)
+        let eigenDoelpunten = 0;
+        let tegenstanderDoelpunten = 0;
+        
+        if (k.doelpunten) {
+          k.doelpunten.forEach(doelpunt => {
             if (doelpunt.type === 'eigen') eigenDoelpunten++;
             else tegenstanderDoelpunten++;
           });
         }
-      });
-      const teamWon = eigenDoelpunten > tegenstanderDoelpunten;
+        
+        const kwartWon = eigenDoelpunten > tegenstanderDoelpunten;
+        const kwartDraw = eigenDoelpunten === tegenstanderDoelpunten;
 
-      wed.kwarten.forEach(k => {
         Object.entries(k.opstelling).forEach(([pos, sid]) => {
           if (sid && stats[Number(sid)]) {
             if (!stats[Number(sid)].posities[pos]) {
-              stats[Number(sid)].posities[pos] = { count: 0, wins: 0, successRate: 0, percentage: 0 };
+              stats[Number(sid)].posities[pos] = { count: 0, wins: 0, draws: 0, successRate: 0, percentage: 0 };
             }
             stats[Number(sid)].posities[pos].count += 1;
-            if (teamWon) {
+            if (kwartWon) {
               stats[Number(sid)].posities[pos].wins += 1;
+            } else if (kwartDraw) {
+              stats[Number(sid)].posities[pos].draws += 1;
             }
           }
         });
         k.wissels?.forEach(w => {
           if (w.wisselSpelerId && stats[Number(w.wisselSpelerId)]) {
             if (!stats[Number(w.wisselSpelerId)].posities[w.positie]) {
-              stats[Number(w.wisselSpelerId)].posities[w.positie] = { count: 0, wins: 0, successRate: 0, percentage: 0 };
+              stats[Number(w.wisselSpelerId)].posities[w.positie] = { count: 0, wins: 0, draws: 0, successRate: 0, percentage: 0 };
             }
             stats[Number(w.wisselSpelerId)].posities[w.positie].count += 1;
-            if (teamWon) {
+            if (kwartWon) {
               stats[Number(w.wisselSpelerId)].posities[w.positie].wins += 1;
+            } else if (kwartDraw) {
+              stats[Number(w.wisselSpelerId)].posities[w.positie].draws += 1;
             }
           }
         });
@@ -90,7 +97,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
 
       Object.entries(stat.posities).forEach(([pos, data]) => {
         data.percentage = totaal > 0 ? Math.round((data.count / totaal) * 100) : 0;
-        data.successRate = data.count > 0 ? Math.round((data.wins / data.count) * 100) : 0;
+        const successCount = (data.wins || 0) + (data.draws || 0);
+        data.successRate = data.count > 0 ? Math.round((successCount / data.count) * 100) : 0;
         
         if (data.successRate > bestSuccessRate && data.count >= 2 && data.wins >= 1) {
           bestSuccessRate = data.successRate;
@@ -100,6 +108,98 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
 
       stat.bestPositie = bestPositie;
       stat.successRateBest = bestSuccessRate > 0 ? bestSuccessRate : 0;
+    });
+
+    return Object.values(stats);
+  };
+
+  // ============================================
+  // POSITIE SCORING RATE (goals per position per quarter)
+  // ============================================
+  const berekenPositieScoringRate = () => {
+    interface PositieScoring {
+      [key: number]: {
+        naam: string;
+        posities: Record<string, { 
+          kwarten: Record<string, {
+            count: number;
+            goals: number;
+          }>;
+          totalCount: number;
+          totalGoals: number;
+        }>;
+      }
+    }
+
+    const stats: PositieScoring = {};
+    spelers.forEach(s => {
+      stats[s.id] = {
+        naam: s.naam,
+        posities: {}
+      };
+    });
+
+    // Loop through wedstrijden en kwarten
+    wedstrijden.forEach((wed) => {
+      wed.kwarten.forEach((kwart) => {
+        // Collect goals scored in this quarter
+        const goalsInKwart: Record<number, number> = {};
+        if (kwart.doelpunten) {
+          kwart.doelpunten.forEach(doelpunt => {
+            if (doelpunt.type === 'eigen' && doelpunt.spelerId) {
+              goalsInKwart[doelpunt.spelerId] = (goalsInKwart[doelpunt.spelerId] || 0) + 1;
+            }
+          });
+        }
+
+        // Track player positions and goals
+        Object.entries(kwart.opstelling).forEach(([pos, sid]) => {
+          if (sid && stats[Number(sid)]) {
+            const spelerId = Number(sid);
+            if (!stats[spelerId].posities[pos]) {
+              stats[spelerId].posities[pos] = { 
+                kwarten: {},
+                totalCount: 0,
+                totalGoals: 0
+              };
+            }
+            
+            const kwartKey = `Kwart ${kwart.nummer}`;
+            if (!stats[spelerId].posities[pos].kwarten[kwartKey]) {
+              stats[spelerId].posities[pos].kwarten[kwartKey] = { count: 0, goals: 0 };
+            }
+            
+            stats[spelerId].posities[pos].kwarten[kwartKey].count += 1;
+            stats[spelerId].posities[pos].kwarten[kwartKey].goals += (goalsInKwart[spelerId] || 0);
+            stats[spelerId].posities[pos].totalCount += 1;
+            stats[spelerId].posities[pos].totalGoals += (goalsInKwart[spelerId] || 0);
+          }
+        });
+
+        // Also track substitutes (wissels)
+        kwart.wissels?.forEach(wissel => {
+          if (wissel.wisselSpelerId && stats[Number(wissel.wisselSpelerId)]) {
+            const spelerId = Number(wissel.wisselSpelerId);
+            if (!stats[spelerId].posities[wissel.positie]) {
+              stats[spelerId].posities[wissel.positie] = { 
+                kwarten: {},
+                totalCount: 0,
+                totalGoals: 0
+              };
+            }
+            
+            const kwartKey = `Kwart ${kwart.nummer}`;
+            if (!stats[spelerId].posities[wissel.positie].kwarten[kwartKey]) {
+              stats[spelerId].posities[wissel.positie].kwarten[kwartKey] = { count: 0, goals: 0 };
+            }
+            
+            stats[spelerId].posities[wissel.positie].kwarten[kwartKey].count += 1;
+            stats[spelerId].posities[wissel.positie].kwarten[kwartKey].goals += (goalsInKwart[spelerId] || 0);
+            stats[spelerId].posities[wissel.positie].totalCount += 1;
+            stats[spelerId].posities[wissel.positie].totalGoals += (goalsInKwart[spelerId] || 0);
+          }
+        });
+      });
     });
 
     return Object.values(stats);
@@ -170,33 +270,46 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       tegenstanderDoelpunten: number;
       gemiddeldEigen: number;
       gemiddeldTegenstander: number;
+      totaalDoelpunten: number;
+      maxEigen: number;
+      maxTegenstander: number;
     }
 
     const kwartStats: KwartStats[] = [
-      { kwartNummer: 1, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
-      { kwartNummer: 2, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
-      { kwartNummer: 3, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 },
-      { kwartNummer: 4, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0 }
+      { kwartNummer: 1, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0, totaalDoelpunten: 0, maxEigen: 0, maxTegenstander: 0 },
+      { kwartNummer: 2, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0, totaalDoelpunten: 0, maxEigen: 0, maxTegenstander: 0 },
+      { kwartNummer: 3, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0, totaalDoelpunten: 0, maxEigen: 0, maxTegenstander: 0 },
+      { kwartNummer: 4, eigenDoelpunten: 0, tegenstanderDoelpunten: 0, gemiddeldEigen: 0, gemiddeldTegenstander: 0, totaalDoelpunten: 0, maxEigen: 0, maxTegenstander: 0 }
     ];
 
     wedstrijden.forEach(wed => {
       wed.kwarten.forEach(kwart => {
         if (kwart.doelpunten) {
+          let kwartEigen = 0;
+          let kwartTegenstander = 0;
+          
           kwart.doelpunten.forEach(doelpunt => {
             if (doelpunt.type === 'eigen') {
               kwartStats[kwart.nummer - 1].eigenDoelpunten++;
+              kwartEigen++;
             } else {
               kwartStats[kwart.nummer - 1].tegenstanderDoelpunten++;
+              kwartTegenstander++;
             }
           });
+          
+          // Track maximum per wedstrijd
+          kwartStats[kwart.nummer - 1].maxEigen = Math.max(kwartStats[kwart.nummer - 1].maxEigen, kwartEigen);
+          kwartStats[kwart.nummer - 1].maxTegenstander = Math.max(kwartStats[kwart.nummer - 1].maxTegenstander, kwartTegenstander);
         }
       });
     });
 
-    const aantalWedstrijden = wedstrijden.length || 1;
+    const aantalWedstrijden = wedstrijden.filter(w => !w.isAfgelast).length || 1;
     kwartStats.forEach(stat => {
       stat.gemiddeldEigen = Math.round((stat.eigenDoelpunten / aantalWedstrijden) * 10) / 10;
       stat.gemiddeldTegenstander = Math.round((stat.tegenstanderDoelpunten / aantalWedstrijden) * 10) / 10;
+      stat.totaalDoelpunten = stat.eigenDoelpunten + stat.tegenstanderDoelpunten;
     });
 
     return kwartStats;
@@ -254,10 +367,14 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     };
   };
 
-  const berekenLaatste3 = () => {
-    const laatste3 = wedstrijden.slice(-3);
+  const berekenLaatste5 = () => {
+    const gefilterdWedstrijden = wedstrijden
+      .filter(w => !w.isAfgelast)
+      .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
+      .slice(-5)
+      .reverse();
     
-    interface Laatste3Stat {
+    interface Laatste5Stat {
       datum: string;
       tegenstander: string;
       thuisUit: string;
@@ -266,9 +383,9 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       resultaat: string;
     }
     
-    const stats: Laatste3Stat[] = [];
+    const stats: Laatste5Stat[] = [];
 
-    laatste3.forEach(wed => {
+    gefilterdWedstrijden.forEach(wed => {
       let eigenDoelpunten = 0;
       let tegenstanderDoelpunten = 0;
 
@@ -296,21 +413,29 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     });
 
     let trend = 'stable';
-    if (stats.length >= 2) {
-      const recentWins = stats.filter(s => s.resultaat === 'gewonnen').length;
-      const olderWins = wedstrijden.slice(-6, -3).filter(w => {
-        let eigen = 0, tegen = 0;
-        w.kwarten.forEach(k => {
-          k.doelpunten?.forEach(d => {
-            if (d.type === 'eigen') eigen++;
-            else tegen++;
-          });
-        });
-        return eigen > tegen;
-      }).length;
+    if (stats.length >= 3) {
+      // Voetbalpunten: Win=3, Gelijk=1, Verlies=0
+      const berekenPunten = (wedstrijdenArray: Laatste3Stat[]) => {
+        return wedstrijdenArray.reduce((total, w) => {
+          if (w.resultaat === 'gewonnen') return total + 3;
+          if (w.resultaat === 'gelijkspel') return total + 1;
+          return total; // verlies = 0
+        }, 0);
+      };
 
-      if (recentWins > olderWins) trend = 'improving';
-      else if (recentWins < olderWins) trend = 'declining';
+      // Stats is chronologisch (oud→nieuw): [UVV, Kampong, PVC, J011-8, VVJ]
+      // Maar op scherm zien we OMGEKEERD: VVJ bovenaan, UVV onderaan
+      // Reverse zodat we kunnen vergelijken wat je ZIET
+      const reversedStats = [...stats].reverse(); // Nu: [VVJ, J011-8, PVC, Kampong, UVV]
+      
+      // Bovenaan (nieuwste 3): VVJ + J011-8 + PVC
+      const nieuwstePunten = berekenPunten(reversedStats.slice(0, 3));
+      
+      // Onderaan (oudste 3): PVC + Kampong + UVV (overlap op PVC)
+      const oudstePunten = berekenPunten(reversedStats.slice(-3));
+
+      if (nieuwstePunten < oudstePunten) trend = 'improving';
+      else if (nieuwstePunten > oudstePunten) trend = 'declining';
     }
 
     return {
@@ -365,10 +490,11 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
 
   const speelminutenDetail = berekenSpeelminutenDetail(wedstrijden, spelers);
   const positieSuccessRate = berekenPositieSuccessRate();
+  const positieScoringRate = berekenPositieScoringRate();
   const themaSucces = berekenThemaSucces();
   const doelpuntenPerKwart = berekenDoelpuntenPerKwart();
   const thuisUitTrend = berekenThuisUitTrend();
-  const laatste3 = berekenLaatste3();
+  const laatste5 = berekenLaatste5();
   const waarschuwingen = berekenWaarschuwingen();
   const teamPrestaties = berekenTeamPrestaties(wedstrijden);
   const topscorers = berekenTopscorers(wedstrijden, spelers);
@@ -535,7 +661,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
           {/* ========== POSITIE SUCCESS RATE ========== */}
           <div className="border-2 border-green-400 rounded-lg p-4 bg-green-50">
             <h3 className="text-lg font-bold mb-2 flex items-center gap-2">🏆 Positie Success Rate</h3>
-            <p className="text-xs text-gray-600 mb-3">Meest succesvolle positie per speler (% wins als team)</p>
+            <p className="text-xs text-gray-600 mb-3">Meest succesvolle positie per speler (% kwarten gewonnen of gelijkgespeeld)</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {positieSuccessRate.sort((a, b) => a.naam.localeCompare(b.naam)).map(stat => {
                 const totalPosities = Object.values(stat.posities).reduce((sum, p) => sum + p.count, 0);
@@ -557,7 +683,14 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                         <div className="border-t pt-2 mt-2">
                           <div className="text-xs font-semibold text-gray-700 mb-1">Alle posities:</div>
                           {Object.entries(stat.posities)
-                            .sort((a, b) => b[1].successRate - a[1].successRate)
+                            .sort((a, b) => {
+                              // Eerst op success rate (descending)
+                              if (b[1].successRate !== a[1].successRate) {
+                                return b[1].successRate - a[1].successRate;
+                              }
+                              // Daarna op count (descending - meest gespeeld bovenaan)
+                              return b[1].count - a[1].count;
+                            })
                             .map(([pos, data]) => (
                               <div key={pos} className="flex justify-between text-xs text-gray-600 mb-1">
                                 <span>{pos}: {data.count}x</span>
@@ -569,6 +702,35 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                     ) : (
                       <p className="text-xs text-gray-500">Nog onvoldoende data</p>
                     )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ========== POSITIE SCORING RATE ========== */}
+          <div className="border-2 border-yellow-400 rounded-lg p-4 bg-yellow-50">
+            <h3 className="text-lg font-bold mb-2 flex items-center gap-2">⚽ Positie Scoring Rate</h3>
+            <p className="text-xs text-gray-600 mb-3">Doelpunten per positie per speler</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {positieScoringRate.sort((a, b) => a.naam.localeCompare(b.naam)).map(stat => {
+                const totalPosities = Object.values(stat.posities).reduce((sum, p) => sum + p.totalCount, 0);
+                if (totalPosities === 0) return null;
+
+                return (
+                  <div key={stat.naam} className="border rounded-lg p-3 bg-white">
+                    <h4 className="font-bold text-sm mb-2">{stat.naam}</h4>
+                    <div className="space-y-1 text-xs">
+                      {Object.entries(stat.posities)
+                        .filter(([pos, data]) => data.totalGoals > 0)
+                        .sort((a, b) => b[1].totalGoals - a[1].totalGoals)
+                        .map(([pos, data]) => (
+                          <div key={pos} className="flex justify-between items-center">
+                            <span className="text-gray-700">{pos}: {data.totalCount}x</span>
+                            <span className="font-semibold text-yellow-600">{data.totalGoals} ⚽</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 );
               })}
@@ -623,12 +785,30 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
                   <h4 className="font-bold text-sm text-center mb-2">Kwart {kwart.kwartNummer}</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-xs">Wij:</span>
+                      <span className="text-xs">Wij (gem):</span>
                       <span className="font-bold text-green-600">{kwart.gemiddeldEigen}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-xs">Zij:</span>
+                      <span className="text-xs">Zij (gem):</span>
                       <span className="font-bold text-red-600">{kwart.gemiddeldTegenstander}</span>
+                    </div>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs font-semibold">Totaal voor:</span>
+                        <span className="font-bold text-green-600">{kwart.eigenDoelpunten}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs font-semibold">Totaal tegen:</span>
+                        <span className="font-bold text-red-600">{kwart.tegenstanderDoelpunten}</span>
+                      </div>
+                      <div className="flex justify-between text-xs mt-1">
+                        <span>Meeste voor:</span>
+                        <span className="font-semibold text-green-600">{kwart.maxEigen}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span>Meeste tegen:</span>
+                        <span className="font-semibold text-red-600">{kwart.maxTegenstander}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -686,21 +866,21 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
             </div>
           </div>
 
-          {/* ========== LAATSTE 3 WEDSTRIJDEN ========== */}
+          {/* ========== LAATSTE 5 WEDSTRIJDEN ========== */}
           <div className="border-2 border-cyan-400 rounded-lg p-4 bg-cyan-50">
-            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">📋 Laatste {Math.min(3, wedstrijden.length)} Wedstrijden</h3>
+            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">📋 Laatste {Math.min(5, wedstrijden.filter(w => !w.isAfgelast).length)} Wedstrijden</h3>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs text-gray-600">Trend:</span>
               <span className={`font-bold text-sm ${
-                laatste3.trend === 'improving' ? 'text-green-600' : 
-                laatste3.trend === 'declining' ? 'text-red-600' : 'text-gray-600'
+                laatste5.trend === 'improving' ? 'text-green-600' : 
+                laatste5.trend === 'declining' ? 'text-red-600' : 'text-gray-600'
               }`}>
-                {laatste3.trend === 'improving' ? '📈 Verbetert!' : 
-                 laatste3.trend === 'declining' ? '📉 Verslechtert' : '➡️ Stabiel'}
+                {laatste5.trend === 'improving' ? '📈 Verbetert!' : 
+                 laatste5.trend === 'declining' ? '📉 Verslechtert' : '➡️ Stabiel'}
               </span>
             </div>
             <div className="space-y-2">
-              {laatste3.wedstrijden.map((wed, idx) => {
+              {laatste5.wedstrijden.map((wed, idx) => {
                 const result = formatResultaat(wed.eigenDoelpunten, wed.tegenstanderDoelpunten);
                 const resultaatColor = result.color;
                 const resultaatEmoji = result.emoji;

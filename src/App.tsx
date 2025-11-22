@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { LogOut, Loader } from 'lucide-react';
-import { Speler, Wedstrijd, Doelpunt, formaties } from './types';
+import { Speler, Wedstrijd, Doelpunt, formaties, CoachInvite } from './types';
 import TeamBeheer from './screens/TeamBeheer.tsx';
 import Statistieken from './screens/Statistieken.tsx';
 import WedstrijdOverzicht from './screens/WedstrijdOverzicht.tsx';
 import WedstrijdOpstelling from './screens/WedstrijdOpstelling.tsx';  
 import Instellingen from './screens/Instellingen.tsx';
 import AuthScreen from './screens/AuthScreen.tsx';
-import InviteCoaches from './components/InviteCoaches.tsx';
+import CoachBeheer from './screens/CoachBeheer.tsx';
+import AcceptInviteScreen from './screens/AcceptInviteScreen.tsx';
 import { Navigation, DEFAULT_MENU_ITEMS } from './components/Navigation';
 import { 
   getCurrentCoach, 
@@ -22,7 +23,14 @@ import {
   createTeam,
   deleteTeam,
   deleteWedstrijd,
-  deleteSpeler
+  deleteSpeler,
+  inviteCoach,
+  getInviteById,
+  acceptInvite,
+  revokeInvite,
+  getTeamCoaches,
+  removeCoachFromTeam,
+  getPendingInvitesByTeam
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
 import { laadTeamInfo, TeamInfo } from './utils/teamData';
@@ -54,11 +62,23 @@ function App() {
     tegenstander: string;
   }>({ open: false, wedstrijd: null, datum: '', tegenstander: '' });
 
+  // ✨ Coach Beheer state (v3.1)
+  const [pendingInvites, setPendingInvites] = useState<CoachInvite[]>([]);
+  const [teamCoaches, setTeamCoaches] = useState<Coach[]>([]);
+  const [inviteIdFromUrl, setInviteIdFromUrl] = useState<string | null>(null);
+
   // ✨ EFFECT 1: Check auth on mount
   useEffect(() => {
     const unsubscribe = getCurrentCoach((coach) => {
       setCurrentCoach(coach);
       setAuthLoading(false);
+
+      // Check if we have an invite to accept
+      if (inviteIdFromUrl) {
+        console.log('🎯 Invite found - show AcceptInviteScreen');
+        setHuidigScherm('accept-invite');
+        return; // Don't create/select team yet
+      }
 
       // Selecteer eerste team automatisch, ANDERS toon TeamBeheer
       if (coach && coach.teamIds.length > 0) {
@@ -69,11 +89,32 @@ function App() {
         setHuidigScherm('team');
         console.log('ℹ️ Geen team gevonden - toon TeamBeheer');
       }
-    });
+  });
 
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, [inviteIdFromUrl]);
 
+  // ✨ EFFECT 1.5: Parse invite from URL on mount
+  useEffect(() => {
+    const path = window.location.pathname;
+    const match = path.match(/\/accept-invite\/(.+)$/);
+    if (match) {
+      const inviteId = match[1];
+      console.log('📥 Found invite in URL:', inviteId);
+      setInviteIdFromUrl(inviteId);
+      setHuidigScherm('accept-invite');
+    }
+  }, []); 
+
+  // ✨ EFFECT: 1.6: Auto-accept invite after auth if URL has inviteId
+  useEffect(() => {
+    if (currentCoach && inviteIdFromUrl && !authLoading) {
+      console.log('🔄 Auto-accepting invite for:', inviteIdFromUrl);
+      handleAcceptInvite(inviteIdFromUrl);
+    }
+  }, [currentCoach, inviteIdFromUrl, authLoading]);
+
+  
   // ✨ EFFECT 2: Load all team info when coach changes
   // 🎯 This populates the teams dropdown with team names
   useEffect(() => {
@@ -130,6 +171,30 @@ function App() {
       return () => clearTimeout(saveTimeout);
     }
   }, [clubNaam, teamNaam]);
+
+  // ✨ EFFECT 7: Load pending invites when team selected
+  useEffect(() => {
+    if (selectedTeamId) {
+      getPendingInvitesByTeam(selectedTeamId)
+        .then(setPendingInvites)
+        .catch(error => console.error('❌ Error loading pending invites:', error));
+    }
+  }, [selectedTeamId]);
+
+  // ✨ EFFECT 8: Load team coaches when team selected
+  useEffect(() => {
+    if (selectedTeamId) {
+      getTeamCoaches(selectedTeamId)
+        .then(coaches => {
+          console.log('✅ Loaded coaches:', coaches.length);
+          setTeamCoaches(coaches);
+        })
+        .catch(error => {
+          console.error('⚠️ Error loading team coaches (non-blocking):', error);
+          setTeamCoaches([]); // Set empty list on error
+        });
+    }
+  }, [selectedTeamId]);
 
   // ✨ Laad team data van Firestore (seizoenId verwijderd!)
   const loadTeamData = async (teamId: string) => {
@@ -408,6 +473,56 @@ function App() {
     }
   };
 
+  // ✨ Coach Beheer handlers (v3.1)
+  const handleRevokeInvite = async (inviteId: string) => {
+    try {
+      await revokeInvite(inviteId);
+      // Reload pending invites
+      if (selectedTeamId) {
+        const updated = await getPendingInvitesByTeam(selectedTeamId);
+        setPendingInvites(updated);
+      }
+    } catch (error: any) {
+      console.error('❌ Error revoking invite:', error);
+      alert('Fout bij intrekken invite: ' + error.message);
+    }
+  };
+
+  const handleRemoveCoach = async (coachUid: string) => {
+    try {
+      if (!selectedTeamId || !currentCoach) return;
+      
+      await removeCoachFromTeam(selectedTeamId, coachUid, currentCoach.uid);
+      
+      // Reload team coaches
+      const updated = await getTeamCoaches(selectedTeamId);
+      setTeamCoaches(updated);
+    } catch (error: any) {
+      console.error('❌ Error removing coach:', error);
+      alert('Fout bij verwijderen coach: ' + error.message);
+    }
+  };
+
+  const handleAcceptInvite = async (inviteId: string) => {
+    try {
+      if (!currentCoach) return;
+      
+      const invite = await getInviteById(inviteId);
+      if (!invite) throw new Error('Invite niet gevonden of verlopen');
+      
+      await acceptInvite(inviteId, currentCoach.uid, invite.teamId);
+      
+      // Add team to selected teams
+      setSelectedTeamId(invite.teamId);
+      setHuidigScherm('team');
+      
+      alert('✅ Je bent succesvol toegevoegd aan het team!');
+    } catch (error: any) {
+      console.error('❌ Error accepting invite:', error);
+      alert('Fout bij accepteren invite: ' + error.message);
+    }
+  };
+
   // Loading state
   if (authLoading) {
     return (
@@ -448,6 +563,13 @@ function App() {
       }}
     >
       {/* ✅ STAP 1: WEDSTRIJDEN SCHERM - FIXED PROPS */}
+      {huidigScherm === 'accept-invite' && inviteIdFromUrl && (
+        <AcceptInviteScreen
+          inviteId={inviteIdFromUrl}
+          onAccept={handleAcceptInvite}
+        />
+      )}
+
       {huidigScherm === 'wedstrijden' && (
         <WedstrijdOverzicht
           wedstrijden={wedstrijden}
@@ -653,6 +775,10 @@ function App() {
               setSelectedTeamId(newTeamId);
             }}
             onDeleteTeam={handleDeleteTeam}
+            pendingInvites={pendingInvites}
+            teamCoaches={teamCoaches}
+            onRevokeInvite={handleRevokeInvite}
+            onRemoveCoach={handleRemoveCoach}
           />
 
           {/* Coaches Invitatie is in TeamBeheer component */}

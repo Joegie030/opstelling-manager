@@ -98,3 +98,19 @@ export const KWART_OBSERVATIES = [
   { id: 'goedverdedigd', label: 'Goed verdedigd', emoji: '🛡️' },
   { id: 'goedeinzet', label: 'Goede inzet', emoji: '💪' }
 ];
+
+// ============================================
+// COACH INVITES (v3.1)
+// ============================================
+
+export interface CoachInvite {
+  inviteId: string;
+  teamId: string;
+  email: string;
+  invitedBy: string;
+  createdAt: string;
+  expiresAt: string;          // 7 days from createdAt
+  status: 'pending' | 'accepted' | 'rejected';
+  teamNaam: string;           // For display in accept flow
+  clubNaam: string;           // For display in accept flow
+}

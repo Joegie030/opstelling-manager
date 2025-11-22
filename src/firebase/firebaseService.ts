@@ -25,7 +25,7 @@ import {
   QueryConstraint,
   orderBy
 } from 'firebase/firestore';
-import { Speler, Wedstrijd } from '../types';
+import { Speler, Wedstrijd, CoachInvite } from '../types';
 
 // Firebase Config
 const firebaseConfig = {
@@ -477,21 +477,33 @@ export const getStatistieken = async (teamId: string): Promise<any> => {
 
 export const inviteCoach = async (teamId: string, email: string, invitedByUid: string): Promise<string> => {
   try {
+    const team = await getTeam(teamId);
+    if (!team) throw new Error('Team not found');
+
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+    
     const inviteId = `invite_${Date.now()}`;
+    
     const invite: CoachInvite = {
       inviteId,
       teamId,
       email,
       invitedBy: invitedByUid,
-      createdAt: new Date().toISOString(),
-      status: 'pending'
+      createdAt: now,
+      expiresAt,
+      status: 'pending',
+      teamNaam: team.teamNaam,
+      clubNaam: team.clubNaam
     };
 
     await setDoc(doc(db, 'invites', inviteId), invite);
+    console.log('✅ Invite created:', inviteId);
+    
     return inviteId;
-  } catch (error) {
-    console.error('Error inviting coach:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Error creating invite:', error);
+    throw new Error(error.message);
   }
 };
 
@@ -507,6 +519,35 @@ export const getPendingInvites = async (email: string): Promise<CoachInvite[]> =
   } catch (error) {
     console.error('Error getting invites:', error);
     return [];
+  }
+};
+
+/**
+ * Get invite by ID and check if expired
+ */
+export const getInviteById = async (inviteId: string): Promise<CoachInvite | null> => {
+  try {
+    const inviteDoc = await getDoc(doc(db, 'invites', inviteId));
+    
+    if (!inviteDoc.exists()) {
+      return null;
+    }
+
+    const invite = inviteDoc.data() as CoachInvite;
+    
+    // Check if expired
+    const now = new Date();
+    const expiresAt = new Date(invite.expiresAt);
+    
+    if (now > expiresAt) {
+      console.log('⏰ Invite expired');
+      return null; // Return null if expired
+    }
+
+    return invite;
+  } catch (error: any) {
+    console.error('❌ Error getting invite:', error);
+    throw new Error(error.message);
   }
 };
 
@@ -695,3 +736,134 @@ export const deleteTeam = async (uid: string, teamId: string): Promise<void> => 
     throw error;
   }
 };
+
+/**
+ * Revoke/delete an invite
+ */
+export const revokeInvite = async (inviteId: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(db, 'invites', inviteId));
+    console.log('✅ Invite revoked');
+  } catch (error: any) {
+    console.error('❌ Error revoking invite:', error);
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Get all coaches for a team
+ */
+export const getTeamCoaches = async (teamId: string): Promise<Coach[]> => {
+  try {
+    const teamDoc = await getDoc(doc(db, 'teams', teamId));
+    if (!teamDoc.exists()) {
+      console.log('⚠️ Team not found');
+      return [];
+    }
+
+    const team = teamDoc.data() as Team;
+    if (!team.coaches || team.coaches.length === 0) {
+      return [];
+    }
+
+    const coaches: Coach[] = [];
+    for (const coachUid of team.coaches) {
+      const coachDoc = await getDoc(doc(db, 'coaches', coachUid));
+      if (coachDoc.exists()) {
+        coaches.push(coachDoc.data() as Coach);
+      }
+    }
+
+    console.log('✅ Loaded coaches:', coaches.length);
+    return coaches;
+  } catch (error: any) {
+    console.error('❌ Error getting team coaches:', error);
+    return []; // Return empty instead of throwing
+  }
+};
+
+/**
+ * Remove a coach from a team
+ * Prevents self-removal
+ */
+export const removeCoachFromTeam = async (
+  teamId: string,
+  coachUid: string,
+  currentUserUid: string
+): Promise<void> => {
+  try {
+    // Prevent self-removal
+    if (coachUid === currentUserUid) {
+      throw new Error('Je kan jezelf niet uit het team verwijderen');
+    }
+
+    const batch = writeBatch(db);
+
+    // 1. Remove from team.coaches
+    const teamDoc = await getDoc(doc(db, 'teams', teamId));
+    if (teamDoc.exists()) {
+      const team = teamDoc.data() as Team;
+      const updatedCoaches = team.coaches.filter(uid => uid !== coachUid);
+      batch.update(doc(db, 'teams', teamId), {
+        coaches: updatedCoaches
+      });
+    }
+
+    // 2. Remove from coach.teamIds
+    const coachDoc = await getDoc(doc(db, 'coaches', coachUid));
+    if (coachDoc.exists()) {
+      const coach = coachDoc.data() as Coach;
+      const updatedTeamIds = coach.teamIds.filter(id => id !== teamId);
+      batch.update(doc(db, 'coaches', coachUid), {
+        teamIds: updatedTeamIds
+      });
+    }
+
+    await batch.commit();
+    console.log('✅ Coach removed from team');
+  } catch (error: any) {
+    console.error('❌ Error removing coach:', error);
+    throw new Error(error.message);
+  }
+};
+
+/**
+ * Get all pending invites for a team
+ */
+export const getPendingInvitesByTeam = async (teamId: string): Promise<CoachInvite[]> => {
+  try {
+    const q = query(
+      collection(db, 'invites'),
+      where('teamId', '==', teamId),
+      where('status', '==', 'pending')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const invites: CoachInvite[] = [];
+    
+    querySnapshot.forEach(doc => {
+      const invite = doc.data() as CoachInvite;
+      // Only include if not expired
+      const now = new Date();
+      const expiresAt = new Date(invite.expiresAt);
+      if (now < expiresAt) {
+        invites.push(invite);
+      }
+    });
+
+    return invites;
+  } catch (error: any) {
+    console.error('❌ Error getting pending invites:', error);
+    throw new Error(error.message);
+  }
+};
+
+
+// ============================================
+// COACH INVITES FUNCTIES (v3.1)
+// ============================================
+
+/**
+ * Create a coach invite link
+ * Returns the invite ID (voor link construction)
+ */

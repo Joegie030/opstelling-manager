@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Users2 } from 'lucide-react';
-import { Speler } from '../types';
-import InviteCoaches from '../components/InviteCoaches';
+import { Speler, CoachInvite } from '../types';
+import CoachBeheer from './CoachBeheer';
 import { getTeam } from '../firebase/firebaseService';
 import { laadTeamInfo, TeamInfo } from '../utils/teamData';
 
@@ -25,6 +25,12 @@ interface TeamBeheerProps {
   onSelectTeam?: (teamId: string) => void;
   onCreateTeam?: (clubNaam: string, teamNaam: string) => Promise<void>;
   onDeleteTeam?: (teamId: string) => Promise<void>;
+
+  // ✨ NEW: Coach Beheer props (v3.1)
+  pendingInvites?: CoachInvite[];
+  teamCoaches?: any[];
+  onRevokeInvite?: (inviteId: string) => Promise<void>;
+  onRemoveCoach?: (coachUid: string) => Promise<void>;
 }
 
 export default function TeamBeheer({
@@ -41,9 +47,14 @@ export default function TeamBeheer({
   teams = [],
   onSelectTeam,
   onCreateTeam,
-  onDeleteTeam
+  onDeleteTeam,
+  // ✨ NEW destructuring:
+  pendingInvites = [],
+  teamCoaches = [],
+  onRevokeInvite,
+  onRemoveCoach
 }: TeamBeheerProps) {
-  const [activeTab, setActiveTab] = useState<'vast' | 'gast'>('vast');
+  const [activeTab, setActiveTab] = useState<'vast' | 'gast' | 'coaches'>('vast');
   const [nieuwSpelerNaam, setNieuwSpelerNaam] = useState('');
   const [nieuwGastTeam, setNieuwGastTeam] = useState('');
   
@@ -324,9 +335,10 @@ export default function TeamBeheer({
           </button>
         </div>
 
-        {/* INPUT FORM */}
-        <div className="mb-6 p-4 bg-white rounded-lg border-2 border-green-200">
-          {activeTab === 'vast' ? (
+        {/* INPUT FORM - Only show for vast and gast tabs */}
+        {(activeTab === 'vast' || activeTab === 'gast') && (
+          <div className="mb-6 p-4 bg-white rounded-lg border-2 border-green-200">
+            {activeTab === 'vast' ? (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Speler Naam</label>
               <div className="flex gap-2">
@@ -382,6 +394,7 @@ export default function TeamBeheer({
             </div>
           )}
         </div>
+        )}
 
         {/* SPELERSLIJST DISPLAY */}
         <div className="space-y-2">
@@ -451,10 +464,19 @@ export default function TeamBeheer({
         </div>
       </div>
 
-      {/* ========== 3. COACHES BEHEREN ========== */}
-      {teamId && currentCoach && (
-        <InviteCoaches teamId={teamId} currentCoach={currentCoach} />
-      )}
+      {/* ========== 3. COACHES MANAGEMENT ========== */}
+      <div className="border-2 border-blue-400 rounded-lg p-6 bg-blue-50 mt-6">
+        <CoachBeheer
+          teamId={teamId || ''}
+          teamNaam={teamNaam}
+          clubNaam={clubNaam}
+          currentCoach={currentCoach}
+          pendingInvites={pendingInvites}
+          teamCoaches={teamCoaches}
+          onRevokeInvite={onRevokeInvite || (async () => {})}
+          onRemoveCoach={onRemoveCoach || (async () => {})}
+        />
+      </div>
     </div>
   );
 }
