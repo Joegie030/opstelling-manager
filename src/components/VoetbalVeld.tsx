@@ -12,6 +12,7 @@ interface VoetbalVeldProps {
   onSelectSpeler?: (positie: string) => void;
   isEditable?: boolean;
   teamNaam?: string;
+  variantFormatie?: string;  // 🆕 Optionele variant formatie voor dit kwart
 }
 
 export default function VoetbalVeld({
@@ -20,8 +21,12 @@ export default function VoetbalVeld({
   spelers,
   onSelectSpeler,
   isEditable = false,
-  teamNaam = 'Team'
+  teamNaam = 'Team',
+  variantFormatie  // 🆕 Accept variantFormatie prop
 }: VoetbalVeldProps) {
+  
+  // 🆕 Bepaal effectieve formatie: gebruik variantFormatie als beschikbaar, anders formatie
+  const effectiveFormatie = variantFormatie || formatie;
   
   const getSpelerNaam = (spelerId: string): string => {
     if (!spelerId) return '---';
@@ -147,7 +152,7 @@ export default function VoetbalVeld({
       {/* Header */}
       <div className="text-center mb-2 sm:mb-3">
         <h3 className="text-base sm:text-lg font-bold text-white">{teamNaam}</h3>
-        <p className="text-xs text-green-100">Opstelling {formatie}</p>
+        <p className="text-xs text-green-100">Opstelling {effectiveFormatie}</p>
       </div>
 
       {/* HALF VELD - Van middenlijn tot achterlijn */}
@@ -185,9 +190,9 @@ export default function VoetbalVeld({
 
         {/* Spelers */}
         <div className="relative w-full h-full">
-          {formatie === '8x8' 
+          {effectiveFormatie === '8x8' 
             ? render8x8() 
-            : formatie === '6x6-dobbelsteen'
+            : effectiveFormatie === '6x6-dobbelsteen'
             ? render6x6Dobbelsteen()
             : render6x6Vliegtuig()
           }

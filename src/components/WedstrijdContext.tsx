@@ -13,6 +13,7 @@ interface WedstrijdContextType {
   onUpdateThuisUit: (thuisUit: 'thuis' | 'uit') => void;
   onToggleAfwezig: (spelerId: number) => void;
   onUpdateOpstelling: (kwartIndex: number, positie: string, spelerId: string) => void;
+  onUpdateKwartFormatie: (kwartIndex: number, variant: string, strategie: 'smartmap' | 'reset') => void;  // 🆕
   onVoegWisselToe: (kwartIndex: number) => void;
   onUpdateWissel: (kwartIndex: number, wisselIndex: number, veld: 'positie' | 'wisselSpelerId', waarde: string) => void;
   onVerwijderWissel: (kwartIndex: number, wisselIndex: number) => void;

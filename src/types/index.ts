@@ -28,6 +28,7 @@ export interface Kwart {
   themaBeoordelingen?: Record<string, 'goed' | 'beter' | null>;
   observaties?: string[];
   regelCheckWarnings?: string[];  // Validator feedback (keeper-wissel, dubbele bank, etc)
+  variantFormatie?: '6x6-vliegtuig' | '6x6-dobbelsteen';  // Formatie variant voor dit kwart (alleen 6x6, optioneel)
 }
 
 export interface Wedstrijd {

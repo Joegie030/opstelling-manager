@@ -34,6 +34,7 @@ import {
 } from './firebase/firebaseService';
 import { getFormatieNaam } from './utils/formatters';
 import { laadTeamInfo, TeamInfo } from './utils/teamData';
+import { bepaalNieuweOpstelling } from './utils/formatieMapping';  // 🆕
 
 function App() {
   // Auth state
@@ -523,7 +524,61 @@ function App() {
     }
   };
 
-  // Loading state
+  // 🆕 Update kwart formatie-variant
+  const handleUpdateKwartFormatie = async (
+    wedstrijdId: number,
+    kwartIndex: number,
+    nieuweVariant: '6x6-vliegtuig' | '6x6-dobbelsteen',
+    strategie: 'smartmap' | 'reset'
+  ) => {
+    try {
+      console.log('📍 handleUpdateKwartFormatie:', { wedstrijdId, kwartIndex, nieuweVariant, strategie });
+
+      // Vind de wedstrijd
+      const wedstrijdIndex = wedstrijden.findIndex(w => w.id === wedstrijdId);
+      if (wedstrijdIndex === -1) {
+        console.error('❌ Wedstrijd niet gevonden');
+        return;
+      }
+
+      // Update wedstrijd state
+      const updatedWedstrijden = [...wedstrijden];
+      const updatedWedstrijd = { ...updatedWedstrijden[wedstrijdIndex] };
+      
+      // Update kwart met nieuwe variantFormatie
+      updatedWedstrijd.kwarten = updatedWedstrijd.kwarten.map((kwart, idx) => {
+        if (idx === kwartIndex) {
+          return {
+            ...kwart,
+            variantFormatie: nieuweVariant
+          };
+        }
+        return kwart;
+      });
+
+      // Update timestamp
+      updatedWedstrijd.updatedAt = new Date().toISOString();
+
+      // Update state
+      updatedWedstrijden[wedstrijdIndex] = updatedWedstrijd;
+      setWedstrijden(updatedWedstrijden);
+      setHuidigeWedstrijd(updatedWedstrijd);
+
+      // Save to Firebase
+      const selectedTeam = teams.find(t => t.teamId === selectedTeamId);
+      if (selectedTeam) {
+        try {
+          await saveWedstrijden(selectedTeam.teamId, updatedWedstrijden);
+          console.log('✅ Wedstrijd opgeslagen in Firebase met nieuwe variantFormatie');
+        } catch (error) {
+          console.error('⚠️ Fout bij Firebase save:', error);
+        }
+      }
+    } catch (error) {
+      console.error('❌ ERROR in handleUpdateKwartFormatie:', error);
+      alert('Fout bij formatie-wissel: ' + (error instanceof Error ? error.message : 'Onbekend'));
+    }
+  };
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -741,6 +796,9 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
+          onUpdateKwartFormatie={(kwartIndex: number, variant: string, strategie: 'smartmap' | 'reset') =>  // 🆕
+            handleUpdateKwartFormatie(huidgeWedstrijd.id, kwartIndex, variant as '6x6-vliegtuig' | '6x6-dobbelsteen', strategie)
+          }
           onSluiten={() => setHuidigScherm('wedstrijden')}
         />
       )}

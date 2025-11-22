@@ -7,6 +7,8 @@ import { WedstrijdHeader } from '../components/WedstrijdHeader';
 import { WedstrijdSamenvatting } from '../components/WedstrijdSamenvatting';
 import VoetbalVeld from '../components/VoetbalVeld';
 import { berekenWedstrijdStats, berekenTotaalKeeperBeurten } from '../utils/calculations';
+import { FormatieWisselModal } from '../components/FormatieWisselModal';  // 🆕
+import { bepaalNieuweOpstelling } from '../utils/formatieMapping';  // 🆕
 
 interface Props {
   wedstrijd: Wedstrijd;
@@ -30,6 +32,7 @@ interface Props {
   onUpdateWedstrijdThemas: (themas: string[]) => void;
   onUpdateKwartThemaBeoordeling: (kwartIndex: number, themaId: string, beoordeling: 'goed' | 'beter' | null) => void;
   onUpdateKwartObservaties: (kwartIndex: number, observaties: string[]) => void;
+  onUpdateKwartFormatie: (kwartIndex: number, variant: string, strategie: 'smartmap' | 'reset') => void;  // 🆕
   onSluiten: () => void;
 }
 
@@ -55,10 +58,24 @@ export default function WedstrijdOpstelling({
   onUpdateWedstrijdThemas,
   onUpdateKwartThemaBeoordeling,
   onUpdateKwartObservaties,
+  onUpdateKwartFormatie,  // 🆕
   onSluiten
 }: Props) {
   
   const [selectieModal, setSelectieModal] = useState<{ open: boolean; kwartIndex: number; positie: string }>({ open: false, kwartIndex: 0, positie: '' });
+  
+  // 🆕 State voor formatie wissel modal
+  const [formatieModal, setFormatieModal] = useState<{
+    open: boolean;
+    kwartIndex: number;
+    vanFormatie: '6x6-vliegtuig' | '6x6-dobbelsteen';
+    naarFormatie: '6x6-vliegtuig' | '6x6-dobbelsteen';
+  }>({
+    open: false,
+    kwartIndex: 0,
+    vanFormatie: '6x6-vliegtuig',
+    naarFormatie: '6x6-dobbelsteen'
+  });
   
   // 🛡️ DEFENSIVE: Log callbacks at mount
   console.log('🟦 WedstrijdOpstelling mounted with props:', {
@@ -73,6 +90,66 @@ export default function WedstrijdOpstelling({
   });
   
   const posities = formaties[wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8'];
+
+  // 🆕 Helper functions voor formatie wissel
+  /**
+   * Bepaal effectieve formatie voor een kwart
+   */
+  const getEffectiveFormatie = (kwartIndex: number): '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8' => {
+    const kwart = wedstrijd.kwarten[kwartIndex];
+    if (kwart.variantFormatie) {
+      return kwart.variantFormatie;
+    }
+    return wedstrijd.formatie as '6x6-vliegtuig' | '6x6-dobbelsteen' | '8x8';
+  };
+
+  /**
+   * Open formatie wissel modal
+   */
+  const openFormatieModal = (kwartIndex: number) => {
+    const huidigeFormatie = getEffectiveFormatie(kwartIndex);
+    
+    if (huidigeFormatie === '8x8') {
+      alert('8x8 formatie kan niet gewisseld worden');
+      return;
+    }
+    
+    const naarFormatie = huidigeFormatie === '6x6-vliegtuig' 
+      ? '6x6-dobbelsteen'
+      : '6x6-vliegtuig';
+
+    setFormatieModal({
+      open: true,
+      kwartIndex,
+      vanFormatie: huidigeFormatie as '6x6-vliegtuig' | '6x6-dobbelsteen',
+      naarFormatie
+    });
+  };
+
+  /**
+   * Handle formatie wissel bevestiging
+   */
+  const handleFormatieWisselBevestigen = (strategie: 'smartmap' | 'reset') => {
+    const { kwartIndex, vanFormatie, naarFormatie } = formatieModal;
+    const huidigOpstelling = wedstrijd.kwarten[kwartIndex].opstelling;
+
+    // Bepaal nieuwe opstelling op basis van strategie
+    const nieuweOpstelling = bepaalNieuweOpstelling(
+      vanFormatie,
+      naarFormatie,
+      huidigOpstelling,
+      strategie
+    );
+
+    // Call parent handler
+    onUpdateKwartFormatie(kwartIndex, naarFormatie, strategie);
+
+    // Update opstelling
+    onUpdateKwartOpstelling(kwartIndex, nieuweOpstelling);
+
+    // Sluit modal
+    setFormatieModal({ ...formatieModal, open: false });
+  };
 
   const getPositieLayout = () => {
     const formatie = wedstrijd.formatie === '6x6' ? '6x6-vliegtuig' : wedstrijd.formatie;
@@ -504,6 +581,7 @@ export default function WedstrijdOpstelling({
     onUpdateWedstrijdType,
     onToggleAfwezig,
     onUpdateOpstelling,
+    onUpdateKwartFormatie,  // 🆕
     onVoegWisselToe,
     onUpdateWissel,
     onVerwijderWissel,
@@ -533,10 +611,23 @@ export default function WedstrijdOpstelling({
           return (
             <div key={kwartIndex} className="border-2 border-green-400 rounded-lg overflow-hidden bg-green-50">
               {/* HEADER */}
-              <div className="bg-green-100 border-b-2 border-green-400 p-4">
+              <div className="bg-green-100 border-b-2 border-green-400 p-4 flex items-center justify-between">
                 <h3 className="font-bold flex items-center gap-2 text-sm sm:text-base text-green-900">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5" />Kwart {kwart.nummer} ({kwart.minuten} min)
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Kwart {kwart.nummer} ({kwart.minuten} min)
                 </h3>
+                
+                {/* 🆕 Dropdown voor 6x6 formatie-variant */}
+                {(wedstrijd.formatie === '6x6-vliegtuig' || wedstrijd.formatie === '6x6-dobbelsteen') ? (
+                  <button
+                    onClick={() => openFormatieModal(kwartIndex)}
+                    className="px-3 py-1 text-xs sm:text-sm bg-white border-2 border-green-400 text-green-700 font-semibold rounded hover:bg-green-50 transition-colors flex items-center gap-1"
+                    title="Wijzig formatie-variant voor dit kwart"
+                  >
+                    {getEffectiveFormatie(kwartIndex) === '6x6-vliegtuig' ? '✈️' : '🎲'} 
+                    {getEffectiveFormatie(kwartIndex) === '6x6-vliegtuig' ? 'Vliegtuig' : 'Dobbelsteen'}
+                  </button>
+                ) : null}
               </div>
               
               {/* CONTENT */}
@@ -552,6 +643,7 @@ export default function WedstrijdOpstelling({
                   teamNaam={teamNaam}
                   isEditable={true}
                   onSelectSpeler={(positie) => openSelectieModal(kwartIndex, positie)}
+                  variantFormatie={kwart.variantFormatie}  // 🆕 Pass variantFormatie
                 />
               </div>
               
@@ -1143,6 +1235,15 @@ export default function WedstrijdOpstelling({
           </div>
         )}
       </div>
+
+      {/* 🆕 Formatie Wissel Modal */}
+      <FormatieWisselModal
+        isOpen={formatieModal.open}
+        vanFormatie={formatieModal.vanFormatie}
+        naarFormatie={formatieModal.naarFormatie}
+        onConfirm={handleFormatieWisselBevestigen}
+        onCancel={() => setFormatieModal({ ...formatieModal, open: false })}
+      />
     </WedstrijdProvider>
   );
 }
