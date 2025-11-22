@@ -368,9 +368,12 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
   };
 
   const berekenLaatste5 = () => {
-    const gefilterdWedstrijden = wedstrijden.filter(w => !w.isAfgelast).slice(-5);
+    const gefilterdWedstrijden = wedstrijden
+      .filter(w => !w.isAfgelast)
+      .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
+      .slice(-5);
     
-    interface Laatste3Stat {
+    interface Laatste5Stat {
       datum: string;
       tegenstander: string;
       thuisUit: string;
@@ -379,7 +382,7 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
       resultaat: string;
     }
     
-    const stats: Laatste3Stat[] = [];
+    const stats: Laatste5Stat[] = [];
 
     gefilterdWedstrijden.forEach(wed => {
       let eigenDoelpunten = 0;
