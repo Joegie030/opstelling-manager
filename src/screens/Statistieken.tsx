@@ -371,7 +371,8 @@ export default function Statistieken({ spelers, wedstrijden }: Props) {
     const gefilterdWedstrijden = wedstrijden
       .filter(w => !w.isAfgelast)
       .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
-      .slice(-5);
+      .slice(-5)
+      .reverse();
     
     interface Laatste5Stat {
       datum: string;
