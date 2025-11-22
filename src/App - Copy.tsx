@@ -526,20 +526,24 @@ function App() {
 
   // 🆕 Update kwart formatie-variant
   const handleUpdateKwartFormatie = async (
+    wedstrijdId: number,
     kwartIndex: number,
     nieuweVariant: '6x6-vliegtuig' | '6x6-dobbelsteen',
     strategie: 'smartmap' | 'reset'
   ) => {
     try {
-      console.log('📍 handleUpdateKwartFormatie:', { kwartIndex, nieuweVariant, strategie });
+      console.log('📍 handleUpdateKwartFormatie:', { wedstrijdId, kwartIndex, nieuweVariant, strategie });
 
-      if (!huidgeWedstrijd) {
-        console.error('❌ Geen huidgeWedstrijd');
+      // Vind de wedstrijd
+      const wedstrijdIndex = wedstrijden.findIndex(w => w.id === wedstrijdId);
+      if (wedstrijdIndex === -1) {
+        console.error('❌ Wedstrijd niet gevonden');
         return;
       }
 
       // Update wedstrijd state
-      const updatedWedstrijd = { ...huidgeWedstrijd };
+      const updatedWedstrijden = [...wedstrijden];
+      const updatedWedstrijd = { ...updatedWedstrijden[wedstrijdIndex] };
       
       // Update kwart met nieuwe variantFormatie
       updatedWedstrijd.kwarten = updatedWedstrijd.kwarten.map((kwart, idx) => {
@@ -556,14 +560,16 @@ function App() {
       updatedWedstrijd.updatedAt = new Date().toISOString();
 
       // Update state
-      setHuidgeWedstrijd(updatedWedstrijd);
-      setWedstrijden(wedstrijden.map(w => w.id === updatedWedstrijd.id ? updatedWedstrijd : w));
+      updatedWedstrijden[wedstrijdIndex] = updatedWedstrijd;
+      setWedstrijden(updatedWedstrijden);
+      setHuidigeWedstrijd(updatedWedstrijd);
 
       // Save to Firebase
-      if (selectedTeamId) {
+      const selectedTeam = teams.find(t => t.teamId === selectedTeamId);
+      if (selectedTeam) {
         try {
-          await saveWedstrijden(selectedTeamId, [updatedWedstrijd]);
-          console.log('✅ Wedstrijd opgeslagen in Firebase');
+          await saveWedstrijden(selectedTeam.teamId, updatedWedstrijden);
+          console.log('✅ Wedstrijd opgeslagen in Firebase met nieuwe variantFormatie');
         } catch (error) {
           console.error('⚠️ Fout bij Firebase save:', error);
         }
@@ -791,7 +797,7 @@ function App() {
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
           onUpdateKwartFormatie={(kwartIndex: number, variant: string, strategie: 'smartmap' | 'reset') =>  // 🆕
-            handleUpdateKwartFormatie(kwartIndex, variant as '6x6-vliegtuig' | '6x6-dobbelsteen', strategie)
+            handleUpdateKwartFormatie(huidgeWedstrijd.id, kwartIndex, variant as '6x6-vliegtuig' | '6x6-dobbelsteen', strategie)
           }
           onSluiten={() => setHuidigScherm('wedstrijden')}
         />
