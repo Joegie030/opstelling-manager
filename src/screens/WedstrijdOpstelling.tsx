@@ -32,7 +32,7 @@ interface Props {
   onUpdateWedstrijdThemas: (themas: string[]) => void;
   onUpdateKwartThemaBeoordeling: (kwartIndex: number, themaId: string, beoordeling: 'goed' | 'beter' | null) => void;
   onUpdateKwartObservaties: (kwartIndex: number, observaties: string[]) => void;
-  onUpdateKwartFormatie: (kwartIndex: number, variant: string, strategie: 'smartmap' | 'reset') => void;  // 🆕
+  onUpdateKwartFormatieEnOpstelling: (kwartIndex: number, nieuweVariant: string, nieuweOpstelling: Record<string, string>, strategie: 'smartmap' | 'reset') => void;  // ✨ COMBINED callback
   onSluiten: () => void;
 }
 
@@ -58,7 +58,7 @@ export default function WedstrijdOpstelling({
   onUpdateWedstrijdThemas,
   onUpdateKwartThemaBeoordeling,
   onUpdateKwartObservaties,
-  onUpdateKwartFormatie,  // 🆕
+  onUpdateKwartFormatieEnOpstelling,  // ✨ NEW
   onSluiten
 }: Props) {
   
@@ -141,11 +141,13 @@ export default function WedstrijdOpstelling({
       strategie
     );
 
-    // Call parent handler
-    onUpdateKwartFormatie(kwartIndex, naarFormatie, strategie);
-
-    // Update opstelling
-    onUpdateKwartOpstelling(kwartIndex, nieuweOpstelling);
+    // ✨ CLEAN: Roep ÉÉN callback aan met alles
+    onUpdateKwartFormatieEnOpstelling(
+      kwartIndex, 
+      naarFormatie, 
+      nieuweOpstelling, 
+      strategie
+    );
 
     // Sluit modal
     setFormatieModal({ ...formatieModal, open: false });

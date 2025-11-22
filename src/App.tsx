@@ -524,38 +524,42 @@ function App() {
     }
   };
 
-  // 🆕 Update kwart formatie-variant
-  const handleUpdateKwartFormatie = async (
-    kwartIndex: number,
-    nieuweVariant: '6x6-vliegtuig' | '6x6-dobbelsteen',
+  // ✨ CLEAN FIX: Combined handler voor formatie + opstelling (atoom update)
+  const handleUpdateKwartFormatieEnOpstelling = async (
+    kwartIndex: number, 
+    nieuweVariant: string, 
+    nieuweOpstelling: Record<string, string>,
     strategie: 'smartmap' | 'reset'
   ) => {
     try {
-      console.log('📍 handleUpdateKwartFormatie:', { kwartIndex, nieuweVariant, strategie });
+      console.log('🔄 handleUpdateKwartFormatieEnOpstelling called:', {
+        kwartIndex,
+        nieuweVariant,
+        strategie
+      });
 
       if (!huidgeWedstrijd) {
         console.error('❌ Geen huidgeWedstrijd');
         return;
       }
 
-      // Update wedstrijd state
-      const updatedWedstrijd = { ...huidgeWedstrijd };
-      
-      // Update kwart met nieuwe variantFormatie
-      updatedWedstrijd.kwarten = updatedWedstrijd.kwarten.map((kwart, idx) => {
-        if (idx === kwartIndex) {
-          return {
-            ...kwart,
-            variantFormatie: nieuweVariant
-          };
-        }
-        return kwart;
-      });
+      // ✨ ATOMIC UPDATE: Update BOTH variantFormatie AND opstelling in ONE state update
+      const updatedWedstrijd = {
+        ...huidgeWedstrijd,
+        kwarten: huidgeWedstrijd.kwarten.map((kwart, idx) => {
+          if (idx === kwartIndex) {
+            return {
+              ...kwart,
+              variantFormatie: nieuweVariant,  // ← Set variant
+              opstelling: nieuweOpstelling      // ← Set opstelling
+            };
+          }
+          return kwart;
+        }),
+        updatedAt: new Date().toISOString()
+      };
 
-      // Update timestamp
-      updatedWedstrijd.updatedAt = new Date().toISOString();
-
-      // Update state
+      // Update state (single batch update = no intermediate renders)
       setHuidgeWedstrijd(updatedWedstrijd);
       setWedstrijden(wedstrijden.map(w => w.id === updatedWedstrijd.id ? updatedWedstrijd : w));
 
@@ -563,16 +567,17 @@ function App() {
       if (selectedTeamId) {
         try {
           await saveWedstrijden(selectedTeamId, [updatedWedstrijd]);
-          console.log('✅ Wedstrijd opgeslagen in Firebase');
+          console.log('✅ Wedstrijd met formatie & opstelling opgeslagen in Firebase');
         } catch (error) {
           console.error('⚠️ Fout bij Firebase save:', error);
         }
       }
     } catch (error) {
-      console.error('❌ ERROR in handleUpdateKwartFormatie:', error);
+      console.error('❌ ERROR in handleUpdateKwartFormatieEnOpstelling:', error);
       alert('Fout bij formatie-wissel: ' + (error instanceof Error ? error.message : 'Onbekend'));
     }
   };
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -790,8 +795,8 @@ function App() {
             setHuidgeWedstrijd(updated);
             setWedstrijden(wedstrijden.map(w => w.id === updated.id ? updated : w));
           }}
-          onUpdateKwartFormatie={(kwartIndex: number, variant: string, strategie: 'smartmap' | 'reset') =>  // 🆕
-            handleUpdateKwartFormatie(kwartIndex, variant as '6x6-vliegtuig' | '6x6-dobbelsteen', strategie)
+          onUpdateKwartFormatieEnOpstelling={(kwartIndex: number, nieuweVariant: string, nieuweOpstelling: Record<string, string>, strategie: 'smartmap' | 'reset') =>  // ✨ NEW
+            handleUpdateKwartFormatieEnOpstelling(kwartIndex, nieuweVariant, nieuweOpstelling, strategie)
           }
           onSluiten={() => setHuidigScherm('wedstrijden')}
         />
