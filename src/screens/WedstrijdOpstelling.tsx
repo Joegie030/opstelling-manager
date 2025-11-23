@@ -583,7 +583,7 @@ export default function WedstrijdOpstelling({
     onUpdateWedstrijdType,
     onToggleAfwezig,
     onUpdateOpstelling,
-    onUpdateKwartFormatie,  // 🆕
+    onUpdateKwartFormatieEnOpstelling,  // ✨ UPDATED: was onUpdateKwartFormatie
     onVoegWisselToe,
     onUpdateWissel,
     onVerwijderWissel,
