@@ -1,5 +1,5 @@
+import React from 'react';
 import { X } from 'lucide-react';
-import { getFormatieNaam } from '../utils/formatters';
 
 interface FormatieWisselModalProps {
   isOpen: boolean;
@@ -18,128 +18,123 @@ export function FormatieWisselModal({
 }: FormatieWisselModalProps) {
   if (!isOpen) return null;
 
+  const getFormatieNaam = (formatie: string): string => {
+    const namen: Record<string, string> = {
+      '6x6-vliegtuig': '✈️ 6x6 Vliegtuig',
+      '6x6-dobbelsteen': '🎲 6x6 Dobbelsteen',
+    };
+    return namen[formatie] || formatie;
+  };
+
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onCancel}
-      />
-
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b-2 border-green-300 bg-green-50 p-4">
-            <h2 className="text-lg font-bold text-green-900">Formatie wijzigen?</h2>
-            <button
-              onClick={onCancel}
-              className="p-1 hover:bg-green-100 rounded transition-colors"
-            >
-              <X className="w-5 h-5 text-green-700" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            {/* Info */}
-            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
-              <p className="text-sm text-gray-700 mb-3">
-                Je wisselt van formatie variant:
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-sm font-semibold text-gray-900">
-                  {getFormatieNaam(vanFormatie)}
-                </span>
-                <span className="text-gray-500">→</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {getFormatieNaam(naarFormatie)}
-                </span>
-              </div>
-            </div>
-
-            {/* Question */}
-            <div>
-              <p className="text-sm font-semibold text-gray-900 mb-4">
-                Hoe wil je de opstelling aanpassen?
-              </p>
-
-              {/* Option 1: Smart Map */}
-              <label className="flex items-start gap-3 p-4 border-2 border-green-300 rounded-lg hover:bg-green-50 cursor-pointer mb-3 transition-colors">
-                <input
-                  type="radio"
-                  name="strategie"
-                  value="smartmap"
-                  defaultChecked
-                  className="mt-1 w-4 h-4 text-green-600"
-                />
-                <div className="flex-1">
-                  <p className="font-semibold text-sm text-gray-900">
-                    🎯 Smart-map spelers
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Spelers worden intelligent herpositioneerd:
-                  </p>
-                  <ul className="text-xs text-gray-600 mt-2 ml-3 space-y-1">
-                    <li>• Keeper blijft Keeper</li>
-                    <li>• Verdedigers naar vergelijkbare posities</li>
-                    <li>• Aanvallers aanpassen aan formatie</li>
-                  </ul>
-                </div>
-              </label>
-
-              {/* Option 2: Reset */}
-              <label className="flex items-start gap-3 p-4 border-2 border-orange-300 rounded-lg hover:bg-orange-50 cursor-pointer transition-colors">
-                <input
-                  type="radio"
-                  name="strategie"
-                  value="reset"
-                  className="mt-1 w-4 h-4 text-orange-600"
-                />
-                <div className="flex-1">
-                  <p className="font-semibold text-sm text-gray-900">
-                    🔄 Reset (behalve Keeper)
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Alleen Keeper blijft staan, alle veldspelers leegmaken
-                  </p>
-                  <ul className="text-xs text-gray-600 mt-2 ml-3 space-y-1">
-                    <li>• Keeper: behouden</li>
-                    <li>• Veldspelers: legen</li>
-                    <li>• Sneller opnieuw instellen</li>
-                  </ul>
-                </div>
-              </label>
-            </div>
-
-            {/* Note */}
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3">
-              <p className="text-xs text-yellow-800">
-                💡 <strong>Let op:</strong> Wissels en doelpunten blijven behouden. Alleen de opstelling wordt aangepast.
-              </p>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex gap-3 p-4 border-t-2 border-gray-200 bg-gray-50">
-            <button
-              onClick={onCancel}
-              className="flex-1 px-4 py-2 text-gray-700 bg-white border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Afbreken
-            </button>
-            <button
-              onClick={() => {
-                const strategie = (document.querySelector('input[name="strategie"]:checked') as HTMLInputElement)?.value as 'smartmap' | 'reset';
-                onConfirm(strategie || 'smartmap');
-              }}
-              className="flex-1 px-4 py-2 text-white bg-green-500 border-2 border-green-600 rounded-lg font-semibold hover:bg-green-600 transition-colors"
-            >
-              Bevestigen
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      {/* ✨ RESPONSIVE: max-h-[90vh] allows scrolling on mobile */}
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        
+        {/* HEADER */}
+        <div className="sticky top-0 bg-white border-b-2 border-green-400 p-4 flex items-center justify-between">
+          <h2 className="font-bold text-lg text-green-900">Formatie wijzigen?</h2>
+          <button
+            onClick={onCancel}
+            className="p-1 hover:bg-gray-100 rounded transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-600" />
+          </button>
         </div>
+
+        {/* CONTENT */}
+        <div className="p-4 space-y-4">
+          
+          {/* FORMATIE INFO */}
+          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3">
+            <p className="text-sm text-blue-900 font-medium mb-2">Je wisselt van formatie variant:</p>
+            <div className="flex items-center gap-2 justify-center text-base sm:text-lg font-bold text-blue-700">
+              <span>{getFormatieNaam(vanFormatie)}</span>
+              <span className="text-gray-600">→</span>
+              <span>{getFormatieNaam(naarFormatie)}</span>
+            </div>
+          </div>
+
+          {/* OPTIES */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-gray-700">
+              Hoe wil je de opstelling aanpassen?
+            </p>
+
+            {/* OPTIE 1: SMART-MAP */}
+            <label className="flex items-start gap-3 p-3 rounded-lg border-2 border-green-400 bg-green-50 cursor-pointer hover:bg-green-100 transition-colors">
+              <input
+                type="radio"
+                name="strategie"
+                value="smartmap"
+                defaultChecked
+                className="mt-1 w-4 h-4"
+              />
+              <div className="flex-1">
+                <div className="font-semibold text-green-900">Smart-map spelers</div>
+                <div className="text-xs text-green-700 mt-1 space-y-1">
+                  <p>Spelers worden intelligent herpositioneerd:</p>
+                  <ul className="list-disc list-inside ml-1 space-y-0.5">
+                    <li>Keeper blijft Keeper</li>
+                    <li>Verdedigers naar vergelijkbare posities</li>
+                    <li>Aanvallers aanpassen aan formatie</li>
+                  </ul>
+                </div>
+              </div>
+            </label>
+
+            {/* OPTIE 2: RESET */}
+            <label className="flex items-start gap-3 p-3 rounded-lg border-2 border-orange-400 bg-orange-50 cursor-pointer hover:bg-orange-100 transition-colors">
+              <input
+                type="radio"
+                name="strategie"
+                value="reset"
+                className="mt-1 w-4 h-4"
+              />
+              <div className="flex-1">
+                <div className="font-semibold text-orange-900">Reset (behave Keeper)</div>
+                <div className="text-xs text-orange-700 mt-1 space-y-1">
+                  <p>Alleen keeper blijft staan, rest leeg:</p>
+                  <ul className="list-disc list-inside ml-1 space-y-0.5">
+                    <li>Keeper behouden</li>
+                    <li>Veldspelers leegmaken</li>
+                    <li>Sneller opnieuw instellen</li>
+                  </ul>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          {/* WARNING */}
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+            <p className="text-xs text-yellow-800">
+              <span className="font-semibold">⚠️ Let op:</span> Wissels en doelpunten blijven behouden. Alleen de opstelling wordt aangepast.
+            </p>
+          </div>
+
+        </div>
+
+        {/* FOOTER - Sticky at bottom */}
+        <div className="sticky bottom-0 bg-white border-t-2 border-gray-300 p-4 flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex-1 px-4 py-2.5 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium transition-colors text-sm"
+          >
+            Afbreken
+          </button>
+          <button
+            onClick={() => {
+              const form = document.querySelector('input[name="strategie"]:checked') as HTMLInputElement;
+              const strategie = form?.value as 'smartmap' | 'reset';
+              onConfirm(strategie || 'smartmap');
+            }}
+            className="flex-1 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors text-sm"
+          >
+            Bevestigen
+          </button>
+        </div>
+
       </div>
-    </>
+    </div>
   );
 }
